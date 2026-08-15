@@ -5,7 +5,7 @@
 
 | Day | 讲义 | 类型 | 主命题 |
 |---|---|---|---|
-| **1** | [`lesson01.md`](lesson01.md) | 概念 | 如何拆解一个现代 AI Benchmark(以 AA Intelligence Index v4.1.1 为例) |
+| **1** | [`lesson01.md`](lesson01.md) | **源码** | **Benchmark Anatomy:主流 agent benchmark 是怎么实现的**(6 repo 实测解剖;AA 仅作 10 分钟地图) |
 | **2** | [`lesson02.md`](lesson02.md) | 概念 | 组件级 evaluation 与 trace:任务失败时,**哪一环**失败了? |
 | **3** | [`lesson03.md`](lesson03.md) | 写作 | 为什么 agent 分数不是 model 分数 |
 | **4** | [`lesson04.md`](lesson04.md) | 编码 | 这个分数能不能信?Bernoulli · 标准误 · Wilson CI |

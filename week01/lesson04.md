@@ -162,7 +162,7 @@ $$
 
 ### 任务 1(必做):跑通并读懂
 ```bash
-cd ~/sci/agent-eval-course && python3 labs/wilson.py
+python3 labs/wilson.py
 ```
 逐段对照本文的四组输出,确认你能解释**每一行为什么长这样**。
 

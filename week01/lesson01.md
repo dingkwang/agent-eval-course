@@ -11,7 +11,7 @@
 
 > 📎 **素材锚点(全部已 clone 到本地,下文每条路径都实测存在)**
 > `code/terminal-bench` · `code/tau2-bench` · `code/OSWorld-V2` · `code/gorilla`(BFCL)
-> `~/sci/agent-sandbox-course/code/SWE-bench` · `docs/aa-*.md`(仅作地图)
+> `../agent-sandbox-course/code/SWE-bench` · `docs/aa-*.md`(仅作地图)
 
 ---
 
@@ -154,7 +154,7 @@ Tool selection eval   ≠   Full agent trajectory eval
 
 ## 五、SWE-bench —— 第一次见到 executable evaluation
 
-**任务实例的真实字段**(从 `~/sci/agent-sandbox-course/code/SWE-bench/swebench/` 源码里 grep 出来的,**实测**):
+**任务实例的真实字段**(从 `../agent-sandbox-course/code/SWE-bench/swebench/` 源码里 grep 出来的,**实测**):
 ```
 instance_id · repo · base_commit · environment_setup_commit
 problem_statement · patch · test_patch
@@ -269,7 +269,7 @@ dataset/ · registry/ · handlers/ · llms/ · cli/
 
 ### 6.4 Hands-on:先跑 oracle,把 model 变量排除掉
 
-Terminal-Bench 2.1 通过 **Harbor** 运行(Harbor 已在 `~/sci/llm-rl-course/code/harbor`):
+Terminal-Bench 2.1 通过 **Harbor** 运行(Harbor 已在 `../llm-rl-course/code/harbor`):
 
 ```bash
 harbor run -d terminal-bench/terminal-bench-2-1 -a oracle -l 1
@@ -382,7 +382,7 @@ Task instruction → VLM/Agent → screenshot → mouse/keyboard
 ```
 task config · initialization · VM lifecycle · observation · action · evaluator · reset
 ```
-> ⟹ 这已经非常接近**真正的 agent sandbox**(与 `~/sci/agent-sandbox-course` 直接接续)。
+> ⟹ 这已经非常接近**真正的 agent sandbox**(与 `../agent-sandbox-course` 直接接续)。
 
 📖 论文:`papers/webarena.pdf`(同类 browser 环境)· OSWorld 论文在 repo 内(`paper.pdf`)
 

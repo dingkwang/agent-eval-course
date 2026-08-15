@@ -2,7 +2,7 @@
 ## 从排行榜、统计推断到 RL Environment
 
 > **12 周 · 每周 5 天 · 每天约 1 小时**。素材清单见 `MATERIALS.md`,第 1 周逐日见 `week01/PLAN.md`。
-> 姊妹课:`~/sci/agent-sandbox-course`(Secure Agent Environments)· `~/sci/llm-rl-course`(LLM RL → PPO → GRPO)。
+> 姊妹课:`../agent-sandbox-course`(Secure Agent Environments)· `../llm-rl-course`(LLM RL → PPO → GRPO)。
 
 ---
 

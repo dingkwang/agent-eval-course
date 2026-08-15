@@ -69,7 +69,7 @@ tool call 怎么解析(格式错了重试还是判死?)
 
 ### 4. Environment(环境)
 Terminal-Bench 跑在 **E2B sandbox**;τ³-Banking 跑在带约 700 份政策文档的模拟银行后台。环境的**版本、镜像、网络可达性、依赖**全都影响结果。
-> 跨课呼应:`~/sci/agent-sandbox-course/docs/agentic/anthropic-infra-noise.md` —— **runtime 配置本身能让 agentic coding eval 成绩变化数个百分点**。runtime 已经是被测内容的一部分。
+> 跨课呼应:`../agent-sandbox-course/docs/agentic/anthropic-infra-noise.md` —— **runtime 配置本身能让 agentic coding eval 成绩变化数个百分点**。runtime 已经是被测内容的一部分。
 
 ### 5. Budget(预算)
 已核验的三个真实预算:

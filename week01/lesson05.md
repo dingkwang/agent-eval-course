@@ -105,7 +105,7 @@
 **防御方向**:**hidden tests**(agent 不可读)· verifier 与 workspace 物理隔离 · 限制 wall-clock。
 
 > 📌 这三列直通 **Week 7(evaluation integrity)** 和 **Week 10(reward hacking)**。
-> 跨课呼应:`~/sci/agent-sandbox-course` 的核心原则 —— **verifier 必须在 agent 够不到的地方**(独立 verifier sandbox)。
+> 跨课呼应:`../agent-sandbox-course` 的核心原则 —— **verifier 必须在 agent 够不到的地方**(独立 verifier sandbox)。
 
 ---
 

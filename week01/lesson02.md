@@ -3,7 +3,7 @@
 
 **Week 1 Day 2** · 建议 60 分钟
 
-> 📎 **素材锚点**:`papers/survey_agent_eval_2025.pdf`(*A Survey on Evaluation of LLM-based Agents*, arXiv 2503.16416)· DeepLearning.AI *Evaluating AI Agents* 前半部分(在线,可选)· 跨课复用 `~/sci/agent-sandbox-course/docs/agentic/anthropic-demystifying-evals.md`
+> 📎 **素材锚点**:`papers/survey_agent_eval_2025.pdf`(*A Survey on Evaluation of LLM-based Agents*, arXiv 2503.16416)· DeepLearning.AI *Evaluating AI Agents* 前半部分(在线,可选)· 跨课复用 `../agent-sandbox-course/docs/agentic/anthropic-demystifying-evals.md`
 
 ---
 

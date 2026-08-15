@@ -57,12 +57,12 @@ https://artificialanalysis.ai/agents/coding-agents
 ## 🔗 跨课复用(不重复下载)
 | 资源 | 位置 | 用在 |
 |---|---|---|
-| **Harbor**(Terminal-Bench 团队 eval infra;`--n-concurrent`、Daytona/Modal、rewardkit、RL rollouts) | `~/sci/llm-rl-course/code/harbor` | W6 · W7 · W10 |
-| **Inspect AI**(task/solver/scorer + sandbox lifecycle) | `~/sci/agent-sandbox-course/code/inspect_ai` | W6 · W9 |
-| **SWE-bench harness** | `~/sci/agent-sandbox-course/code/SWE-bench` | W7 · W8 |
-| **Anthropic *Demystifying evals for AI agents*** | `~/sci/agent-sandbox-course/docs/agentic/anthropic-demystifying-evals.md` | W1 · W9 |
-| **Anthropic *Quantifying infrastructure noise*** | `~/sci/agent-sandbox-course/docs/agentic/anthropic-infra-noise.md` | W9 · W12 |
-| sandbox / microVM / cgroups 全套 | `~/sci/agent-sandbox-course/docs/` | W7 |
+| **Harbor**(Terminal-Bench 团队 eval infra;`--n-concurrent`、Daytona/Modal、rewardkit、RL rollouts) | `../llm-rl-course/code/harbor` | W6 · W7 · W10 |
+| **Inspect AI**(task/solver/scorer + sandbox lifecycle) | `../agent-sandbox-course/code/inspect_ai` | W6 · W9 |
+| **SWE-bench harness** | `../agent-sandbox-course/code/SWE-bench` | W7 · W8 |
+| **Anthropic *Demystifying evals for AI agents*** | `../agent-sandbox-course/docs/agentic/anthropic-demystifying-evals.md` | W1 · W9 |
+| **Anthropic *Quantifying infrastructure noise*** | `../agent-sandbox-course/docs/agentic/anthropic-infra-noise.md` | W9 · W12 |
+| sandbox / microVM / cgroups 全套 | `../agent-sandbox-course/docs/` | W7 |
 
 ## 🌐 在线(未下载)
 | 资源 | 原因 |

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 4 课 · 这个分数能不能信</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{
+  --paper:#EDEFF2; --panel:#F8FAFB; --panel-2:#E4E9ED; --rule:#C9D2D8;
+  --ink:#131A20; --soft:#5A6672; --faint:#8A95A0;
+  --deep:#0E1A22; --signal:#C8501C; --probe:#2B5F9E; --pass:#34734A;
+  --shadow:0 1px 0 rgba(19,26,32,.04), 0 16px 40px -24px rgba(19,26,32,.45);
+}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Instrument Sans",system-ui,sans-serif;font-size:16.5px;line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--probe)}
+code,kbd{font-family:"JetBrains Mono",monospace;font-size:.88em;
+  background:var(--panel-2);padding:.08em .38em;border-radius:3px}
+pre{background:var(--deep);color:#DCE3E8;border-radius:8px;padding:16px 18px;overflow-x:auto;
+  font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.72;box-shadow:var(--shadow)}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+/* ---- masthead ---- */
+.mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
+.mast .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;
+  padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--soft)}
+.mast .id b{color:var(--signal);font-weight:500}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap}
+.mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
+  color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
+.mast nav a:hover{border-color:var(--rule);color:var(--ink)}
+.mast nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* ---- hero ---- */
+.hero{padding:62px 0 8px}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--signal);display:inline-flex;align-items:center;gap:11px}
+.eyebrow::before{content:"";width:30px;height:2px;background:var(--signal)}
+h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,74px);
+  letter-spacing:-.025em;line-height:.97;margin:18px 0 12px}
+.thesis{font-size:18px;color:var(--ink);max-width:38em;margin:0}
+.thesis b{color:var(--signal)}
+.subhead{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(15px,2vw,19px);
+  color:var(--soft);margin:0 0 18px}
+
+/* ---- signature: depth cross-section ---- */
+.strata{margin:34px 0 6px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow)}
+.strata .cap{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.strata .cap span:last-child{color:#93A2AE}
+.layer{display:grid;grid-template-columns:132px 1fr 300px;gap:0;align-items:center;
+  border-top:1px solid var(--rule);background:var(--panel);
+  transition:background .18s}
+.layer:first-of-type{border-top:none}
+.layer:hover{background:#fff}
+.layer .nm{font-family:"Archivo",sans-serif;font-weight:600;font-size:15px;padding:13px 16px;
+  border-right:1px solid var(--rule)}
+.layer .flow{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);padding:13px 16px}
+.layer .note{font-size:13px;color:var(--soft);padding:13px 16px;border-left:1px solid var(--rule)}
+.layer .bar{display:block;height:3px;background:var(--probe);border-radius:2px;margin-top:7px;
+  transform-origin:left;animation:grow .7s cubic-bezier(.2,.7,.3,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.waterline{display:grid;grid-template-columns:132px 1fr;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.1em}
+.waterline span{padding:7px 16px}
+.waterline span:first-child{color:var(--signal);border-right:1px solid #24333D}
+.stratanote{font-size:13.5px;color:var(--soft);margin:11px 2px 0}
+
+/* ---- lesson cards ---- */
+.sec{padding:50px 0 0}
+.sec h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(21px,3.2vw,29px);
+  letter-spacing:-.015em;margin:0 0 4px}
+.sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
+.cards{display:grid;gap:12px}
+a.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+  text-decoration:none;color:var(--ink);background:var(--panel);
+  border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
+  transition:transform .16s,box-shadow .16s,background .16s}
+a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
+.card .num{font-family:"Archivo",sans-serif;font-weight:700;font-size:30px;color:var(--signal);
+  line-height:1;letter-spacing:-.03em}
+.card .t{display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin-bottom:3px}
+.card .d{display:block;font-size:14px;color:var(--soft)}
+.card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+
+/* ---- lesson page ---- */
+.page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
+.rail{position:sticky;top:22px;font-size:13.5px}
+.rail .rt{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
+  border-left:2px solid var(--rule);line-height:1.4}
+.rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.doc{min-width:0}
+.doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:26px;letter-spacing:-.015em;
+  margin:44px 0 12px;padding-top:16px;border-top:1.5px solid var(--ink)}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin:28px 0 8px}
+.doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
+.doc p{margin:12px 0}
+.doc ul,.doc ol{padding-left:22px}
+.doc li{margin:5px 0}
+.doc blockquote{margin:16px 0;padding:13px 18px;background:var(--panel);
+  border-left:4px solid var(--signal);border-radius:0 8px 8px 0;color:var(--ink)}
+.doc blockquote p{margin:6px 0}
+.doc blockquote h3{margin-top:2px}
+.doc table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.doc th,.doc td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+.doc thead th{background:var(--ink);color:var(--paper);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.doc tbody tr:last-child td{border-bottom:none}
+.doc tbody tr:nth-child(even){background:#fff}
+.doc hr{border:none;border-top:1px solid var(--rule);margin:30px 0}
+.doc details{background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+  padding:11px 15px;margin:14px 0}
+.doc summary{cursor:pointer;font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px;color:var(--probe)}
+.doc img{max-width:100%}
+
+.pager{display:flex;justify-content:space-between;gap:14px;margin:52px 0 0;
+  border-top:1.5px solid var(--ink);padding-top:18px;flex-wrap:wrap}
+.pager a{font-family:"JetBrains Mono",monospace;font-size:13px;text-decoration:none;color:var(--probe)}
+.pager a:hover{color:var(--signal)}
+
+footer{margin-top:56px;border-top:1.5px solid var(--ink);background:var(--panel)}
+footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding-top:18px;padding-bottom:44px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+
+@media(max-width:900px){
+  .page{grid-template-columns:1fr;gap:20px}
+  .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
+  .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
+  .layer{grid-template-columns:1fr}
+  .layer .nm,.layer .note{border:none}
+  .layer .note{padding-top:0}
+  .waterline{grid-template-columns:1fr}
+  a.card{grid-template-columns:46px 1fr}
+  .card .tag{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .layer .bar{animation:none}
+  a.card:hover{transform:none}
+}
+</style>
+</head><body>
+
+<header class="mast"><div class="wrap">
+<span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 01</b></span>
+<nav><a href="index.html">目录</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html" class="on">4</a><a href="lesson05.html">5</a></nav></div></header>
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">Bernoulli · 标准误 · Wilson 置信区间</a><a href="#s1">一、为什么这一课必须在第一周</a><a href="#s2">二、Bernoulli:agent 成功率的底层模型</a><a href="#s3">三、为什么不能用正态近似(Wald 区间)</a><a href="#s4">四、Wilson 区间</a><a href="#s5">五、三个必须做出来的结论</a><a href="#s6">六、repeated pass@1 ≠ pass@k(接 Day 1)</a><a href="#s7">七、动手任务</a><a href="#s8">八、报告规范(从今天起遵守)</a><a href="#s9">本课一句话总结</a></aside>
+<article class="doc"><h1>第 4 课:这个分数能不能信?</h1>
+<h2 id="s0">Bernoulli · 标准误 · Wilson 置信区间</h2>
+<p><strong>Week 1 Day 4</strong> · 编码日 · 建议 60 分钟</p>
+<blockquote>
+<p>📎 <strong>素材锚点</strong>:⭐ <code>papers/error_bars_in_evals.pdf</code>(<em>Adding Error Bars to Evals</em>,arXiv 2411.00640)· <code>papers/codex_passk.pdf</code>(pass@k 出处,arXiv 2107.03374)
+💻 <strong>本课代码</strong>:<code>labs/wilson.py</code>(<strong>下文所有数字都是它真跑出来的</strong>,不是估算)</p>
+</blockquote>
+<hr />
+<h2 id="s1">一、为什么这一课必须在第一周</h2>
+<p>Day 1–3 你学会了「一个分数由七个因子决定」。但还差最关键的一问:</p>
+<blockquote>
+<p><strong>这个分数本身,有多大的不确定性?</strong></p>
+</blockquote>
+<p>Error Bars 论文开篇一句话就把问题点破(原文):</p>
+<blockquote>
+<p><em>"Fundamentally, </em><em>evaluations are experiments</em><em>; but the literature on evaluations has largely </em><em>ignored the literature from other sciences on experiment analysis and planning</em><em>."</em></p>
+</blockquote>
+<p><strong>evaluation 是实验。</strong> 实验就要报误差棒。一个不带置信区间的 leaderboard 分数,在科学上是不完整的。</p>
+<p>论文的章节结构本身就是本课程统计部分的路线图:</p>
+<pre><code>2 Analysis framework   ← 本课 + Week 4
+3 Variance reduction   ← Week 4
+4 Comparing models     ← Week 4(paired bootstrap / McNemar)
+5 Power analysis       ← Week 4 进阶
+A Clustered standard errors ← Week 4(同一任务多次 repeat 的正确处理)
+</code></pre>
+<hr />
+<h2 id="s2">二、Bernoulli:agent 成功率的底层模型</h2>
+<p>一个任务跑一次,结果非成即败:</p>
+<pre><code>y ~ Bernoulli(p)      y ∈ {0,1},P(y=1) = p
+</code></pre>
+<p>跑 n 次独立试验,成功 k 次:</p>
+<pre><code>k ~ Binomial(n, p)
+p̂ = k / n                      ← 我们观测到的分数
+SE(p̂) = sqrt( p(1-p) / n )     ← 标准误
+</code></pre>
+<p><strong>三条直觉</strong>:
+1. <strong>SE ∝ 1/√n</strong> —— 想让误差减半,样本要变 <strong>4 倍</strong>
+2. <strong>p 越接近 0.5,SE 越大</strong> —— 中等难度的 benchmark 最"吵"
+3. <strong>SE 不是误差本身,是「p̂ 这个估计量的波动幅度」</strong></p>
+<hr />
+<h2 id="s3">三、为什么不能用正态近似(Wald 区间)</h2>
+<p>最常见的写法:</p>
+<pre><code>p̂ ± 1.96 · sqrt( p̂(1-p̂)/n )        ← Wald / 正态近似
+</code></pre>
+<p>它在 p 靠近 0 或 1、或 n 小的时候<strong>会给出荒谬结果</strong>。以下是 <code>labs/wilson.py</code> 的<strong>真实输出</strong>:</p>
+<h3>病症 A:p = 0 或 1 时,宽度恰好为 0</h3>
+<pre><code>20/20 (100%)   Wilson [ 83.9%, 100.0%]  w=16.1%  |  Normal [100.0%, 100.0%]  w= 0.0%
+ 0/20   (0%)   Wilson [ -0.0%,  16.1%]  w=16.1%  |  Normal [  0.0%,   0.0%]  w= 0.0%
+</code></pre>
+<blockquote>
+<p>20 次全成功,Wald 说「我 95% 确信真实成功率<strong>恰好</strong>是 100%」。
+这显然错 —— 只跑 20 次,真实成功率是 90% 也完全可能。<strong>Wilson 给出 [83.9%, 100%],这才对。</strong></p>
+</blockquote>
+<h3>病症 B:接近边界时越出 [0,1]</h3>
+<pre><code>19/20 (95%)    Wilson [ 76.4%,  99.1%]  |  Normal [ 85.4%, 104.6%]   ← 上界 &gt;100% ❌
+ 1/20  (5%)    Wilson [  0.9%,  23.6%]  |  Normal [ -4.6%,  14.6%]   ← 下界 &lt;0%   ❌
+</code></pre>
+<blockquote>
+<p><strong>结论:agent eval 的成功率经常落在极端区间(很难的任务接近 0,很简单的接近 1),所以正态近似在这个领域格外危险。默认用 Wilson。</strong></p>
+</blockquote>
+<hr />
+<h2 id="s4">四、Wilson 区间</h2>
+<p>$$
+\text{center} = \frac{\hat p + \frac{z^2}{2n}}{1 + \frac{z^2}{n}}, \qquad
+\text{half} = \frac{z\sqrt{\frac{\hat p(1-\hat p)}{n} + \frac{z^2}{4n^2}}}{1 + \frac{z^2}{n}}
+$$</p>
+<p>代码(<code>labs/wilson.py</code>):</p>
+<pre><code class="language-python">def wilson_ci(k: int, n: int, z: float = 1.96) -&gt; tuple[float, float]:
+    p = k / n
+    denom  = 1 + z**2 / n
+    center = (p + z**2 / (2 * n)) / denom
+    half   = z * math.sqrt(p * (1 - p) / n + z**2 / (4 * n**2)) / denom
+    return center - half, center + half
+</code></pre>
+<p><strong>为什么它更好</strong>:它不是「以 p̂ 为中心加减」,而是<strong>反解</strong>「哪些真实 p 值能以 95% 概率产生我观测到的 k/n」。所以它天然把中心往 0.5 拉一点,并且<strong>永远落在 [0,1] 内</strong>。</p>
+<hr />
+<h2 id="s5">五、三个必须做出来的结论</h2>
+<h3>结论 1 · 同样是 60%,n 不同,可信度天差地别(真实输出)</h3>
+<pre><code> 30/50    p=60%   Wilson [46.2%, 72.4%]   宽度 26.2%
+300/500   p=60%   Wilson [55.6%, 64.2%]   宽度  8.6%
+                                          宽度比 = 3.06×
+</code></pre>
+<blockquote>
+<p>两个都写作「60%」。但第一个的真实值可能低到 46%,第二个被锁在 56–64%。
+<strong>在排行榜上并列的两个 60%,可能一个是噪声、一个是事实。</strong></p>
+</blockquote>
+<h3>结论 2 · 宽度 ∝ 1/√n,减半要 4 倍样本(真实输出)</h3>
+<pre><code>n= 50  宽度 26.21%
+n=100  宽度 18.86%
+n=200  宽度 13.46%      ← 相比 n=50 减半(26.21 → 13.46),n 变 4 倍
+n=400  宽度  9.56%
+n=800  宽度  6.77%
+</code></pre>
+<h3>结论 3 · 真实 benchmark 规模下,误差棒有多大(真实输出)</h3>
+<pre><code>n= 89 (Terminal-Bench)  p=50%  Wilson [39.3%, 59.6%]  半宽 ±10.2%
+n= 97 (τ³-Banking)      p=50%  Wilson [39.7%, 59.3%]  半宽 ± 9.8%
+n=220 (GDPval-AA)       p=50%  Wilson [43.4%, 56.6%]  半宽 ± 6.6%
+</code></pre>
+<blockquote>
+<h3>🔥 本课最重要的一句</h3>
+<p><strong>Terminal-Bench 只有 89 个任务。在 p≈50% 处,单次评测的 95% 区间半宽约 ±10 个百分点。</strong>
+<strong>⟹ 排行榜上相差两三个点的模型,在统计上很可能无法区分。</strong></p>
+<p>(注:实际 AA 每任务跑 3 次,有效样本更大、区间更窄;但同一任务的多次 repeat <strong>不是独立样本</strong>,不能简单当作 n=267 —— 正确处理见 Error Bars 论文附录 A "Clustered standard errors",Week 4 展开。)</p>
+</blockquote>
+<hr />
+<h2 id="s6">六、repeated pass@1 ≠ pass@k(接 Day 1)</h2>
+<p>pass@k 的原始定义来自 Codex 论文(<code>papers/codex_passk.pdf</code>)。无偏估计式:</p>
+<p>$$
+\text{pass@}k = \mathbb{E}_{\text{tasks}}\left[\, 1 - \frac{\binom{n-c}{k}}{\binom{n}{k}} \,\right]
+$$</p>
+<p>其中每任务采 n 个样本、其中 c 个正确。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>公式</th>
+<th>回答</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>repeated pass@1</strong></td>
+<td>所有 (任务, repeat) 的成功率平均</td>
+<td>随机跑一次的成功概率</td>
+</tr>
+<tr>
+<td><strong>pass@k</strong></td>
+<td>每任务「k 次里至少一次成功」的概率,再对任务平均</td>
+<td>允许 k 次尝试的成功概率</td>
+</tr>
+</tbody>
+</table>
+<p><strong>数值关系</strong>:<code>pass@k ≥ pass@1</code>,且<strong>方差越大的模型,从 pass@k 中获益越多</strong>。</p>
+<blockquote>
+<p>⟹ 一个不稳定但偶尔灵光的模型,在 pass@8 上可能反超一个稳定的模型。<strong>报哪个指标,就是在选择奖励哪种行为。</strong></p>
+</blockquote>
+<hr />
+<h2 id="s7">七、动手任务</h2>
+<h3>任务 1(必做):跑通并读懂</h3>
+<pre><code class="language-bash">python3 labs/wilson.py
+</code></pre>
+<p>逐段对照本文的四组输出,确认你能解释<strong>每一行为什么长这样</strong>。</p>
+<h3>任务 2:扩展代码</h3>
+<p>在 <code>labs/wilson.py</code> 里加两个函数:</p>
+<pre><code class="language-python">def n_for_width(target_width: float, p: float = 0.5, z: float = 1.96) -&gt; int:
+    &quot;&quot;&quot;要达到给定 CI 宽度,至少需要多少任务?&quot;&quot;&quot;
+
+def pass_at_k(n: int, c: int, k: int) -&gt; float:
+    &quot;&quot;&quot;Codex 论文的无偏 pass@k 估计(用 1 - C(n-c,k)/C(n,k))&quot;&quot;&quot;
+</code></pre>
+<p>用它们回答:
+1. 想把 p≈50% 处的 95% 区间半宽压到 <strong>±3%</strong>,需要多少个任务?
+2. 某任务采 n=5、成功 c=2:pass@1、pass@2、pass@5 分别是多少?</p>
+<h3>任务 3:回到真实排行榜</h3>
+<p>从 AA 快照里挑两个分数接近的模型(差距 &lt; 3 个点),用 Wilson 估算各自的区间,回答:</p>
+<blockquote>
+<p><strong>仅凭公开分数,你能断言谁更强吗?还需要什么信息才能断言?</strong>
+(提示:你需要的是 <strong>paired</strong> 比较 —— 是否跑了相同任务集。Week 4 学 paired bootstrap 和 McNemar。)</p>
+</blockquote>
+<p>📁 产出 → <code>notes/day4-ci-findings.md</code></p>
+<hr />
+<h2 id="s8">八、报告规范(从今天起遵守)</h2>
+<p>写任何 eval 结果时:</p>
+<pre><code>[ ] 报 n(任务数)和 R(每任务 repeat 数),不只报百分比
+[ ] 报置信区间(默认 Wilson),不只报点估计
+[ ] 说明是 repeated pass@1 还是 pass@k
+[ ] 比较两个系统时,说明是否跑了相同任务集(paired 与否)
+[ ] 说明 grader / harness / 预算版本
+[ ] 不写「A 比 B 强」,除非区间不重叠或做过 paired 检验
+</code></pre>
+<hr />
+<h2 id="s9">本课一句话总结</h2>
+<blockquote>
+<p><strong>evaluation 是实验,实验必须报误差棒。</strong> 在 89 个任务上 50% 的成绩,真实值可能在 39% 到 60% 之间 —— 排行榜上两三个点的差距,常常什么都不说明。</p>
+</blockquote>
+<hr />
+<p><strong>下一课(Day 5)</strong>:把 GDPval-AA、τ³-Banking、Terminal-Bench 放在同一张表里横向解剖,并练习「怎么 game 它」。</p>
+<div class="pager"><a href="lesson03.html">← 第 3 课 · Agent 分数 ≠ Model 分数</a><a href="lesson05.html">第 5 课 · 三个 Benchmark 横向解剖 →</a></div>
+</article></div></div>
+<footer><div class="wrap">
+<span>Week 01 · Evaluation 基本框架</span>
+<span>源:AA v4.1.1 快照 · SWE-bench · Terminal-Bench · tau2-bench · OSWorld-V2 · BFCL</span>
+<span>由 week01/*.md 生成 · build_site.py</span>
+</div></footer></body></html>

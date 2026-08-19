@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 3 课 · Agent 分数 ≠ Model 分数</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{
+  --paper:#EDEFF2; --panel:#F8FAFB; --panel-2:#E4E9ED; --rule:#C9D2D8;
+  --ink:#131A20; --soft:#5A6672; --faint:#8A95A0;
+  --deep:#0E1A22; --signal:#C8501C; --probe:#2B5F9E; --pass:#34734A;
+  --shadow:0 1px 0 rgba(19,26,32,.04), 0 16px 40px -24px rgba(19,26,32,.45);
+}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Instrument Sans",system-ui,sans-serif;font-size:16.5px;line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--probe)}
+code,kbd{font-family:"JetBrains Mono",monospace;font-size:.88em;
+  background:var(--panel-2);padding:.08em .38em;border-radius:3px}
+pre{background:var(--deep);color:#DCE3E8;border-radius:8px;padding:16px 18px;overflow-x:auto;
+  font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.72;box-shadow:var(--shadow)}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+/* ---- masthead ---- */
+.mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
+.mast .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;
+  padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--soft)}
+.mast .id b{color:var(--signal);font-weight:500}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap}
+.mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
+  color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
+.mast nav a:hover{border-color:var(--rule);color:var(--ink)}
+.mast nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* ---- hero ---- */
+.hero{padding:62px 0 8px}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--signal);display:inline-flex;align-items:center;gap:11px}
+.eyebrow::before{content:"";width:30px;height:2px;background:var(--signal)}
+h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,74px);
+  letter-spacing:-.025em;line-height:.97;margin:18px 0 12px}
+.thesis{font-size:18px;color:var(--ink);max-width:38em;margin:0}
+.thesis b{color:var(--signal)}
+.subhead{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(15px,2vw,19px);
+  color:var(--soft);margin:0 0 18px}
+
+/* ---- signature: depth cross-section ---- */
+.strata{margin:34px 0 6px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow)}
+.strata .cap{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.strata .cap span:last-child{color:#93A2AE}
+.layer{display:grid;grid-template-columns:132px 1fr 300px;gap:0;align-items:center;
+  border-top:1px solid var(--rule);background:var(--panel);
+  transition:background .18s}
+.layer:first-of-type{border-top:none}
+.layer:hover{background:#fff}
+.layer .nm{font-family:"Archivo",sans-serif;font-weight:600;font-size:15px;padding:13px 16px;
+  border-right:1px solid var(--rule)}
+.layer .flow{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);padding:13px 16px}
+.layer .note{font-size:13px;color:var(--soft);padding:13px 16px;border-left:1px solid var(--rule)}
+.layer .bar{display:block;height:3px;background:var(--probe);border-radius:2px;margin-top:7px;
+  transform-origin:left;animation:grow .7s cubic-bezier(.2,.7,.3,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.waterline{display:grid;grid-template-columns:132px 1fr;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.1em}
+.waterline span{padding:7px 16px}
+.waterline span:first-child{color:var(--signal);border-right:1px solid #24333D}
+.stratanote{font-size:13.5px;color:var(--soft);margin:11px 2px 0}
+
+/* ---- lesson cards ---- */
+.sec{padding:50px 0 0}
+.sec h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(21px,3.2vw,29px);
+  letter-spacing:-.015em;margin:0 0 4px}
+.sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
+.cards{display:grid;gap:12px}
+a.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+  text-decoration:none;color:var(--ink);background:var(--panel);
+  border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
+  transition:transform .16s,box-shadow .16s,background .16s}
+a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
+.card .num{font-family:"Archivo",sans-serif;font-weight:700;font-size:30px;color:var(--signal);
+  line-height:1;letter-spacing:-.03em}
+.card .t{display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin-bottom:3px}
+.card .d{display:block;font-size:14px;color:var(--soft)}
+.card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+
+/* ---- lesson page ---- */
+.page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
+.rail{position:sticky;top:22px;font-size:13.5px}
+.rail .rt{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
+  border-left:2px solid var(--rule);line-height:1.4}
+.rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.doc{min-width:0}
+.doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:26px;letter-spacing:-.015em;
+  margin:44px 0 12px;padding-top:16px;border-top:1.5px solid var(--ink)}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin:28px 0 8px}
+.doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
+.doc p{margin:12px 0}
+.doc ul,.doc ol{padding-left:22px}
+.doc li{margin:5px 0}
+.doc blockquote{margin:16px 0;padding:13px 18px;background:var(--panel);
+  border-left:4px solid var(--signal);border-radius:0 8px 8px 0;color:var(--ink)}
+.doc blockquote p{margin:6px 0}
+.doc blockquote h3{margin-top:2px}
+.doc table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.doc th,.doc td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+.doc thead th{background:var(--ink);color:var(--paper);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.doc tbody tr:last-child td{border-bottom:none}
+.doc tbody tr:nth-child(even){background:#fff}
+.doc hr{border:none;border-top:1px solid var(--rule);margin:30px 0}
+.doc details{background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+  padding:11px 15px;margin:14px 0}
+.doc summary{cursor:pointer;font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px;color:var(--probe)}
+.doc img{max-width:100%}
+
+.pager{display:flex;justify-content:space-between;gap:14px;margin:52px 0 0;
+  border-top:1.5px solid var(--ink);padding-top:18px;flex-wrap:wrap}
+.pager a{font-family:"JetBrains Mono",monospace;font-size:13px;text-decoration:none;color:var(--probe)}
+.pager a:hover{color:var(--signal)}
+
+footer{margin-top:56px;border-top:1.5px solid var(--ink);background:var(--panel)}
+footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding-top:18px;padding-bottom:44px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+
+@media(max-width:900px){
+  .page{grid-template-columns:1fr;gap:20px}
+  .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
+  .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
+  .layer{grid-template-columns:1fr}
+  .layer .nm,.layer .note{border:none}
+  .layer .note{padding-top:0}
+  .waterline{grid-template-columns:1fr}
+  a.card{grid-template-columns:46px 1fr}
+  .card .tag{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .layer .bar{animation:none}
+  a.card:hover{transform:none}
+}
+</style>
+</head><body>
+
+<header class="mast"><div class="wrap">
+<span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 01</b></span>
+<nav><a href="index.html">目录</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html" class="on">3</a><a href="lesson04.html">4</a><a href="lesson05.html">5</a></nav></div></header>
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">今日流程</a><a href="#s1">一、核心命题</a><a href="#s2">二、逐因子:改它,分数就变</a><a href="#s3">三、一个决定性的实证:等权、三次、task-normalized</a><a href="#s4">四、那到底什么是「model evaluation」,什么是「agent-system evaluation」?</a><a href="#s5">五、四种评价单位(再强调一次,因为它决定你报什么数)</a><a href="#s6">六、写作任务(今天的主产出)</a><a href="#s7">七、练习</a><a href="#s8">本课一句话总结</a></aside>
+<article class="doc"><h1>第 3 课:为什么 Agent 分数不是 Model 分数</h1>
+<p><strong>Week 1 Day 3</strong> · 写作日 · 建议 60 分钟</p>
+<blockquote>
+<p>本课是<strong>产出日</strong>:先闭卷复述 Day 1–2,再写出自己的一页讲义。
+这份文件同时是<strong>参考答案</strong>——写完你自己的版本后再对照,别先读完再写(那样只是抄)。</p>
+<p>📎 素材锚点:<code>docs/aa-coding-agents-leaderboard.md</code> · <code>docs/aa-intelligence-benchmarking-methodology.md</code>(均 2026-08 快照,已核验)</p>
+</blockquote>
+<hr />
+<h2 id="s0">今日流程</h2>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>做什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10 min</td>
+<td><strong>合上所有材料</strong>,凭记忆写下:七因子是什么?四种评价单位是什么?</td>
+</tr>
+<tr>
+<td>35 min</td>
+<td>写你自己的《为什么 agent 分数不是 model 分数》(800–1,200 字)</td>
+</tr>
+<tr>
+<td>15 min</td>
+<td>对照本文补例子 + 做练习</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="s1">一、核心命题</h2>
+<pre><code>Evaluation Result = f( Task, Model, Harness, Environment, Budget, Scorer, Randomness )
+</code></pre>
+<blockquote>
+<p><strong>七个自变量,只有一个是 Model。</strong>
+所以「模型 X 在 benchmark Y 上得了 Z 分」这句话,严格说测的是<strong>一整套系统</strong>,不是模型。</p>
+</blockquote>
+<p>下面逐个因子给一个「只改它、分数就变」的例子。</p>
+<hr />
+<h2 id="s2">二、逐因子:改它,分数就变</h2>
+<h3>1. Task(任务分布)</h3>
+<p><strong>同一个 benchmark 名字,任务集可能不同。</strong></p>
+<p>已核验的真实例子 —— <strong>Terminal-Bench 在 AA 的两个产品里任务数不一样</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>出现位置</th>
+<th>版本</th>
+<th>任务数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Intelligence Index v4.1.1</td>
+<td>Terminal-Bench <strong>v2.1</strong></td>
+<td><strong>89 tasks</strong></td>
+</tr>
+<tr>
+<td>Coding Agent Index</td>
+<td>Terminal-Bench <strong>v2</strong></td>
+<td><strong>84 tasks</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⟹ 看到「Terminal-Bench 得分 X%」时,<strong>必须问是哪个版本、哪个子集</strong>。跨来源直接比较同名 benchmark 的分数是不安全的。</p>
+</blockquote>
+<h3>2. Model(被测模型)</h3>
+<p>唯一一个大家以为在测的东西。但注意:<strong>同一模型不同 reasoning effort / 采样参数,是不同配置</strong>。AA 在方法论中把 reasoning effort 作为显式配置项(Kimi K3 论文里更是把它当训练维度)。</p>
+<h3>3. Harness(执行框架)⭐ 本课重点</h3>
+<p><strong>已核验</strong>:AA 的 Coding Agent Index 页面单独提供 <strong>"Harness Comparison"</strong> 视图 —— 也就是说,<strong>同一底层模型换 harness,结果值得单列一张图来比</strong>。</p>
+<p>harness 决定了:</p>
+<pre><code>上下文怎么管(满了是截断?总结?清理早期?)
+tool call 怎么解析(格式错了重试还是判死?)
+最大轮数多少
+工具报错怎么呈现给模型
+何时判定「结束」
+能不能提前放弃
+</code></pre>
+<p><strong>GDPval-AA 的真实证据</strong>:AA 用自研 harness <strong>Stirrup</strong>,并在 v2 中把 <strong>turn 上限提到 250</strong>,还新增了「模型认为做不完时可以提前退出」的能力。这两项都是 harness 特性 —— 换个 harness,同一模型的分数必然移动。</p>
+<blockquote>
+<p><strong>推论</strong>:一个 benchmark 如果不公开 harness,它的分数<strong>不可复现</strong>。</p>
+</blockquote>
+<h3>4. Environment(环境)</h3>
+<p>Terminal-Bench 跑在 <strong>E2B sandbox</strong>;τ³-Banking 跑在带约 700 份政策文档的模拟银行后台。环境的<strong>版本、镜像、网络可达性、依赖</strong>全都影响结果。</p>
+<blockquote>
+<p>跨课呼应:<code>../agent-sandbox-course/docs/agentic/anthropic-infra-noise.md</code> —— <strong>runtime 配置本身能让 agentic coding eval 成绩变化数个百分点</strong>。runtime 已经是被测内容的一部分。</p>
+</blockquote>
+<h3>5. Budget(预算)</h3>
+<p>已核验的三个真实预算:</p>
+<pre><code>GDPval-AA v2     250 turns
+τ³-Banking       200 steps  (step = 模拟中传递的每一条消息)
+Terminal-Bench   250 episodes,per-task timeout 两小时(7,200 秒)
+</code></pre>
+<p><strong>把预算翻倍,分数会变</strong> —— 这测的是「在预算内完成」的能力,不是「能否完成」的能力。</p>
+<h3>6. Scorer(评分器)</h3>
+<p>已核验:v4.1.1 在 <strong>2026-08-06</strong> 把 HLE、AA-LCR、AA-Omniscience 的 grader 统一改成 <strong>GPT-5.6 Luna (medium)</strong>。</p>
+<blockquote>
+<p><strong>模型没变,分数可能变</strong> —— 因为尺子换了。历史分数的可比性因此需要显式标注 grader 版本。</p>
+</blockquote>
+<h3>7. Randomness(随机性)</h3>
+<p>同一任务多次运行结果可能不同。来源至少三处:<strong>模型采样</strong> · <strong>环境非确定性</strong> · <strong>工具偶发失败</strong>。</p>
+<blockquote>
+<p>这就是为什么要 repeat;也是为什么 repeat 不同的 benchmark 不能简单比较稳定性。</p>
+</blockquote>
+<hr />
+<h2 id="s3">三、一个决定性的实证:等权、三次、task-normalized</h2>
+<p>AA Coding Agent Index 的口径(<strong>已核验原文</strong>):</p>
+<blockquote>
+<p><em>"Composite index of 3 benchmarks: </em><em>DeepSWE</em><em> (Software engineering tasks, </em><em>113 tasks</em><em>, by Datacurve) · </em><em>Terminal-Bench v2</em><em> (Agentic terminal use, </em><em>84 tasks</em><em>, by Laude Institute) · </em><em>SWE-Atlas-QnA</em><em> (Technical Q&amp;A, </em><em>124 tasks</em><em>, by Scale AI). Each benchmark score averages </em><em>pass@1 across three attempts per task</em><em>. The Index gives </em><em>equal weight</em><em> to its 3 benchmark components."</em></p>
+<p><em>"For each benchmark, we </em><em>first average the three evaluated attempts for each task, then average those task-level scores so every task has equal weight</em><em>."</em></p>
+</blockquote>
+<p>这段话里藏着三个独立的设计选择,<strong>每一个都会改变排名</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>选择</th>
+<th>换一种做法会怎样</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>三次取平均</strong>(repeated pass@1)</td>
+<td>若改成 pass@3(至少一次成功),<strong>分数会系统性变高</strong>,且高方差模型受益最大</td>
+</tr>
+<tr>
+<td><strong>task-normalized</strong>(先按任务平均,再按任务等权)</td>
+<td>若改成「所有 attempt 直接平均」,<strong>任务数多的 benchmark 会被隐性加权</strong></td>
+</tr>
+<tr>
+<td><strong>三个组件等权</strong></td>
+<td>若按任务数加权(113 : 84 : 124),<strong>Terminal-Bench 的影响会被压低</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⟹ <strong>聚合方式本身就是一个自变量。</strong> 同一批原始 rollout 数据,换聚合口径就能产出不同的第一名。</p>
+</blockquote>
+<hr />
+<h2 id="s4">四、那到底什么是「model evaluation」,什么是「agent-system evaluation」?</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Model evaluation</th>
+<th>Agent-system evaluation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>被测对象</td>
+<td>模型权重 + 采样参数</td>
+<td>Model + Prompt + Harness + Tools + Environment</td>
+</tr>
+<tr>
+<td>典型 benchmark</td>
+<td>GPQA Diamond · HLE(无工具)</td>
+<td>GDPval-AA · τ³-Banking · Terminal-Bench</td>
+</tr>
+<tr>
+<td>分数可归因于模型吗</td>
+<td>大体可以</td>
+<td><strong>不可以</strong></td>
+</tr>
+<tr>
+<td>换 harness 分数会变吗</td>
+<td>不会(没有 harness)</td>
+<td><strong>会,而且可能很大</strong></td>
+</tr>
+<tr>
+<td>它回答的问题</td>
+<td>这个模型知道/会推什么?</td>
+<td><strong>这套系统能不能把活干完?</strong></td>
+</tr>
+</tbody>
+</table>
+<p>在 AA 的九项里,<strong>明确带 Tool Usage ✓ 的只有 Agents 类的两项</strong>(GDPval-AA、τ³-Banking)。其余七项没有 agent 工具 —— 它们更接近 model evaluation。</p>
+<blockquote>
+<p>📌 <strong>建议你自己写下的定义</strong>(参考版):
+<strong>Agent-system evaluation 测量的是「模型 + prompt + harness + 工具 + 环境 + 预算」这一整套配置在给定任务分布上的成功率;它的结论只在该配置下成立,换掉其中任何一项都需要重新测量。</strong></p>
+</blockquote>
+<hr />
+<h2 id="s5">五、四种评价单位(再强调一次,因为它决定你报什么数)</h2>
+<table>
+<thead>
+<tr>
+<th>单位</th>
+<th>例句</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Turn</strong></td>
+<td>「它调用了正确的 API」</td>
+</tr>
+<tr>
+<td><strong>Trajectory</strong></td>
+<td>「它用 47 步完成了本可 6 步完成的事」</td>
+</tr>
+<tr>
+<td><strong>Task</strong></td>
+<td>「数据库里确实创建了 dispute」</td>
+</tr>
+<tr>
+<td><strong>Session</strong></td>
+<td>「第二个用户提问时,它复述了第一个用户的私有数据」</td>
+</tr>
+</tbody>
+</table>
+<p><strong>benchmark 几乎只报 task 层。</strong> 你的产品如果关心成本(trajectory)或多用户安全(session),<strong>排行榜第一名对你可能毫无意义</strong>。</p>
+<hr />
+<h2 id="s6">六、写作任务(今天的主产出)</h2>
+<p>写一页 <strong>800–1,200 字</strong>的《为什么 agent 分数不是 model 分数》,交付到 <code>sec1-why-agent-score-is-not-model-score.md</code>。</p>
+<p><strong>必须包含</strong>:
+1. 七因子公式,并<strong>逐项</strong>给一个「改它就改分数」的例子(可以直接用本文核验过的真实例子)
+2. 同一模型换 harness 分数会变 —— 用 AA 单列 Harness Comparison 这一事实佐证
+3. 四种评价单位各一例
+4. <strong>一段你自己的定义</strong>:agent-system evaluation 是什么,与 model evaluation 的边界在哪
+5. 一句「所以我读排行榜时会先问什么」</p>
+<p><strong>自检</strong>:写完后确认——</p>
+<pre><code>[ ] 全文没有出现「模型 X 的能力是 Y%」这种表述
+[ ] 每个因子都有具体例子,不是只列名词
+[ ] 有至少一个带出处的真实数字(版本号/任务数/预算)
+[ ] 结尾能落到「对我的产品意味着什么」
+</code></pre>
+<hr />
+<h2 id="s7">七、练习</h2>
+<h3>练习一:找出隐含假设</h3>
+<p>下面每句话都隐含了一个未言明的假设,指出来:</p>
+<pre><code>a. 「Model A 在 Terminal-Bench 上比 Model B 高 3 个点,所以 A 更适合做编码 agent。」
+b. 「我们的 agent 在 SWE-bench 上达到了 SOTA。」
+c. 「换了新模型后分数涨了,说明新模型更强。」
+d. 「这个 benchmark 跑了 5 次,所以结果很稳。」
+</code></pre>
+<details><summary>参考</summary>
+a. 假设两者用同一 harness/预算/版本,且你的任务分布 ≈ Terminal-Bench 分布<br>
+b. 假设 SOTA 归因于模型而非 harness/scaffold;且未说明是否 contamination<br>
+c. 假设其他六个因子都没动(常见的是同时也升级了 harness 或 prompt)<br>
+d. 5 次只压低了「模型采样随机性」,压不掉 task selection bias / scorer bias / contamination
+</details>
+
+<h3>练习二:设计一次公平比较</h3>
+<p>你要比较 harness X 与 harness Y 哪个更好。列出<strong>必须固定</strong>的所有变量,以及<strong>必须报告</strong>的所有元数据。</p>
+<h3>练习三:重算排名</h3>
+<p>三个 benchmark 的任务数为 113 / 84 / 124。某模型分数分别为 40% / 60% / 80%。
+1. 按<strong>组件等权</strong>,总分是多少?
+2. 按<strong>任务数加权</strong>,总分是多少?
+3. 差多少?这说明什么?</p>
+<details><summary>答案</summary>
+① (40+60+80)/3 = <b>60.0%</b><br>
+② (113×40 + 84×60 + 124×80)/(113+84+124) = (4520+5040+9920)/321 = 19480/321 ≈ <b>60.7%</b><br>
+③ 相差约 0.7 个点。看似小,但在排行榜上 0.7 点常常就是好几个名次 —— <b>聚合口径是自变量。</b>
+</details>
+
+<hr />
+<h2 id="s8">本课一句话总结</h2>
+<blockquote>
+<p><strong>排行榜分数不是模型的属性,是一次测量的属性。</strong> 报分数时不报 harness、预算、grader 版本和聚合口径,等于报了一个无法复现的数。</p>
+</blockquote>
+<hr />
+<p><strong>下一课(Day 4)</strong>:第一次亲手算「这个分数能不能信」—— Bernoulli、标准误、Wilson 置信区间。</p>
+<div class="pager"><a href="lesson02.html">← 第 2 课 · 组件级 Evaluation 与 Trace</a><a href="lesson04.html">第 4 课 · 这个分数能不能信 →</a></div>
+</article></div></div>
+<footer><div class="wrap">
+<span>Week 01 · Evaluation 基本框架</span>
+<span>源:AA v4.1.1 快照 · SWE-bench · Terminal-Bench · tau2-bench · OSWorld-V2 · BFCL</span>
+<span>由 week01/*.md 生成 · build_site.py</span>
+</div></footer></body></html>

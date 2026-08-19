@@ -71,7 +71,8 @@ QA
 
 ---
 
-## 三、GAIA —— 最简单的形态:**它其实没有 environment**
+## 三、GAIA —— **回答一道需要搜索、读附件、算一算才能答出的现实问题**
+### 最简单的形态:它其实没有 environment
 
 **任务格式**(HuggingFace 数据集,466 个真实世界问题):
 ```
@@ -112,7 +113,8 @@ environment benchmark  (其余五个)  —— 连运行环境一起给你
 
 ---
 
-## 四、BFCL —— tool-use 不一定需要 sandbox
+## 四、BFCL —— **给定一组函数 schema,生成正确的那一个 function call**
+### tool-use 不一定需要 sandbox
 
 Berkeley Function Calling Leaderboard(现已到 **V4**),源码在 Gorilla repo。
 
@@ -152,7 +154,8 @@ Tool selection eval   ≠   Full agent trajectory eval
 
 ---
 
-## 五、SWE-bench —— 第一次见到 executable evaluation
+## 五、SWE-bench —— **读一条 GitHub issue,改真实仓库的代码让测试通过**
+### 第一次见到 executable evaluation
 
 **任务实例的真实字段**(从 `../agent-sandbox-course/code/SWE-bench/swebench/` 源码里 grep 出来的,**实测**):
 ```
@@ -200,7 +203,8 @@ checkout repo → install dependencies → apply model patch
 
 ---
 
-## six、⭐ Terminal-Bench —— 本课的重点,必须读透
+## 六、⭐ Terminal-Bench —— **在一个容器的终端里,用任意命令完成工程/运维任务**
+### 本课的重点,必须读透
 
 如果你的长期目标包含 sandbox / RL environment,**这是第一课唯一要求读透的 repo**。
 
@@ -288,7 +292,8 @@ Harbor 不只是 Terminal-Bench 的 runner —— 它把自己定位成 **evalua
 
 ---
 
-## 七、τ³-bench —— 第一次见到完整 agent simulation
+## 七、τ³-bench —— **扮演银行客服:查政策文档、跟模拟用户对话、真的改账户状态**
+### 第一次见到完整 agent simulation
 
 **本地路径**:`code/tau2-bench/`(实测)
 
@@ -355,7 +360,8 @@ review_llm_judge.py · hallucination_reviewer.py · auth_classifier.py
 
 ---
 
-## 八、OSWorld —— 完整计算机环境
+## 八、OSWorld —— **用鼠标键盘操作一整台电脑,完成跨应用的日常任务**
+### 完整计算机环境
 
 **本地路径**:`code/OSWorld-V2/`(实测;2026-08 的 V2 release,**不要只看 2024 原始代码**)
 

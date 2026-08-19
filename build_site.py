@@ -35,6 +35,45 @@ STRATA = [
     ("OSWorld", "task → whole computer", "整台机器:VM 生命周期", 5),
 ]
 
+# In-lesson figure for §二. Each rung ADDS one layer of real environment —
+# the chips accumulate, the newest one is highlighted. That accumulation is the
+# whole point of the section, so it gets drawn rather than described.
+LADDER = [
+    ("GAIA", "task → answer", ["题目", "标准答案"]),
+    ("BFCL", "task → structured tool call", ["工具 schema", "结构化 call"]),
+    ("SWE-bench", "task → code change → executable test", ["代码仓库", "容器", "测试套件"]),
+    ("τ³-bench", "task → interaction → tools → mutable state → verifier", ["可变状态库", "模拟用户", "多轮交互"]),
+    ("Terminal-Bench", "task → agent → container → arbitrary commands → verifier", ["任意 shell", "rollout 循环"]),
+    ("OSWorld", "task → agent → complete computer environment → verifier", ["整台机器", "GUI / 键鼠", "VM 生命周期"]),
+]
+
+
+def ladder_figure() -> str:
+    rows, carried = [], []
+    for i, (name, flow, added) in enumerate(LADDER):
+        old = "".join(f'<span class="chip old">{c}</span>' for c in carried)
+        new = "".join(f'<span class="chip new">+ {c}</span>' for c in added)
+        rows.append(
+            f'<div class="rung"><div class="rn">{i}</div>'
+            f'<div class="rbody"><div class="rhead"><b>{name}</b>'
+            f'<code>{flow}</code></div>'
+            f'<div class="chips">{old}{new}</div></div></div>'
+        )
+        carried += added
+        if i == 2:
+            rows.append(
+                '<div class="wline"><span>▼ 现实水线</span>'
+                "<span>以下:benchmark 自己启动并管理有状态环境</span></div>"
+            )
+    return (
+        '<figure class="ladder"><figcaption><span>Benchmark Complexity ↓</span>'
+        "<span>每下一级 = 多实例化一层现实</span></figcaption>"
+        + "".join(rows)
+        + '<div class="lfoot">灰色 = 上一级已有 · <b>橙色 = 这一级新增的现实</b> —— '
+        "environment 越来越真,verifier 能查的状态越来越接近真实结果。</div></figure>"
+    )
+
+
 CSS = """
 *{box-sizing:border-box}
 :root{
@@ -156,6 +195,32 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
   padding:11px 15px;margin:14px 0}
 .doc summary{cursor:pointer;font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px;color:var(--probe)}
 .doc img{max-width:100%}
+
+/* ---- in-lesson figure: accumulating complexity ladder ---- */
+.ladder{margin:22px 0 8px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow);background:var(--panel)}
+.ladder figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.ladder figcaption span:last-child{color:#93A2AE;text-transform:none;letter-spacing:.02em}
+.rung{display:grid;grid-template-columns:46px 1fr;border-top:1px solid var(--rule)}
+.rung:first-of-type{border-top:none}
+.rn{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;color:var(--faint);
+  padding:14px 0 0;text-align:center;border-right:1px solid var(--rule)}
+.rbody{padding:12px 16px 14px}
+.rhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:9px}
+.rhead b{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px}
+.rhead code{background:none;padding:0;color:var(--soft);font-size:12.5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:"JetBrains Mono",monospace;font-size:11.5px;padding:3px 9px;border-radius:20px;
+  border:1px solid var(--rule);color:var(--faint);background:var(--panel-2)}
+.chip.new{border-color:var(--signal);color:#fff;background:var(--signal);font-weight:500}
+.wline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.08em;padding:8px 16px}
+.wline span:first-child{color:var(--signal);white-space:nowrap;font-weight:500}
+.lfoot{border-top:1px solid var(--rule);padding:11px 16px;font-size:13px;color:var(--soft)}
+.lfoot b{color:var(--signal)}
+@media(max-width:640px){.rhead code{display:none}}
 
 .pager{display:flex;justify-content:space-between;gap:14px;margin:52px 0 0;
   border-top:1.5px solid var(--ink);padding-top:18px;flex-wrap:wrap}
@@ -289,6 +354,15 @@ def build_lesson(slug: str, idx: int) -> str:
         return f'<h2 id="{aid}">{inner}</h2>'
 
     html = re.sub(r"<h2>(.*?)</h2>", anchor, html, flags=re.S)
+
+    # swap the ASCII complexity ladder for the drawn figure (lesson 1 only)
+    if slug == "lesson01":
+        html, n = re.subn(
+            r"<pre><code>[^<]*Benchmark Complexity.*?</code></pre>",
+            lambda _m: ladder_figure(), html, count=1, flags=re.S,
+        )
+        if not n:
+            print("  ! warn: ladder code block not found in lesson01")
     rail_html = "".join(f'<a href="#{a}">{t}</a>' for a, t in rail)
 
     title = LESSONS[idx][2]

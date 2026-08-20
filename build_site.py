@@ -18,11 +18,12 @@ SRC = ROOT / "week01"
 OUT = ROOT / "site"
 
 LESSONS = [
-    ("lesson01", "1", "Benchmark Anatomy", "主流 agent benchmark 是怎么实现的", "源码"),
-    ("lesson02", "2", "组件级 Evaluation 与 Trace", "任务失败时,哪一环失败了", "概念"),
-    ("lesson03", "3", "Agent 分数 ≠ Model 分数", "七因子里只有一个是模型", "写作"),
-    ("lesson04", "4", "这个分数能不能信", "Bernoulli · 标准误 · Wilson CI", "编码"),
-    ("lesson05", "5", "三个 Benchmark 横向解剖", "统一维度 + 怎么 game 它", "分析"),
+    ("lesson01", "1", "Benchmark Anatomy", "六个 benchmark 的复杂度阶梯", "源码"),
+    ("lesson02", "2", "Terminal-Bench 深读", "从 task 定义一路追到 score", "源码"),
+    ("lesson03", "3", "组件级 Evaluation 与 Trace", "任务失败时,哪一环失败了", "概念"),
+    ("lesson04", "4", "Agent 分数 ≠ Model 分数", "七因子里只有一个是模型", "写作"),
+    ("lesson05", "5", "这个分数能不能信", "Bernoulli · 标准误 · Wilson CI", "编码"),
+    ("lesson06", "6", "三个 Benchmark 横向解剖", "统一维度 + 怎么 game 它", "分析"),
 ]
 
 # depth cross-section: the signature figure. depth = how much real environment.
@@ -322,8 +323,8 @@ def build_index() -> str:
 </div></section>
 
 <section class="sec"><div class="wrap">
-<h2>五节课</h2>
-<p class="lede">2 天概念 · 1 天编码 · 1 天分析 · 1 天写作。每节 60 分钟。</p>
+<h2>六节课</h2>
+<p class="lede">2 天源码 · 1 天概念 · 1 天写作 · 1 天编码 · 1 天分析。每节 60 分钟。</p>
 <div class="cards">{''.join(cards)}</div>
 </div></section>
 

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 6 课 · 三个 Benchmark 横向解剖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{
+  --paper:#EDEFF2; --panel:#F8FAFB; --panel-2:#E4E9ED; --rule:#C9D2D8;
+  --ink:#131A20; --soft:#5A6672; --faint:#8A95A0;
+  --deep:#0E1A22; --signal:#C8501C; --probe:#2B5F9E; --pass:#34734A;
+  --shadow:0 1px 0 rgba(19,26,32,.04), 0 16px 40px -24px rgba(19,26,32,.45);
+}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Instrument Sans",system-ui,sans-serif;font-size:16.5px;line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--probe)}
+code,kbd{font-family:"JetBrains Mono",monospace;font-size:.88em;
+  background:var(--panel-2);padding:.08em .38em;border-radius:3px}
+pre{background:var(--deep);color:#DCE3E8;border-radius:8px;padding:16px 18px;overflow-x:auto;
+  font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.72;box-shadow:var(--shadow)}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+/* ---- masthead ---- */
+.mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
+.mast .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;
+  padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--soft)}
+.mast .id b{color:var(--signal);font-weight:500}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap}
+.mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
+  color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
+.mast nav a:hover{border-color:var(--rule);color:var(--ink)}
+.mast nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* ---- hero ---- */
+.hero{padding:62px 0 8px}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--signal);display:inline-flex;align-items:center;gap:11px}
+.eyebrow::before{content:"";width:30px;height:2px;background:var(--signal)}
+h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,74px);
+  letter-spacing:-.025em;line-height:.97;margin:18px 0 12px}
+.thesis{font-size:18px;color:var(--ink);max-width:38em;margin:0}
+.thesis b{color:var(--signal)}
+.subhead{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(15px,2vw,19px);
+  color:var(--soft);margin:0 0 18px}
+
+/* ---- signature: depth cross-section ---- */
+.strata{margin:34px 0 6px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow)}
+.strata .cap{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.strata .cap span:last-child{color:#93A2AE}
+.layer{display:grid;grid-template-columns:132px 1fr 300px;gap:0;align-items:center;
+  border-top:1px solid var(--rule);background:var(--panel);
+  transition:background .18s}
+.layer:first-of-type{border-top:none}
+.layer:hover{background:#fff}
+.layer .nm{font-family:"Archivo",sans-serif;font-weight:600;font-size:15px;padding:13px 16px;
+  border-right:1px solid var(--rule)}
+.layer .flow{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);padding:13px 16px}
+.layer .note{font-size:13px;color:var(--soft);padding:13px 16px;border-left:1px solid var(--rule)}
+.layer .bar{display:block;height:3px;background:var(--probe);border-radius:2px;margin-top:7px;
+  transform-origin:left;animation:grow .7s cubic-bezier(.2,.7,.3,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.waterline{display:grid;grid-template-columns:132px 1fr;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.1em}
+.waterline span{padding:7px 16px}
+.waterline span:first-child{color:var(--signal);border-right:1px solid #24333D}
+.stratanote{font-size:13.5px;color:var(--soft);margin:11px 2px 0}
+
+/* ---- lesson cards ---- */
+.sec{padding:50px 0 0}
+.sec h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(21px,3.2vw,29px);
+  letter-spacing:-.015em;margin:0 0 4px}
+.sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
+.cards{display:grid;gap:12px}
+a.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+  text-decoration:none;color:var(--ink);background:var(--panel);
+  border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
+  transition:transform .16s,box-shadow .16s,background .16s}
+a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
+.card .num{font-family:"Archivo",sans-serif;font-weight:700;font-size:30px;color:var(--signal);
+  line-height:1;letter-spacing:-.03em}
+.card .t{display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin-bottom:3px}
+.card .d{display:block;font-size:14px;color:var(--soft)}
+.card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+
+/* ---- lesson page ---- */
+.page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
+.rail{position:sticky;top:22px;font-size:13.5px}
+.rail .rt{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
+  border-left:2px solid var(--rule);line-height:1.4}
+.rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.doc{min-width:0}
+.doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:26px;letter-spacing:-.015em;
+  margin:44px 0 12px;padding-top:16px;border-top:1.5px solid var(--ink)}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin:28px 0 8px}
+.doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
+.doc p{margin:12px 0}
+.doc ul,.doc ol{padding-left:22px}
+.doc li{margin:5px 0}
+.doc blockquote{margin:16px 0;padding:13px 18px;background:var(--panel);
+  border-left:4px solid var(--signal);border-radius:0 8px 8px 0;color:var(--ink)}
+.doc blockquote p{margin:6px 0}
+.doc blockquote h3{margin-top:2px}
+.doc table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.doc th,.doc td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+.doc thead th{background:var(--ink);color:var(--paper);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.doc tbody tr:last-child td{border-bottom:none}
+.doc tbody tr:nth-child(even){background:#fff}
+.doc hr{border:none;border-top:1px solid var(--rule);margin:30px 0}
+.doc details{background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+  padding:11px 15px;margin:14px 0}
+.doc summary{cursor:pointer;font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px;color:var(--probe)}
+.doc img{max-width:100%}
+
+/* ---- in-lesson figure: accumulating complexity ladder ---- */
+.ladder{margin:22px 0 8px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow);background:var(--panel)}
+.ladder figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.ladder figcaption span:last-child{color:#93A2AE;text-transform:none;letter-spacing:.02em}
+.rung{display:grid;grid-template-columns:46px 1fr;border-top:1px solid var(--rule)}
+.rung:first-of-type{border-top:none}
+.rn{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;color:var(--faint);
+  padding:14px 0 0;text-align:center;border-right:1px solid var(--rule)}
+.rbody{padding:12px 16px 14px}
+.rhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:9px}
+.rhead b{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px}
+.rhead code{background:none;padding:0;color:var(--soft);font-size:12.5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:"JetBrains Mono",monospace;font-size:11.5px;padding:3px 9px;border-radius:20px;
+  border:1px solid var(--rule);color:var(--faint);background:var(--panel-2)}
+.chip.new{border-color:var(--signal);color:#fff;background:var(--signal);font-weight:500}
+.wline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.08em;padding:8px 16px}
+.wline span:first-child{color:var(--signal);white-space:nowrap;font-weight:500}
+.lfoot{border-top:1px solid var(--rule);padding:11px 16px;font-size:13px;color:var(--soft)}
+.lfoot b{color:var(--signal)}
+@media(max-width:640px){.rhead code{display:none}}
+
+.pager{display:flex;justify-content:space-between;gap:14px;margin:52px 0 0;
+  border-top:1.5px solid var(--ink);padding-top:18px;flex-wrap:wrap}
+.pager a{font-family:"JetBrains Mono",monospace;font-size:13px;text-decoration:none;color:var(--probe)}
+.pager a:hover{color:var(--signal)}
+
+footer{margin-top:56px;border-top:1.5px solid var(--ink);background:var(--panel)}
+footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding-top:18px;padding-bottom:44px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+
+@media(max-width:900px){
+  .page{grid-template-columns:1fr;gap:20px}
+  .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
+  .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
+  .layer{grid-template-columns:1fr}
+  .layer .nm,.layer .note{border:none}
+  .layer .note{padding-top:0}
+  .waterline{grid-template-columns:1fr}
+  a.card{grid-template-columns:46px 1fr}
+  .card .tag{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .layer .bar{animation:none}
+  a.card:hover{transform:none}
+}
+</style>
+</head><body>
+
+<header class="mast"><div class="wrap">
+<span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 01</b></span>
+<nav><a href="index.html">目录</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><a href="lesson05.html">5</a><a href="lesson06.html" class="on">6</a></nav></div></header>
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">GDPval-AA v2 · τ³-Banking · Terminal-Bench v2.1</a><a href="#s1">一、为什么挑这三个</a><a href="#s2">二、统一解剖表(已核验填写)</a><a href="#s3">三、六个问题的答案(Day 5 练习二的参考)</a><a href="#s4">四、怎么 game 它 ⭐(本课最重要的一列)</a><a href="#s5">五、方法论歧义:必须记录而不是自行解释</a><a href="#s6">六、三者共同的盲区(通往你的 capstone)</a><a href="#s7">七、本课产出</a><a href="#s8">八、Week 1 收官:自检清单</a><a href="#s9">本课一句话总结</a></aside>
+<article class="doc"><h1>第 5 课:三个 Agent Benchmark 横向解剖</h1>
+<h2 id="s0">GDPval-AA v2 · τ³-Banking · Terminal-Bench v2.1</h2>
+<p><strong>Week 1 Day 6</strong> · 实验分析日 · 建议 60 分钟</p>
+<blockquote>
+<p>📎 <strong>素材锚点</strong>:<code>docs/aa-intelligence-benchmarking-methodology.md</code>(所有栏目已逐条核验)· <code>papers/tau_bench.pdf</code> · <code>papers/swebench.pdf</code>(对照 code-agent verifier 设计)
+本课重点不是记住三个 benchmark,而是练熟<strong>统一解剖维度</strong>和<strong>攻击性思维</strong>(怎么 game 它)。</p>
+</blockquote>
+<hr />
+<h2 id="s1">一、为什么挑这三个</h2>
+<p>它们是 Intelligence Index 里<strong>权重最高的三项,合计 50%</strong>,而且恰好覆盖了三种完全不同的评分范式:</p>
+<table>
+<thead>
+<tr>
+<th>Benchmark</th>
+<th style="text-align: right;">权重</th>
+<th>评分范式</th>
+<th>代表了什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GDPval-AA v2</td>
+<td style="text-align: right;">20%</td>
+<td><strong>Pairwise preference (Elo)</strong></td>
+<td>没有唯一答案的开放式交付物</td>
+</tr>
+<tr>
+<td>Terminal-Bench v2.1</td>
+<td style="text-align: right;">16%</td>
+<td><strong>Test suite pass/fail</strong></td>
+<td>有客观正确定义的工程任务</td>
+</tr>
+<tr>
+<td>τ³-Banking</td>
+<td style="text-align: right;">14%</td>
+<td><strong>Environment state</strong></td>
+<td>有状态、多轮、需遵守规则的业务流程</td>
+</tr>
+</tbody>
+</table>
+<p><strong>一课把三种范式各看一遍</strong>,以后遇到任何 agent benchmark 都能归类。</p>
+<hr />
+<h2 id="s2">二、统一解剖表(已核验填写)</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th><strong>GDPval-AA v2</strong></th>
+<th><strong>τ³-Banking</strong></th>
+<th><strong>Terminal-Bench v2.1</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>任务数</strong></td>
+<td>220 tasks</td>
+<td>97</td>
+<td>89</td>
+</tr>
+<tr>
+<td><strong>Repeat</strong></td>
+<td><strong>1</strong></td>
+<td><strong>5</strong></td>
+<td><strong>3</strong></td>
+</tr>
+<tr>
+<td><strong>权重</strong></td>
+<td>20%</td>
+<td>14%</td>
+<td>16%</td>
+</tr>
+<tr>
+<td><strong>任务来源 / 真实性</strong></td>
+<td>44 种职业的真实经济价值型工作;基于 OpenAI 公开 gold GDPval 数据集</td>
+<td>模拟银行客服;约 700 份互相关联的政策文档</td>
+<td>真实终端任务:软件工程 / 系统管理 / 数据处理 / 模型训练 / 安全</td>
+</tr>
+<tr>
+<td><strong>Environment</strong></td>
+<td>E2B sandbox + 文件系统 + 网页访问</td>
+<td>银行后台数据库 + 用户模拟器 + 知识库</td>
+<td>E2B sandbox + terminal</td>
+</tr>
+<tr>
+<td><strong>Harness</strong></td>
+<td><strong>Stirrup</strong>(AA 自研开源)</td>
+<td>τ-Bench harness(bm25_grep 检索模式)</td>
+<td><strong>Terminus 2</strong></td>
+</tr>
+<tr>
+<td><strong>工具</strong></td>
+<td>6 个(含 Web Fetch → markdown、Web Search 等)</td>
+<td>知识检索 + 银行操作工具 + 与模拟用户对话</td>
+<td>shell(终端全权)</td>
+</tr>
+<tr>
+<td><strong>预算 / 终止</strong></td>
+<td><strong>250 turns</strong>;上下文超限时 harness 要求总结并清理早期上下文;<strong>允许提前放弃</strong></td>
+<td><strong>200 steps</strong>(step = 模拟中传递的<strong>每一条消息</strong>)</td>
+<td><strong>250 episodes</strong>;per-task timeout <strong>两小时(7,200s)</strong>,或任务自带更长者</td>
+</tr>
+<tr>
+<td><strong>Verifier</strong></td>
+<td>三个 frontier LLM judge 组成 panel,匿名 pairwise;Bradley–Terry MLE 拟合 Elo;<strong>锚定人类专家 = 1000</strong>;sandwich estimator 算 CI</td>
+<td><strong>后台数据库状态</strong>;部分自然语言断言用 LLM judge</td>
+<td>任务自带 <strong>verification suite</strong>,<strong>必须全部通过</strong></td>
+</tr>
+<tr>
+<td><strong>Verifier 独立性</strong></td>
+<td>中(judge 是外部模型,但 agent 的输出文件会被 judge 读到 → 可迎合偏好)</td>
+<td><strong>高</strong>(agent 改不了验证用的 DB 断言)</td>
+<td><strong>高</strong>(测试套件独立于 agent 的说辞)</td>
+</tr>
+<tr>
+<td><strong>AA 标注的 Tool Usage</strong></td>
+<td>✓</td>
+<td>✓</td>
+<td><strong>✗</strong> ⚠️(见 §五 的方法论歧义)</td>
+</tr>
+<tr>
+<td><strong>聚合</strong></td>
+<td>Elo → frozen &amp; scaled 进指数</td>
+<td>pass@1 over 5 repeats</td>
+<td>pass@1 averaged over 3 repeats</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="s3">三、六个问题的答案(Day 5 练习二的参考)</h2>
+<p><strong>1. 哪个任务最开放?</strong>
+→ <strong>GDPval-AA</strong>。要交付报告 / 表格 / 演示文稿,没有唯一正确答案,所以只能用 pairwise。</p>
+<p><strong>2. 哪个 scorer 最客观?</strong>
+→ <strong>Terminal-Bench</strong>。测试套件全过才算成功,二值、可复现、不依赖任何模型判断。</p>
+<p><strong>3. 哪个最依赖 LLM judge?</strong>
+→ <strong>GDPval-AA</strong>。整个分数由 judge panel 的偏好经 Bradley–Terry 拟合而来。
+(τ³ 只在"部分自然语言断言"上用 judge,主体是 DB 状态。)</p>
+<p><strong>4. 哪个最容易准确检查最终任务状态?</strong>
+→ <strong>τ³-Banking</strong>(查数据库行)与 <strong>Terminal-Bench</strong>(跑测试)并列。
+两者都是 outcome-based;区别是 τ³ 查<strong>业务状态</strong>,TB 查<strong>测试通过</strong>。</p>
+<p><strong>5. 哪个最容易受 harness 能力影响?</strong>
+→ <strong>GDPval-AA</strong>。250 turns 的长轨迹 + 上下文压缩策略 + 提前退出机制,全部由 Stirrup 决定。</p>
+<blockquote>
+<p>换 harness ⟹ 上下文管理策略变 ⟹ 长任务成败直接变。</p>
+</blockquote>
+<p><strong>6. 三者中哪个最适合评测你的实际产品?</strong>
+→ 取决于你的产品形态:</p>
+<pre><code>做交付物(报告/文档)的 agent   → GDPval-AA 范式
+做有状态业务流程的 agent        → τ³-Banking 范式   ← 你的 Slack/Jenkins 场景最接近
+做代码/运维的 agent            → Terminal-Bench 范式
+</code></pre>
+<p>但<strong>三者都不覆盖你的核心风险</strong>:多用户权限与信息流(见 §六)。</p>
+<hr />
+<h2 id="s4">四、怎么 game 它 ⭐(本课最重要的一列)</h2>
+<blockquote>
+<p>训练攻击性思维:<strong>假设你的 KPI 就是这个分数,你会怎么做?</strong> 想不出漏洞,说明你还没真正理解这个 benchmark。</p>
+</blockquote>
+<h3>GDPval-AA(pairwise preference)</h3>
+<pre><code>① 迎合 judge 偏好而非用户价值:更长、更漂亮、更多小标题和图表
+② 格式套路化:固定用 judge 喜欢的文档结构模板
+③ 利用 Elo 依赖对手集合:只与弱对手比较时排名虚高
+④ 只跑 1 次 → 运气好的单次结果无法被平均掉
+⑤ 针对「可提前退出」机制:难题早退保成本,不影响单题胜负判定
+</code></pre>
+<p><strong>防御方向</strong>:judge 校准与人工 gold set(Week 5)· 盲测与对手集合固定 · 增加 repeat。</p>
+<h3>τ³-Banking(environment state)</h3>
+<pre><code>① 政策文档检索作弊:硬编码常见 case 的规则,不真正检索
+② 只满足 DB 断言,不管过程:用不合规手段达成正确终态
+③ 钻用户模拟器的漏洞:诱导模拟用户给出本该由 agent 推断的信息
+④ 200 step 预算内刷动作:反复试探直到 DB 状态碰对
+</code></pre>
+<p><strong>防御方向</strong>:验证<strong>中间过程</strong>而不只是终态(是否读了正确政策?是否有越权动作?)· 对模拟用户加约束。</p>
+<h3>Terminal-Bench(test suite)</h3>
+<pre><code>① 针对测试而非任务:读到测试文件后直接让测试通过(经典 test-gaming)
+② 覆盖不足的漏洞:hack 实现绕过断言
+③ 用满两小时超时暴力搜索
+④ 环境探测:识别出这是 benchmark 环境后走特殊路径
+</code></pre>
+<p><strong>防御方向</strong>:<strong>hidden tests</strong>(agent 不可读)· verifier 与 workspace 物理隔离 · 限制 wall-clock。</p>
+<blockquote>
+<p>📌 这三列直通 <strong>Week 7(evaluation integrity)</strong> 和 <strong>Week 10(reward hacking)</strong>。
+跨课呼应:<code>../agent-sandbox-course</code> 的核心原则 —— <strong>verifier 必须在 agent 够不到的地方</strong>(独立 verifier sandbox)。</p>
+</blockquote>
+<hr />
+<h2 id="s5">五、方法论歧义:必须记录而不是自行解释</h2>
+<p><strong>已在快照中双向核对确认冲突真实存在</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>出处</th>
+<th>说法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AA 汇总表</td>
+<td>Terminal-Bench 的 <strong>Tool Usage = ✗</strong></td>
+</tr>
+<tr>
+<td>AA 详细方法</td>
+<td><em>"using the </em><em>Terminus 2 agent harness</em><em> in an </em><em>E2B sandbox</em><em> environment"</em> —— 模型显然在操作终端</td>
+</tr>
+</tbody>
+</table>
+<p><strong>正确处理</strong>:</p>
+<pre><code>✅ 记录为 open methodology question
+✅ 以实际执行流程为准(它确实用工具)
+❌ 不要自行编造 &quot;Tool Usage&quot; 的定义并当成事实
+</code></pre>
+<p><strong>合理猜测</strong>(标注为猜测):这一列可能指「是否由 AA 的 Stirrup harness 提供 API 级工具」,而 Terminal-Bench 用的是上游 Terminus 2 —— 但方法页<strong>没有解释这一列</strong>,所以只能存疑。</p>
+<blockquote>
+<h3>这是本周最该养成的职业习惯</h3>
+<p><strong>当摘要表与实现细节冲突时,以实际执行流程为准,并明确记录不确定性。</strong>
+一个合格的 benchmark review,<strong>必须有 "Open methodology questions" 这一节</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="s6">六、三者共同的盲区(通往你的 capstone)</h2>
+<p>把三个加起来,仍然<strong>完全没有覆盖</strong>的东西:</p>
+<table>
+<thead>
+<tr>
+<th>盲区</th>
+<th>为什么重要</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>多用户 / 多 principal</strong></td>
+<td>三者都是单用户会话。你的产品是 A/B/C 共用一个 thread</td>
+</tr>
+<tr>
+<td><strong>权限与 delegation</strong></td>
+<td>没有任何一项测「agent 此刻代表谁、能不能访问这个资源」</td>
+</tr>
+<tr>
+<td><strong>信息流隔离</strong></td>
+<td>没有任何一项测「C 能否从历史 summary 看到 A 的私有数据」</td>
+</tr>
+<tr>
+<td><strong>凭证泄漏</strong></td>
+<td>没有任何一项检查 trace / snapshot / 日志里有没有 JWT</td>
+</tr>
+<tr>
+<td><strong>撤销后的行为</strong></td>
+<td>没有任何一项测「用户权限被撤销后,后台 agent 还能不能继续」</td>
+</tr>
+<tr>
+<td><strong>session 级评价</strong></td>
+<td>三者主要在 task 层打分(见 Day 2 的四种评价单位)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⟹ 这正是本课程 capstone <strong>Permission-Aware Multi-User Agent Benchmark</strong> 的立足点:
+<strong>不是再造一个 SWE-bench,而是补上现有 benchmark 家族的结构性盲区。</strong></p>
+</blockquote>
+<hr />
+<h2 id="s7">七、本课产出</h2>
+<h3>产出 1:填一张你自己的解剖表</h3>
+<p>不要抄本文。选<strong>另外三个</strong> benchmark(建议从 AA 的 additional evaluations 里挑,如 AA-Briefcase / ITBench / EnterpriseOps-Gym / AutomationBench),用相同维度填表。
+📁 → <code>sec2-benchmark-teardown.md</code></p>
+<h3>产出 2:下周问题清单</h3>
+<p>写下 5 个你现在答不上来、但觉得重要的问题。
+📁 → <code>notes/day5-next-week-questions.md</code></p>
+<p><strong>参考(可作为你的起点)</strong>:</p>
+<pre><code>1. 同一任务 5 次 repeat 不是独立样本,置信区间该怎么算?   → Week 4(clustered SE)
+2. 怎么量化一个 LLM judge 到底准不准?                      → Week 5
+3. hidden test 要怎么在技术上真正做到 agent 不可读?        → Week 7
+4. benchmark 被污染了怎么检测?                             → Week 7
+5. 同一套 environment 怎么同时服务 eval 和 RL 训练?        → Week 10–11
+</code></pre>
+<hr />
+<h2 id="s8">八、Week 1 收官:自检清单</h2>
+<pre><code>[ ] 1. 能背出七因子公式,并对每个因子举一个改变它就改变分数的例子
+[ ] 2. 能区分 model eval / agent-system eval,并说清 AA 为什么单列 Coding Agent Index
+[ ] 3. 能区分 turn / trajectory / task / session,各举一例
+[ ] 4. 能说清 online vs offline evaluation 的用途差异
+[ ] 5. 能手算/编程给出任一 k/n 的 Wilson CI,并解释为何不用正态近似
+[ ] 6. 能回答「30/50 vs 300/500」的可信度差异(26.2% vs 8.6%)
+[ ] 7. 对三个 benchmark 各说出一种 game 它的方法
+[ ] 8. 画出完整 evaluation stack,并标出每层属于七因子里的哪一个
+</code></pre>
+<h3>本周交付:<code>figures/evaluation-stack.txt</code></h3>
+<pre><code>Task distribution / sampling
+        ↓
+Agent harness(prompt · scaffold · tool schema · retry · budget)
+        ↓
+Model(+ decoding params · reasoning effort)
+        ↓
+Environment(state · tools · reset · isolation)
+        ↓
+Rollout(trajectory logs · token · cost · wall time)
+        ↓
+Scorer / Verifier(程序化 or judge;独立性?)
+        ↓
+Aggregation(pass@1/pass@k · micro/macro · 加权)
+        ↓
+Uncertainty(CI · paired comparison)
+        ↓
+Leaderboard 分数
+</code></pre>
+<p>每层标注:<strong>它是七因子里的哪一个 · 换掉它分数会怎么变。</strong></p>
+<hr />
+<h2 id="s9">本课一句话总结</h2>
+<blockquote>
+<p><strong>每个 benchmark 都在用某种方式回答「成功了吗」,而每种方式都有对应的 game 方法。</strong> 读 benchmark 的最高境界,是先想清楚「如果我的 KPI 是它,我会怎么作弊」——那就是它的 validity threat 清单。</p>
+</blockquote>
+<hr />
+<p><strong>下周(Week 2)</strong>:Benchmark landscape 与 Artificial Analysis —— 指数构成、权重决策、task sampling、harness、budget 与 leaderboard 的系统性分析。</p>
+<div class="pager"><a href="lesson05.html">← 第 5 课 · 这个分数能不能信</a><a href="index.html">回目录 →</a></div>
+</article></div></div>
+<footer><div class="wrap">
+<span>Week 01 · Evaluation 基本框架</span>
+<span>源:AA v4.1.1 快照 · SWE-bench · Terminal-Bench · tau2-bench · OSWorld-V2 · BFCL</span>
+<span>由 week01/*.md 生成 · build_site.py</span>
+</div></footer></body></html>

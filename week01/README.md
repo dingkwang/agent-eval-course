@@ -1,15 +1,16 @@
 # Week 1 讲义 — Evaluation 基本框架
 
-> 5 天 × 1 小时。逐日安排见 `PLAN.md`,讲义正文在下面五个文件。
+> 6 天 × 1 小时。逐日安排见 `PLAN.md`,讲义正文在下面六个文件。
 > **所有数字均已对本地素材快照逐条核验**;未能核验的显式标注为「待确认 / 推断」。
 
 | Day | 讲义 | 类型 | 主命题 |
 |---|---|---|---|
-| **1** | [`lesson01.md`](lesson01.md) | **源码** | **Benchmark Anatomy:主流 agent benchmark 是怎么实现的**(6 repo 实测解剖;AA 仅作 10 分钟地图) |
-| **2** | [`lesson02.md`](lesson02.md) | 概念 | 组件级 evaluation 与 trace:任务失败时,**哪一环**失败了? |
-| **3** | [`lesson03.md`](lesson03.md) | 写作 | 为什么 agent 分数不是 model 分数 |
-| **4** | [`lesson04.md`](lesson04.md) | 编码 | 这个分数能不能信?Bernoulli · 标准误 · Wilson CI |
-| **5** | [`lesson05.md`](lesson05.md) | 分析 | 三个 agent benchmark 横向解剖 + 怎么 game 它 |
+| **1** | [`lesson01.md`](lesson01.md) | 源码 | Benchmark Anatomy:六个 benchmark 的复杂度阶梯 |
+| **2** | [`lesson02.md`](lesson02.md) | **源码** | **Terminal-Bench 深读**:从 task 定义一路追到 score |
+| **3** | [`lesson03.md`](lesson03.md) | 概念 | 组件级 evaluation 与 trace:任务失败时,**哪一环**失败了? |
+| **4** | [`lesson04.md`](lesson04.md) | 写作 | 为什么 agent 分数不是 model 分数 |
+| **5** | [`lesson05.md`](lesson05.md) | 编码 | 这个分数能不能信?Bernoulli · 标准误 · Wilson CI |
+| **6** | [`lesson06.md`](lesson06.md) | 分析 | 三个 agent benchmark 横向解剖 + 怎么 game 它 |
 
 ## 贯穿本周的两个公式
 
@@ -23,17 +24,18 @@
 
 ## 代码
 ```bash
-python3 ../labs/wilson.py     # Day 4:Wilson vs 正态近似,四组真实输出
+python3 ../labs/wilson.py     # Day 5:Wilson vs 正态近似,四组真实输出
 ```
 
 ## 本周产出清单
 ```
 [ ] notes/day1-aa-benchmark-catalog.md        Day 1  九项 evaluation 解剖表 + 3 个疑问
-[ ] notes/day2-component-eval.md              Day 2  3 概念 / 2 疑问 / 1 案例
+[ ] notes/day2-terminal-bench-source-map.md   Day 2  Terminal-Bench 源码地图
+[ ] notes/day3-component-eval.md              Day 3  3 概念 / 2 疑问 / 1 案例
 [ ] sec1-why-agent-score-is-not-model-score.md Day 3 800–1,200 字自写讲义
-[ ] notes/day4-ci-findings.md                 Day 4  三个结论 + 扩展代码
-[ ] sec2-benchmark-teardown.md                Day 5  另选三个 benchmark 的解剖表
-[ ] notes/day5-next-week-questions.md         Day 5  5 个下周问题
+[ ] notes/day5-ci-findings.md                 Day 5  三个结论 + 扩展代码
+[ ] sec2-benchmark-teardown.md                Day 6  另选三个 benchmark 的解剖表
+[ ] notes/day6-next-week-questions.md         Day 6  5 个下周问题
 [ ] figures/evaluation-stack.txt              本周交付:完整 evaluation stack 图
 ```
 

@@ -60,26 +60,50 @@ AA 另有一批更直接的 agent evaluations:
 
 ---
 
-# 三、12 周结构
+# 三、12 周结构(v2 · 源码优先)
 
-| 周 | 主题 | 实践产出 |
-|---|---|---|
-| **1** | **Evaluation 基本框架**:model vs system vs agent;offline vs online;turn/trajectory/task/session 四种评价单位 | 为一个 agent 画出完整 evaluation stack |
-| **2** | **Benchmark landscape 与 Artificial Analysis**:指数、权重、task sampling、harness、budget、leaderboard | benchmark catalog + 批判性分析 Intelligence Index |
-| **3** | **任务与指标设计**:task success · partial credit · constraint violation · cost · latency · tool efficiency | metric tree + failure taxonomy |
-| **4** | **统计学 I:二元结果与重复试验** | 实现 pass@1/pass@k · Wilson CI · paired bootstrap |
-| **5** | **统计学 II:人类与 LLM judge** | 建人工 gold set,校准一个 LLM judge |
-| **6** | **Agent environment 与 harness**:initial state · action · observation · termination · budget · reset · replay | 实现一个小型 stateful tool-use environment |
-| **7** | **Sandbox 与 evaluation integrity**:container/microVM · 网络 · secret · 文件权限 · anti-cheat · 数据泄漏 | 在 toy benchmark 中**演示并阻止** reward hacking |
-| **8** | **主流 benchmark 家族**:GAIA · Terminal/SWE · Web/UI · τ-bench · knowledge work · IT operations | 选两个 benchmark,比较 task / environment / verifier |
-| **9** | **Production evaluation**:trace sampling · shadow/canary · regression · drift · human escalation | offline → staging → online eval pipeline |
-| **10** | **Evaluation 与 on-policy RL**:MDP/POMDP · rollout · reward · policy distribution · holdout | 把一个 evaluator 改造成训练 reward,并分析风险 |
-| **11** | **Kimi K3 case study**:长轨迹 RL · partial rollout · GRM · MOPD · persistent sandbox | 绘制 Kimi K3 的 training/eval systems diagram |
-| **12** | **Capstone**:设计并发布自己的 agent benchmark | benchmark spec · 代码 · 统计报告 · limitations · leaderboard |
+> **v1 的顺序错了**:一上来讲评价框架和统计,是在给一个你还没见过的东西算误差棒。
+> **v2 的主线**:**先学 benchmark 作为一个软件系统是怎么工作的,再学如何测量它。**
 
-**每周固定节奏**:2 天概念与论文 · 1 天编码 · 1 天实验分析 · 1 天写自学讲义。
+| 周 | 主题 | 核心问题 | 状态 |
+|---|---|---|---|
+| **1** | **Popular Benchmark Anatomy** | 现有 benchmark 是怎么工作的?(源码追通 task→…→result) | 🔨 进行中 |
+| **2** | **Eval Runtime / Harness Engineering** | 我要自己实现一套通用 agent eval runtime,需要哪些 abstraction? | |
+| **3** | **Metrics & Statistics** | 一个 observation 是什么?怎么算误差棒? | |
+| **4** | **Scorers / Verifiers / LLM-as-Judge** | 成功如何被判定?judge 准不准? | |
+| **5** | **Benchmark Construction & Task Quality** | 怎么造出好任务?怎么做质量控制? | |
+| **6** | **Reproducibility / Infra Noise / Failure Taxonomy** | 同样的模型为什么跑出不同分?哪些失败不是模型的错? | |
+| **7** | **Sandbox & Evaluation Integrity** | 怎么防污染、防作弊、防外泄? | |
+| **8** | **Leaderboard / Aggregation / Artificial Analysis** | 成千上万个 task result 怎么压成一个数字? | 📄 已详细规划 |
+| **9** | **Production / Online Evaluation** | 这个数字跟真实产品表现有什么关系? | |
+| **10** | **Evaluation ↔ On-policy RL** | 同一套 environment 怎么同时服务 eval 与训练? | |
+| **11** | **Kimi K3 / AgentENV / Harbor RL Case Study** | 前沿是怎么把这些拼在一起的? | |
+| **12** | **Capstone Benchmark** | 自己从零做一个可运行、可复现、可评分的 benchmark | |
 
----
+**三段式**:
+```
+W1–W2   benchmark 与 runtime 是怎么工作的   ← 工程
+W3–W7   怎么正确地测量                      ← 方法论
+W8–W12  怎么把测量变成结论,以及喂给训练      ← 系统与应用
+```
+
+## Week 2 · Eval Runtime Engineering(预告)
+
+要抽象出来的东西:
+```
+Task → Environment → AgentAdapter → Rollout → Trajectory → Verifier → Result
+```
+对照研究三个真实框架 —— **不是「又学一个工具」,而是比较不同框架如何抽象同一个 runtime**:
+
+| 框架 | 学什么 |
+|---|---|
+| **Harbor** | ⭐ 主 runtime:84 adapter × 20 执行后端的统一抽象;同时是 eval framework 和 RL environment framework |
+| **SWE-bench harness** | Docker image layering(base → env → instance)· cache · parallel evaluation · **failure classification**(infra failure / ambiguous / unresolved 已被官方区分) |
+| **Inspect AI** | 最干净的 API 抽象:`Task / Solver / Scorer / Sandbox` |
+
+## Week 8 · From Rollouts to Leaderboards
+> 📄 **逐日计划见 `week08/PLAN.md`** —— raw rollout → per-task → per-benchmark → normalization → 跨 benchmark 聚合 → index → ranking,含 weight sensitivity、rank uncertainty、versioning 与 Pareto frontier。
+
 
 # 四、统计学要学到什么程度
 

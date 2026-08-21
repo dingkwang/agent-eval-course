@@ -1,2 +1,5 @@
 papers/*.pdf
 code/
+labs/swe-bench-teardown/logs/
+labs/swe-bench-teardown/*.json
+!labs/swe-bench-teardown/astropy__astropy-13398.json

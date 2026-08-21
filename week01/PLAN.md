@@ -1,194 +1,221 @@
-# Week 1 — Evaluation 基本框架
-## model vs system vs agent · offline vs online · 四种评价单位
+# Week 1 — Benchmark Archaeology
+## 拿到任何 agent benchmark repo,能从源码追通整条链
 
-> **5 天 × 1 小时**。周节奏:2 天概念与论文 · 1 天编码 · 1 天实验分析 · 1 天写自学讲义。
-> **本周交付**:为一个 agent 画出**完整 evaluation stack**。
+> **v2**(2026-08 重构)。v1「Evaluation 基本框架 → 统计 → 横向分析」已废止;
+> 那一版里仍然有效的四篇讲义移到 `../_deferred/`,会在 W2/W3/W7/W8 重新启用。
 
-**本周主命题**(全课的第一课):
-> ### 测得的性能 = Model × Agent Harness × Environment × Task Distribution × Budget × Scorer × Randomness
-> 七个因子里只有一个是 model —— 所以 **leaderboard 分数 ≠ 模型能力**。
+## 本周唯一目标
 
-**四种评价单位**(本周必须能区分并各举一例):
+> **拿到任何 agent benchmark repo,我可以从源码追通:**
+> ```
+> task → environment → agent → rollout → verifier → result
+> ```
+
+## 本周不学什么(重要)
+
 ```
-turn        单次交互是否正确
-trajectory  整条轨迹的过程质量(工具选择、冗余步骤、违规动作)
-task        任务最终是否达成(由 independent verifier 判定)
-session     跨多轮/多用户的长期表现(状态、记忆、权限)
+❌ 统计学(pass@k / CI / 显著性)     → Week 3
+❌ 组件级 evaluation 与 trace        → Week 2
+❌ 权重、聚合、leaderboard           → Week 8
+❌ 「这个 benchmark 好不好」         → Week 5 / Week 7
 ```
+
+> **理由**:先知道「一个 observation 到底是什么」,统计和聚合才有上下文。
+> 一上来讲 Wilson 区间,是在给一个你还没见过的东西算误差棒。
 
 ---
 
-## Day 1 · 概念 —— 拆解一个真实排行榜的口径
-**目标:先看清「一个分数背后到底有多少可调旋钮」。**
+## 六天
 
-| 时间 | 做什么 |
-|---|---|
-| 40 min | 精读 Artificial Analysis Intelligence Index methodology |
-| 20 min | 制表:每个 benchmark 的 **task · repeat · scorer · tool usage** |
-
-📎 素材:`docs/aa-intelligence-benchmarking-methodology.md`(116k 字,已抓取核实)
-
-**已核实的事实**(读的时候对照验证):
-```
-Intelligence Index v4.1.1 = 9 项 evaluation 加权
-Agents 34% · Coding 24% · Scientific Reasoning 24% · General 18%
-Agent 类主要:GDPval-AA v2 · τ³-Banking
-Terminal-Bench / SciCode 归在 Coding,不在 Agents
-```
-
-**必须回答**:
-- 哪些 benchmark 跑 1 次?哪些 3 次?哪些 5 次?**为什么不同?**
-- scorer 是 exact match、程序化 verifier,还是 LLM/rubric judge?
-- agent 有没有工具?工具是谁提供的(benchmark 还是 harness)?
-- budget 怎么定(步数 / token / wall time)?
-
-📁 → `notes/day1-aa-benchmark-catalog.md`(一张表 + 3 个疑问)
-
----
-
-## Day 2 · 概念 —— 组件级 evaluation 与 trace
-**目标:补上「怎么评一个 agent 的内部」,而不只是最终对错。**
-
-| 时间 | 做什么 |
-|---|---|
-| 45 min | DeepLearning.AI *Evaluating AI Agents* 前半部分(trace · 组件级 eval · code evaluator · LLM-as-a-judge) |
-| 15 min | **闭卷**记:3 个核心概念 · 2 个没懂的问题 · 1 个能进课程的案例 |
-
-📎 交叉素材:`papers/survey_agent_eval_2025.pdf`(A Survey on Evaluation of LLM-based Agents)—— 看它怎么把领域切成 capability / application benchmark / generalist benchmark / benchmark dimensions / 开发框架。
-
-**必须带走的区分**:
-```
-component-level eval  router 选对工具了吗?检索到对的文档了吗?
-end-to-end eval       任务成了吗?
-online vs offline     线上采样 trace 评 vs 固定数据集离线评
-```
-📁 → `notes/day2-component-eval.md`
-
----
-
-## Day 3 · 写讲义 —— 《为什么 agent 分数不是 model 分数》
-**目标:把 Day 1–2 的认知固化成一页能给别人看的东西。这天不读新材料。**
-
-| 时间 | 做什么 |
-|---|---|
-| 10 min | **不看笔记**,凭记忆复述 Day 1–2 |
-| 35 min | 写讲义 |
-| 15 min | 补例子 + 练习题 |
-
-**必须包含**:
-1. 七因子公式,逐项举一个「换它会让分数变」的例子
-2. **同一模型换 harness 分数就变** —— 用 AA Coding Agent Index 的做法佐证(`docs/aa-coding-agents-leaderboard.md`)
-3. 四种评价单位各一例
-4. 一段自己的定义:「什么叫 agent-system evaluation,它与 model evaluation 的边界在哪」
-
-📁 → `sec1-why-agent-score-is-not-model-score.md`(800–1,200 字)
-
----
-
-## Day 4 · 编码 —— Bernoulli / 标准误 / Wilson 区间
-**目标:第一次亲手算出「这个分数能不能信」。**
-
-| 时间 | 做什么 |
-|---|---|
-| 20 min | 概念:Bernoulli · 标准误 · 正态近似为什么在极端比例处失效 · Wilson interval |
-| 40 min | 写代码 |
-
-📎 素材:⭐ `papers/error_bars_in_evals.pdf`(*Adding Error Bars to Evals*,Anthropic —— 本周最重要的一篇)
-
-**要实现**(`labs/wilson.py`):
-```python
-def wilson_ci(k, n, z=1.96) -> tuple[float,float]   # 不用正态近似
-def normal_ci(k, n, z=1.96) -> tuple[float,float]   # 对照组
-```
-**要跑出的三个结论**:
-```
-① 30/50 与 300/500 同为 60%,CI 宽度差多少?
-② n=20、成功 20 次(100%):正态近似给出什么荒谬结果?Wilson 给什么?
-③ 要把 CI 宽度减半,n 要变成几倍?
-```
-📁 → `labs/wilson.py` · `notes/day4-ci-findings.md`
-
----
-
-## Day 5 · 实验分析 —— 三个 benchmark 的横向解剖
-**目标:用统一维度比较,并练习「怎么 game 它」这种攻击性思维。**
-
-| 时间 | 做什么 |
-|---|---|
-| 45 min | 对比 **GDPval · τ³-Banking · Terminal-Bench** |
-| 15 min | 写结论 + 下周问题 |
-
-📎 素材:`docs/aa-intelligence-benchmarking-methodology.md` · `docs/aa-evaluations.md` · `papers/tau_bench.pdf` · `papers/swebench.pdf`(对照 code-agent 的 verifier 设计)
-
-**统一比较表**:
-| 维度 | GDPval | τ³-Banking | Terminal-Bench |
+| Day | 内容 | 最终必须能回答 | 讲义 |
 |---|---|---|---|
-| 任务来源与真实性 | | | |
-| environment(有无状态 / 可重置?) | | | |
-| 工具与 action schema | | | |
-| **verifier**(程序化 / rubric / human?) | | | |
-| verifier 独立性(agent 能否碰到它?) | | | |
-| repeat 次数与聚合方式 | | | |
-| **可被 game 的方式** ⭐ | | | |
-| 失败模式(infra fail vs model fail 可分吗?) | | | |
-
-> 「可被 game 的方式」这一列是重点 —— 它直通 **W7 evaluation integrity** 和 **W10 reward hacking**。
-
-📁 → `sec2-benchmark-teardown.md` · `notes/day5-next-week-questions.md`
+| **1** | Benchmark anatomy overview | GAIA / BFCL / SWE / τ³ / TBench / OSWorld 有什么**结构差异**? | [`lesson01.md`](lesson01.md) ✅ |
+| **2** | ⭐ Terminal-Bench + Harbor | task / environment / agent / verifier 到底**怎么接起来**? | [`lesson02.md`](lesson02.md) ✅ |
+| **3** | ⭐ SWE-bench | dataset、agent runner、evaluation harness **为什么是三件事**? | `lesson03-swe-bench.md` ⏳ |
+| **4** | ⭐ τ³-bench | user simulator、mutable state、tools、grader **如何工作**? | `lesson04-tau3-bench.md` ⏳ |
+| **5** | OSWorld / WebArena | GUI/browser environment 如何 **reset 和验证**? | `lesson05-osworld-webarena.md` ⏳ |
+| **6** | **Build a tiny benchmark** | 自己做一个**能真正运行**的 benchmark | `lesson06-build-your-own.md` ⏳ |
 
 ---
 
-# 本周交付:Evaluation Stack 图
-
-把五天收敛成一张图(`figures/evaluation-stack.txt`),自上而下必须出现:
+## 复杂度递进(本周的知识地图)
 
 ```
-Task distribution / sampling
-        ↓
-Agent harness(prompt · scaffold · tool schema · retry · budget)
-        ↓
-Model(+ decoding params · reasoning effort)
-        ↓
-Environment(state · tools · reset · isolation)
-        ↓
-Rollout(trajectory logs · token · cost · wall time)
-        ↓
-Scorer / Verifier(程序化 or judge;独立性?)
-        ↓
-Aggregation(pass@1/pass@k · micro/macro · 加权)
-        ↓
-Uncertainty(CI · paired comparison)
-        ↓
-Leaderboard 分数
-```
-每一层标注:**它是七因子里的哪一个 · 换掉它分数会怎么变。**
-
----
-
-# 第 1 周验收
-
-```
-[ ] 1. 能背出七因子公式,并对每个因子举一个改变它就改变分数的例子
-[ ] 2. 能区分 model eval / agent-system eval,并说清 AA 为什么要单列 Coding Agent Index
-[ ] 3. 能区分 turn / trajectory / task / session 四种评价单位,各举一例
-[ ] 4. 能说清 online vs offline evaluation 的用途差异
-[ ] 5. 手算/编程给出任一 k/n 的 Wilson CI,并解释为何不用正态近似
-[ ] 6. 能回答「30/50 vs 300/500」的可信度差异
-[ ] 7. 对三个 benchmark 各说出一种 game 它的方法
-[ ] 8. 画出完整 evaluation stack,并标出每层属于哪个因子
+GAIA            question → answer
+BFCL            request → structured action
+SWE-bench       issue → repo mutation → executable verifier
+τ³-bench        conversation → tool calls → application state
+Terminal-Bench  instruction → arbitrary computer state
+OSWorld         visual observation → computer actions → application state
 ```
 
----
+每个 benchmark 的**核心状态**不同,这才是要学的东西:
 
-# 本地素材(全部已下载并核验)
-
-| 天 | 素材 |
+| Benchmark | 核心是什么 state |
 |---|---|
-| D1 | ⭐ `docs/aa-intelligence-benchmarking-methodology.md`(v4.1.1 权重已核实) |
-| D2 | `papers/survey_agent_eval_2025.pdf`(arXiv 2503.16416) |
-| D3 | `docs/aa-coding-agents-leaderboard.md`(同模型不同 harness 的对比) |
-| **D4** | ⭐ `papers/error_bars_in_evals.pdf`(arXiv 2411.00640)· `papers/codex_passk.pdf`(pass@k 出处) |
-| D5 | `docs/aa-evaluations.md` · `papers/tau_bench.pdf` · `papers/swebench.pdf` |
-| 备用 | `papers/gaia.pdf` · `papers/webarena.pdf` · `papers/llm_as_judge_mtbench.pdf`(W5)· `papers/chatbot_arena.pdf`(W5 排名)· `papers/kimi_k3.pdf`(W11) |
+| SWE-bench | **repo state + executable tests** |
+| τ³-bench | **application state + user state + conversational trajectory** |
+| Terminal-Bench | **arbitrary computer state** |
+| OSWorld | **GUI / whole-machine state** |
 
-> **D2 唯一的外部依赖**:DeepLearning.AI 课程需在线看(免费,需注册)。若不想注册,用 `survey_agent_eval_2025.pdf` 的对应章节替代即可,不影响进度。
+---
+
+## Day 3 · SWE-bench —— 三件事为什么必须分开
+
+**核心命题**:
+> **SWE-bench evaluator ≠ SWE-bench agent environment。**
+
+```
+                 SWE-bench dataset
+                        │
+        ┌───────────────┼───────────────┐
+        │                               │
+ problem_statement                 hidden eval info
+ repo / base_commit                test_patch
+        │                           FAIL_TO_PASS
+        ▼                           PASS_TO_PASS
+┌──────────────────┐                      │
+│ Agent Runtime    │                      │
+│ repo checkout    │                      │
+│ shell/editor     │                      │
+│ network policy   │                      │
+└────────┬─────────┘                      │
+         │                                │
+    model_patch                           │
+         └───────────────┬────────────────┘
+                         ▼
+              ┌─────────────────────┐
+              │ SWE-bench Harness   │
+              │ Docker              │
+              │ apply patch         │
+              │ apply tests         │
+              │ execute tests       │
+              │ parse results       │
+              └──────────┬──────────┘
+                         ▼
+                    resolved?
+```
+
+**四个亲手实验**(先做 lab,再写讲义):
+```
+1. 跑 gold patch          → 确认 evaluator 本身能工作
+2. 跑 empty / 错误 patch  → 看 unresolved
+3. 改 prediction 但保持同一 run_id → 观察 result caching 这个坑
+4. 打开 container         → 看 agent-visible repo 与 grader-visible test_patch 的差别
+```
+📁 lab:`../labs/swe-bench-teardown/`
+
+---
+
+## Day 4 · τ³-bench —— 要学的是 **State**
+
+```
+Task
+ ├── initial_state
+ ├── user_scenario
+ └── expected behavior
+        ↓
+User Simulator ←→ Agent
+                   ↓  Tools
+                   ↓  mutable DB state
+                   ↓  Evaluator
+```
+
+**专门追一次这条链**(不要泛读论文):
+```
+agent tool call → Python function → domain state mutation → final evaluator
+```
+τ³ 现在有 `banking_knowledge`,含可配置 RAG、document search、embedding、agentic shell search,
+并提供 **Gym-compatible interface** 用于 train/eval。
+> 这为后面的 `evaluation ↔ RL` 埋伏笔 —— **但本周不展开 RL**。
+
+---
+
+## Day 5 · OSWorld / WebArena —— Observation–Action Loop
+
+第一次从
+```
+tool_call(...)
+```
+转向
+```
+screenshot → model → mouse / keyboard action → new screenshot
+```
+
+**重点不是分数,是读这六样**:
+```
+environment initialization · snapshot/reset · observation
+action space · app/browser state · evaluator 怎么定位最终 UI/application state
+```
+
+---
+
+## Day 6 · 自己造一个 benchmark(本周最重要的一天)
+
+> **repo 现在 lesson 很多、lab 太少。这一天不写讲义,写代码。**
+
+```
+labs/hello-bench/
+├── tasks/
+│   ├── create-file/
+│   │   ├── task.yaml
+│   │   ├── Dockerfile
+│   │   ├── solution.sh
+│   │   └── tests/
+│   └── start-server/
+├── agent.py
+├── runner.py
+└── README.md
+```
+
+**两道题**:
+```
+① Create /workspace/result.txt containing 42
+② Start an HTTP server on port 8080 that returns "hello"
+```
+
+**要实现的五个抽象**:
+```python
+@dataclass
+class Task:
+    instruction: str
+    image: str
+    verifier: str
+
+@dataclass
+class Result:
+    success: bool
+    trajectory: list
+    duration: float
+```
+`Task · Environment · Agent · Verifier · Result`
+
+**跑通这条链**:
+```
+load task → start Docker → give instruction to agent
+→ agent executes shell commands → run hidden pytest → Result(success=True)
+```
+
+> 允许非常简陋。**跑通比漂亮重要。**
+
+---
+
+## 本周验收
+
+```
+[ ] 1. 能画出 task → environment → agent → rollout → verifier → result,并对六个 benchmark 各填一遍
+[ ] 2. 能说出每个 benchmark 的「核心 state」是什么
+[ ] 3. 能解释 SWE-bench 为什么 dataset / agent runtime / evaluation harness 是三件事
+[ ] 4. 能追通 τ³ 的 tool call → state mutation → evaluator
+[ ] 5. 能说出 GUI benchmark 怎么 reset 和验证
+[ ] 6. ⭐ 自己的 hello-bench 能跑通,且 oracle 满分、空 patch 零分
+```
+
+---
+
+## 素材(全部本地)
+```
+code/terminal-bench      · code/tau2-bench   · code/OSWorld-V2 · code/gorilla(BFCL)
+../agent-sandbox-course/code/SWE-bench       · ../llm-rl-course/code/harbor
+papers/{gaia,swebench,tau_bench,webarena}.pdf
+```

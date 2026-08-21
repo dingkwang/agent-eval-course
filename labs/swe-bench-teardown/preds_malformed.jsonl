@@ -1,0 +1,1 @@
+{"instance_id": "astropy__astropy-13398", "model_name_or_path": "teardown-malformed", "model_patch": "diff --git a/nope.py b/nope.py\n@@ -1 +1 @@\n-x\n+y\n"}

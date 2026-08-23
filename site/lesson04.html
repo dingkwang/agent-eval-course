@@ -30,7 +30,7 @@ pre code{background:none;padding:0;color:inherit;font-size:inherit}
 .mast .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;
   padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
 .mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--soft)}
+  text-transform:uppercase;color:var(--soft);white-space:nowrap}
 .mast .id b{color:var(--signal);font-weight:500}
 .mast nav{display:flex;gap:4px;flex-wrap:wrap}
 .mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
@@ -107,6 +107,42 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
   color:var(--pass);white-space:nowrap}
 .lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
 .lab code{font-size:11.5px;color:var(--probe)}
+
+/* ---- course intro ---- */
+.formula{margin:28px 0 0;background:var(--deep);color:#DCE3E8;border-radius:10px;
+  padding:18px 22px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.7;
+  box-shadow:var(--shadow)}
+.formula .eq{color:#fff;font-size:14.5px;margin-bottom:8px;overflow-wrap:anywhere}
+.formula b{color:var(--signal);font-weight:500}
+.skills{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:8px 0 0}
+.skill{background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px}
+.skill i{font-family:"Archivo",sans-serif;font-style:normal;font-weight:700;font-size:22px;
+  color:var(--signal);display:block;line-height:1;margin-bottom:6px}
+.skill span{font-size:14.5px}
+.arcs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.arc{border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px;background:var(--panel)}
+.arc .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--signal)}
+.arc b{display:block;font-family:"Archivo",sans-serif;margin:6px 0 4px;font-size:16px}
+.arc span{font-size:13.5px;color:var(--soft)}
+.fails{margin:10px 0 0;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:12px 16px;
+  line-height:1.85}
+.fails b{color:var(--ink);font-weight:500}
+.week{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);margin:0 0 12px;
+  overflow:hidden}
+.week.soon{border-style:dashed;border-color:var(--rule);background:transparent}
+.week .wh{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:start;
+  padding:16px 18px}
+.week .wn{font-family:"Archivo",sans-serif;font-weight:700;font-size:26px;color:var(--signal);
+  line-height:1}
+.week.soon .wn,.week.soon .wt{color:var(--faint)}
+.week .wt{font-family:"Archivo",sans-serif;font-weight:600;font-size:17px}
+.week .wq{font-size:13.5px;color:var(--soft);margin-top:3px}
+.week .st{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--pass);white-space:nowrap}
+.week.soon .st{color:var(--faint)}
+.week .wbody{border-top:1px solid var(--rule);padding:16px 18px 18px}
 
 /* ---- lesson page ---- */
 .page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
@@ -187,6 +223,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
 
 @media(max-width:900px){
+  .mast .id{letter-spacing:.08em;font-size:10.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
   .page{grid-template-columns:1fr;gap:20px}
   .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
   .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
@@ -196,6 +233,9 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .waterline{grid-template-columns:1fr}
   .card{grid-template-columns:46px 1fr}
   .card .tag{display:none}
+  .skills,.arcs{grid-template-columns:1fr}
+  .week .wh{grid-template-columns:46px 1fr}
+  .week .st{display:none}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -207,7 +247,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 
 <header class="mast"><div class="wrap">
 <span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 01</b></span>
-<nav><a href="index.html">目录</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html" class="on">4</a><span class="soonnav">5</span><span class="soonnav">6</span></nav></div></header>
+<nav><a href="index.html">课程</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html" class="on">4</a><span class="soonnav">5</span><span class="soonnav">6</span></nav></div></header>
 <div class="wrap"><div class="page">
 <aside class="rail"><div class="rt">本课目录</div><a href="#s0">四种 verifier,由 reward_basis 选出再相乘;User LLM 在尺子里</a><a href="#s1"><i>00</i>名字先说清楚:³ 不代表三方</a><a href="#s2"><i>01</i>复杂度阶梯上,τ³ 比 SWE-bench 多了什么</a><a href="#s3"><i>02</i>一次 rollout 三个角色,其中两个通常由 LLM 驱动</a><a href="#s4"><i>03</i>被测对象是 Agent;User LLM 是测量仪器</a><a href="#s5"><i>04</i>四种 verifier;每道 task 由 reward_basis 选出再相乘</a><a href="#s6"><i>05</i>⭐ CommunicateEvaluator 是子串匹配</a><a href="#s7"><i>06</i>Hands-on:四条手写轨迹喂进真实的 evaluator</a><a href="#s8"><i>07</i>进阶 · 没正常结束就是 0;user_error 记在 Agent 头上</a><a href="#s9"><i>08</i>进阶 · 整库 hash,以及它反过来对 environment 提的要求</a><a href="#s10"><i>09</i>进阶 · pass^k 不是 pass@k</a><a href="#s11"><i>10</i>本课自检</a><a href="#s12">本课一句话总结</a></aside>
 <article class="doc"><h1>第 4 课:τ³-bench</h1>
@@ -575,7 +615,7 @@ pass^k    随机抽 k 次,全部成功       —— 悲观,问「能不能交给
 <p><strong>上一课(Day 3)</strong>:<a href="lesson03-swe-bench.md">SWE-bench</a>。
 <strong>下一课(Day 5)</strong>:OSWorld · WebArena —— 把<strong>整台电脑</strong>当 environment,以及 verifier
 从「查数据库」变成「查屏幕和文件系统」之后会发生什么。</p>
-<div class="pager"><a href="lesson03.html">← 第 3 课 · SWE-bench</a><a href="index.html">回目录 →</a></div>
+<div class="pager"><a href="lesson03.html">← 第 3 课 · SWE-bench</a><a href="index.html">回课程 →</a></div>
 </article></div></div>
 <footer><div class="wrap">
 <span>Week 01 · Benchmark Archaeology</span>

@@ -1,9 +1,8 @@
-"""Render week01 markdown lessons into a static site under site/.
+"""Render the course homepage and week01 markdown lessons into site/.
 
-Design: "specimen teardown" — the course dissects benchmarks, so the site reads
-like a field manual: cool instrument paper, industrial grotesque display type,
-and a depth cross-section as the signature figure (depth = how much of the real
-world a benchmark actually instantiates).
+index.html is the 12-week introduction (not a Week 1 splash). Lesson pages
+are generated from week01/*.md. Design: "specimen teardown" — field-manual
+type, depth cross-section as the signature figure.
 
 Run from the course root:  python3 build_site.py
 """
@@ -27,14 +26,48 @@ LESSONS = [
     ("lesson06", "6", "造一个自己的 benchmark", "五个抽象亲手写一遍", "编码", None),
 ]
 
-# 本周两个已跑通的 lab。课程被批评过「lesson 很多、lab 太少」——所以 lab 上首页。
+# Week 1 labs actually run. Shown under W1 on the course homepage.
 LABS = [
     ("labs/swe-bench-teardown/", "SWE-bench Teardown",
      "同一个 harness,四种 prediction → resolved / unresolved / empty patch / error",
      "Day 3 · 已跑通"),
+    ("labs/tau3-verifier/", "τ³ verifier teardown",
+     "四条手写轨迹喂进官方 evaluator;cheat 在 airline id=3 上 reward=1.0",
+     "Day 4 · 已跑通"),
     ("labs/hello-bench/", "hello-bench",
      "290 行写完 Task→Environment→Agent→Verifier→Result;cheat agent 在弱 verifier 下 PASS、强 verifier 下 fail",
      "Day 6 · 已跑通"),
+]
+
+# 12-week map (PLAN.md §三). href is None until that week has pages.
+# status: None = not started; string shown on the row.
+WEEKS = [
+    ("1", "Popular Benchmark Anatomy",
+     "拿到 repo,源码追通 task → environment → agent → rollout → verifier → result",
+     "4/6", True),
+    ("2", "Eval Runtime & Trajectory Engineering",
+     "不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录",
+     None, False),
+    ("3", "Metrics & Statistics",
+     "一个 observation 是什么?误差棒怎么算?", None, False),
+    ("4", "Scorers / Verifiers / LLM-as-Judge",
+     "成功如何被判定?judge 准不准?", None, False),
+    ("5", "Benchmark Design, Audit & Dataset Lifecycle",
+     "成功/失败反映的是能力,还是题目和测试写坏了?", None, False),
+    ("6", "Reproducibility, Failure Semantics & Experiment Operations",
+     "同一 Agent、同一 benchmark,为什么改一点 infra 分数就变?哪些失败进分母?", None, False),
+    ("7", "Evaluation Integrity & Adversarial Validation",
+     "怎样防止 Agent、数据和基础设施破坏测量本身?(不讲 cgroups / seccomp)", None, False),
+    ("8", "Leaderboard / Aggregation / Artificial Analysis",
+     "成千上万个 task result 怎么压成一个数字?", "plan exists", False),
+    ("9", "Production / Online Evaluation",
+     "这个数字跟真实产品表现有什么关系?", None, False),
+    ("10", "Evaluation ↔ On-policy RL",
+     "同一套 environment 怎么同时服务 eval 与训练?", None, False),
+    ("11", "Kimi K3 / AgentENV / Harbor RL Case Study",
+     "前沿是怎么把这些拼在一起的?", None, False),
+    ("12", "Capstone Benchmark",
+     "自己从零做一个可运行、可复现、可评分的 benchmark", None, False),
 ]
 
 # depth cross-section: the signature figure. depth = how much real environment.
@@ -125,7 +158,7 @@ pre code{background:none;padding:0;color:inherit;font-size:inherit}
 .mast .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;
   padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
 .mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--soft)}
+  text-transform:uppercase;color:var(--soft);white-space:nowrap}
 .mast .id b{color:var(--signal);font-weight:500}
 .mast nav{display:flex;gap:4px;flex-wrap:wrap}
 .mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
@@ -202,6 +235,42 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
   color:var(--pass);white-space:nowrap}
 .lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
 .lab code{font-size:11.5px;color:var(--probe)}
+
+/* ---- course intro ---- */
+.formula{margin:28px 0 0;background:var(--deep);color:#DCE3E8;border-radius:10px;
+  padding:18px 22px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.7;
+  box-shadow:var(--shadow)}
+.formula .eq{color:#fff;font-size:14.5px;margin-bottom:8px;overflow-wrap:anywhere}
+.formula b{color:var(--signal);font-weight:500}
+.skills{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:8px 0 0}
+.skill{background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px}
+.skill i{font-family:"Archivo",sans-serif;font-style:normal;font-weight:700;font-size:22px;
+  color:var(--signal);display:block;line-height:1;margin-bottom:6px}
+.skill span{font-size:14.5px}
+.arcs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.arc{border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px;background:var(--panel)}
+.arc .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--signal)}
+.arc b{display:block;font-family:"Archivo",sans-serif;margin:6px 0 4px;font-size:16px}
+.arc span{font-size:13.5px;color:var(--soft)}
+.fails{margin:10px 0 0;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:12px 16px;
+  line-height:1.85}
+.fails b{color:var(--ink);font-weight:500}
+.week{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);margin:0 0 12px;
+  overflow:hidden}
+.week.soon{border-style:dashed;border-color:var(--rule);background:transparent}
+.week .wh{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:start;
+  padding:16px 18px}
+.week .wn{font-family:"Archivo",sans-serif;font-weight:700;font-size:26px;color:var(--signal);
+  line-height:1}
+.week.soon .wn,.week.soon .wt{color:var(--faint)}
+.week .wt{font-family:"Archivo",sans-serif;font-weight:600;font-size:17px}
+.week .wq{font-size:13.5px;color:var(--soft);margin-top:3px}
+.week .st{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--pass);white-space:nowrap}
+.week.soon .st{color:var(--faint)}
+.week .wbody{border-top:1px solid var(--rule);padding:16px 18px 18px}
 
 /* ---- lesson page ---- */
 .page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
@@ -282,6 +351,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
 
 @media(max-width:900px){
+  .mast .id{letter-spacing:.08em;font-size:10.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
   .page{grid-template-columns:1fr;gap:20px}
   .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
   .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
@@ -291,6 +361,9 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .waterline{grid-template-columns:1fr}
   .card{grid-template-columns:46px 1fr}
   .card .tag{display:none}
+  .skills,.arcs{grid-template-columns:1fr}
+  .week .wh{grid-template-columns:46px 1fr}
+  .week .st{display:none}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -312,26 +385,40 @@ HEAD = """<!DOCTYPE html>
 
 
 def masthead(active: str) -> str:
-    items = ['<a href="index.html"%s>目录</a>' % (' class="on"' if active == "index" else "")]
+    items = ['<a href="index.html"%s>课程</a>' % (' class="on"' if active == "index" else "")]
     for slug, n, _t, _d, _tag, src in LESSONS:
         if src is None:
             items.append(f'<span class="soonnav">{n}</span>')
             continue
         on = ' class="on"' if active == slug else ""
         items.append(f'<a href="{slug}.html"{on}>{n}</a>')
+    badge = "12 WEEKS" if active == "index" else "WEEK 01"
     return f"""<header class="mast"><div class="wrap">
-<span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 01</b></span>
+<span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>{badge}</b></span>
 <nav>{''.join(items)}</nav></div></header>"""
 
 
-FOOT = """<footer><div class="wrap">
-<span>Week 01 · Benchmark Archaeology</span>
-<span>源:Terminal-Bench · SWE-bench · τ³-bench · OSWorld · WebArena · GAIA · BFCL</span>
-<span>由 week01/*.md 生成 · build_site.py</span>
+def footer(left: str, mid: str, right: str) -> str:
+    return f"""<footer><div class="wrap">
+<span>{left}</span>
+<span>{mid}</span>
+<span>{right}</span>
 </div></footer></body></html>"""
 
 
-def build_index() -> str:
+FOOT = footer(
+    "Week 01 · Benchmark Archaeology",
+    "源:Terminal-Bench · SWE-bench · τ³-bench · OSWorld · WebArena · GAIA · BFCL",
+    "由 week01/*.md 生成 · build_site.py",
+)
+FOOT_INDEX = footer(
+    "Agent Evaluation &amp; Benchmark Engineering",
+    "12 weeks · source-first · 30% papers / 70% RFC · docs · source",
+    "PLAN.md",
+)
+
+
+def w1_body() -> str:
     layers = []
     for name, flow, note, depth in STRATA:
         w = 12 + depth * 17
@@ -341,7 +428,7 @@ def build_index() -> str:
             f'animation-delay:{depth * .07:.2f}s"></span></div>'
             f'<div class="note">{note}</div></div>'
         )
-        if depth == 2:  # reality waterline sits just below SWE-bench
+        if depth == 2:
             layers.append(
                 '<div class="waterline"><span>▼ 现实水线</span>'
                 "<span>以下:benchmark 自己启动并管理有状态环境 —— agent 真的在里面跑</span></div>"
@@ -359,41 +446,76 @@ def build_index() -> str:
         for path, name, desc, state in LABS
     )
     done = sum(1 for *_x, src in LESSONS if src)
-    return f"""{HEAD.format(title="Week 01 · Benchmark Archaeology", css=CSS)}
-{masthead("index")}
-<section class="hero"><div class="wrap">
-<span class="eyebrow">Week 01 · 六天 · 源码优先</span>
-<h1>Benchmark<br>Archaeology</h1>
-<p class="thesis">目标只有一句:<b>拿到任何一个 agent benchmark 的 repo,我能从源码追通
-task → environment → agent → rollout → verifier → result。</b></p>
-<p class="thesis" style="margin-top:12px;color:var(--soft)">本周<b style="color:var(--soft)">不讲</b>统计(→ W3)、trace(→ W2)、聚合与排行榜(→ W8)。
-只做一件事:把六个真 benchmark 的源码读穿,然后自己写一个。</p>
-</div></section>
-
-<section class="sec"><div class="wrap">
-<h2>Benchmark 深度剖面</h2>
-<p class="lede">纵深 = 这个 benchmark 真正实例化了多少现实世界。越往下,环境越真,verifier 查的状态越接近真实结果。</p>
+    return f"""<p class="lede" style="margin-top:16px">Day 1 总览,Day 2–5 一天一个真 benchmark 读源码,Day 6 自己造一个。
+已完成 <b>{done}/6</b>。本周不讲统计(→ W3)、runtime 抽象(→ W2)、排行榜(→ W8)。</p>
 <div class="strata">
 <div class="cap"><span>Complexity ladder</span><span>Lesson 1 · 六个代表性 benchmark</span></div>
 {''.join(layers)}
 </div>
 <p class="stratanote">水线以上是 <b>dataset benchmark</b>(只给题和答案,agent 与环境自带);
 以下是 <b>environment benchmark</b>。SWE-bench 卡在中间:它给容器化的 <i>evaluation</i> harness,但不给 agent harness。</p>
+<div class="cards" style="margin-top:18px">{''.join(cards)}</div>
+<p class="lede" style="margin:22px 0 12px">讲义里的结论来自这些 lab 的真实输出,不是复述文档。</p>
+<div class="labs">{labs}</div>"""
+
+
+def build_index() -> str:
+    week_html = []
+    for n, title, q, status, expand in WEEKS:
+        soon = "" if expand or status else " soon"
+        st = status or "未写"
+        body = w1_body() if expand else ""
+        inner = f'<div class="wbody">{body}</div>' if body else ""
+        week_html.append(
+            f'<div class="week{soon}" id="w{n}"><div class="wh">'
+            f'<div class="wn">{n}</div>'
+            f'<div><div class="wt">{title}</div><div class="wq">{q}</div></div>'
+            f'<div class="st">{st}</div></div>{inner}</div>'
+        )
+    return f"""{HEAD.format(title="Agent Evaluation & Benchmark Engineering", css=CSS)}
+{masthead("index")}
+<section class="hero"><div class="wrap">
+<span class="eyebrow">12 周 · 每周 5 天 · 每天约 1 小时</span>
+<h1>Agent Evaluation<br>&amp; Benchmark Engineering</h1>
+<p class="subhead">从排行榜、统计推断到 RL Environment</p>
+<p class="thesis">不是教「怎么跑一个 benchmark」。<b>leaderboard 分数 ≠ 模型能力。</b>
+七个因子里只有一个是 model。</p>
+<div class="formula">
+<div class="eq">performance = <b>Model</b> × Harness × Environment × Task × Budget × Scorer × Randomness</div>
+测得的性能是这七项的乘积。换 harness、换资源上限、换 user simulator,数字会动 —— 模型可以没变。
+</div>
 </div></section>
 
 <section class="sec"><div class="wrap">
-<h2>六天</h2>
-<p class="lede">Day 1 总览,Day 2–5 一天一个真 benchmark 读源码,Day 6 自己造一个。
-已完成 <b>{done}/6</b> —— 灰色的还没写。</p>
-<div class="cards">{''.join(cards)}</div>
+<h2>这门课训练的四件事</h2>
+<p class="lede">现有课程能覆盖工具使用,但没有一门同时覆盖统计学 + benchmark 设计 + environment + evaluation integrity + on-policy RL。</p>
+<div class="skills">
+<div class="skill"><i>1</i><span>能<strong>读懂并质疑</strong>排行榜</span></div>
+<div class="skill"><i>2</i><span>能设计<strong>有统计可信度</strong>的 agent benchmark</span></div>
+<div class="skill"><i>3</i><span>能搭建<strong>可复现、隔离、可验证</strong>的 agent environment</span></div>
+<div class="skill"><i>4</i><span>能让同一套 infra <strong>同时服务 evaluation 与 on-policy RL</strong></span></div>
+</div>
 </div></section>
 
 <section class="sec"><div class="wrap">
-<h2>本周 Lab</h2>
-<p class="lede">讲义里的每个结论都来自这两个 lab 的真实输出,不是复述文档。</p>
-<div class="labs">{labs}</div>
+<h2>三段</h2>
+<p class="lede">v1 一上来讲统计,是在给一个你还没见过的东西算误差棒。先看见系统,再测量它。</p>
+<div class="arcs">
+<div class="arc"><div class="k">W1–W2 · 工程</div><b>怎么工作</b><span>benchmark 与 runtime 是怎么跑出一条 observation 的</span></div>
+<div class="arc"><div class="k">W3–W7 · 方法论</div><b>怎么测量</b><span>分数能不能信:统计、题目、噪声、对抗</span></div>
+<div class="arc"><div class="k">W8–W12 · 系统</div><b>怎么变成结论</b><span>排行榜、线上 eval、喂给训练、自己造一个</span></div>
+</div>
+<div class="fails"><b>W2 / W5 / W6 / W7 是四种失败,不是四个近义词。</b>
+W2 产生 observation · W5 是否测到目标能力 · W6 是否被运行噪声污染 · W7 测量本身是否被泄漏、攻击或 game。
+素材约 30% 论文,70% RFC / 官方文档 / 源码。</div>
 </div></section>
-{FOOT}"""
+
+<section class="sec"><div class="wrap">
+<h2>12 周</h2>
+<p class="lede">点 W1 的课直接进讲义。其余周先占位 —— 名字已经是真问题,不是待填的标签。</p>
+{''.join(week_html)}
+</div></section>
+{FOOT_INDEX}"""
 
 
 def build_lesson(idx: int) -> str:
@@ -445,9 +567,9 @@ def build_lesson(idx: int) -> str:
 
     p, nx = neighbor(-1), neighbor(1)
     prev_l = (f'<a href="{p[0]}.html">← 第 {p[1]} 课 · {p[2]}</a>' if p
-              else '<a href="index.html">← 目录</a>')
+              else '<a href="index.html">← 课程</a>')
     next_l = (f'<a href="{nx[0]}.html">第 {nx[1]} 课 · {nx[2]} →</a>' if nx
-              else '<a href="index.html">回目录 →</a>')
+              else '<a href="index.html">回课程 →</a>')
 
     return f"""{HEAD.format(title=f"第 {LESSONS[idx][1]} 课 · {LESSONS[idx][2]}", css=CSS)}
 {masthead(slug)}

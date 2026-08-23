@@ -64,16 +64,17 @@ AA 另有一批更直接的 agent evaluations:
 
 > **v1 的顺序错了**:一上来讲评价框架和统计,是在给一个你还没见过的东西算误差棒。
 > **v2 的主线**:**先学 benchmark 作为一个软件系统是怎么工作的,再学如何测量它。**
+> **素材配比**:约 30% 论文,70% RFC / 官方文档 / 源码。Eval runtime 的设计知识通常不在论文正文里。
 
 | 周 | 主题 | 核心问题 | 状态 |
 |---|---|---|---|
-| **1** | **Popular Benchmark Anatomy** | 现有 benchmark 是怎么工作的?(源码追通 task→…→result) | 🔨 进行中 |
-| **2** | **Eval Runtime / Harness Engineering** | 我要自己实现一套通用 agent eval runtime,需要哪些 abstraction? | |
-| **3** | **Metrics & Statistics** | 一个 observation 是什么?怎么算误差棒? | |
+| **1** | **Popular Benchmark Anatomy** | 拿到 repo,源码追通 task → environment → agent → rollout → verifier → result | 🔨 4/6 |
+| **2** | **Eval Runtime & Trajectory Engineering** | 不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录 | |
+| **3** | **Metrics & Statistics** | 一个 observation 是什么?误差棒怎么算? | |
 | **4** | **Scorers / Verifiers / LLM-as-Judge** | 成功如何被判定?judge 准不准? | |
-| **5** | **Benchmark Construction & Task Quality** | 怎么造出好任务?怎么做质量控制? | |
-| **6** | **Reproducibility / Infra Noise / Failure Taxonomy** | 同样的模型为什么跑出不同分?哪些失败不是模型的错? | |
-| **7** | **Sandbox & Evaluation Integrity** | 怎么防污染、防作弊、防外泄? | |
+| **5** | **Benchmark Design, Audit & Dataset Lifecycle** | 成功/失败反映的是能力,还是题目和测试写坏了? | |
+| **6** | **Reproducibility, Failure Semantics & Experiment Operations** | 同一 Agent、同一 benchmark,为什么改一点 infra 分数就变?哪些失败进分母? | |
+| **7** | **Evaluation Integrity & Adversarial Validation** | 怎样防止 Agent、数据和基础设施破坏测量本身?(不讲 cgroups/seccomp) | |
 | **8** | **Leaderboard / Aggregation / Artificial Analysis** | 成千上万个 task result 怎么压成一个数字? | 📄 已详细规划 |
 | **9** | **Production / Online Evaluation** | 这个数字跟真实产品表现有什么关系? | |
 | **10** | **Evaluation ↔ On-policy RL** | 同一套 environment 怎么同时服务 eval 与训练? | |
@@ -87,19 +88,71 @@ W3–W7   怎么正确地测量                      ← 方法论
 W8–W12  怎么把测量变成结论,以及喂给训练      ← 系统与应用
 ```
 
-## Week 2 · Eval Runtime Engineering(预告)
+W2 / W5 / W6 / W7 处理的是四种不同的失败,不要压成「runtime 一周」:
+```
+W2  observation 怎么被可靠地产生
+W5  它是否测到了目标能力
+W6  它是否被运行噪声污染
+W7  测量本身是否被泄漏、攻击或 game
+```
 
-要抽象出来的东西:
+## Week 2 · Eval Runtime & Trajectory Engineering(预告)
+
+核心不是「写个 for-loop 跑任务」,而是:怎样让不同 benchmark、不同 Agent、不同 execution backend,通过同一个 runtime 正确运行?
+
 ```
 Task → Environment → AgentAdapter → Rollout → Trajectory → Verifier → Result
 ```
-对照研究三个真实框架 —— **不是「又学一个工具」,而是比较不同框架如何抽象同一个 runtime**:
 
-| 框架 | 学什么 |
-|---|---|
-| **Harbor** | ⭐ 主 runtime:84 adapter × 20 执行后端的统一抽象;同时是 eval framework 和 RL environment framework |
-| **SWE-bench harness** | Docker image layering(base → env → instance)· cache · parallel evaluation · **failure classification**(infra failure / ambiguous / unresolved 已被官方区分) |
-| **Inspect AI** | 最干净的 API 抽象:`Task / Solver / Scorer / Sandbox` |
+对照两套真实抽象(不是「又学一个工具」):
+
+| | Inspect | Harbor |
+|---|---|---|
+| 被测逻辑 | Solver / Agent | Agent |
+| 一次运行 | Sample execution | Trial |
+| 环境 | Sandbox | Environment |
+| 评分 | Scorer | Verifier / reward |
+| 批量实验 | Eval set | Job |
+| 主要场景 | 广义 model / agent eval | 容器化 Agent 与 RL rollout |
+
+Harbor 的层级是 Task / Dataset / Agent / Environment / Trial / Job。Inspect 是 `Task = Dataset + Solver + Scorer`。
+
+**Trajectory 不是聊天记录,而是一份可重放、可归因、可训练的事件日志。**
+
+源码 / RFC(讲义未写,指针先放这):
+- [Harbor Core Concepts](https://www.harborframework.com/docs/core-concepts)
+- [Inspect 官方文档](https://inspect.aisi.org.uk/)
+- [Harbor ATIF RFC](https://github.com/harbor-framework/harbor/blob/main/rfcs/0001-trajectory-format.md)
+- [BrowserGym](https://arxiv.org/abs/2412.05467)(非 terminal environment 的统一 observation/action)
+- `../llm-rl-course/code/harbor` · `../agent-sandbox-course/code/inspect_ai` · SWE-bench harness
+
+## Week 5 · Benchmark Design, Audit & Dataset Lifecycle(预告)
+
+问题:如何证明成功和失败反映的是 Agent 能力,而不是题目或测试写坏了?
+OpenAI 2026 审计 SWE-Bench Pro 时估计约 30% 任务存在破坏性问题(测试过严、prompt 缺信息、覆盖不足、误导)。
+
+源码 / 文档:
+- [OpenAI SWE-Bench Pro 审计](https://openai.com/index/separating-signal-from-noise-coding-evaluations/)
+- [Anthropic Agent Evals](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents)
+- [SWE-bench Verified 创建](https://openai.com/index/introducing-swe-bench-verified/)
+- [后续污染与测试缺陷](https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/)
+
+## Week 6 · Reproducibility, Failure Semantics & Experiment Operations(预告)
+
+问题:同一个 Agent、同一个 benchmark,为什么换一点 infra 配置,分数就变?哪些失败进分母、哪些允许 retry?
+Anthropic 在 Terminal-Bench 2.0 上只改变 resource headroom,infra error 从 5.8% 降到 0.5%;放开资源后 success rate 约 +6pp。CPU / 内存 / timeout 会改变 Agent 能做的策略。
+
+源码 / 文档:
+- [Anthropic Infrastructure Noise](https://www.anthropic.com/engineering/infrastructure-noise)
+
+## Week 7 · Evaluation Integrity & Adversarial Validation(预告)
+
+**不讲**容器 / cgroups / seccomp(那是 `agent-sandbox-course`)。只讲 eval 特有的攻击面:hidden tests、verifier、credentials、tenants、test-set 污染、tool-output injection、网络查 gold、trajectory 里的 secrets、reward hacking。
+最终不能只报成功率:`Valid Success = Task Success × No Security Violation`。Lab 形状服务 W12 Permission-Aware capstone。
+
+源码 / 文档:
+- [AgentDojo](https://arxiv.org/abs/2406.13352)
+- [Inspect Sandboxing Toolkit](https://www.aisi.gov.uk/blog/the-inspect-sandboxing-toolkit-scalable-and-secure-ai-agent-evaluations)(实现参考,不讲内核)
 
 ## Week 8 · From Rollouts to Leaderboards
 > 📄 **逐日计划见 `week08/PLAN.md`** —— raw rollout → per-task → per-benchmark → normalization → 跨 benchmark 聚合 → index → ranking,含 weight sensitivity、rank uncertainty、versioning 与 Pareto frontier。
@@ -238,8 +291,8 @@ cross-session leakage rate · recovery success · token/cost/latency
 
 # 进度
 ```
-[ ] W1  评价框架       [ ] W5  统计II judge     [ ] W9   production eval
-[ ] W2  landscape/AA   [ ] W6  environment      [ ] W10  eval ↔ on-policy RL
-[ ] W3  任务与指标     [ ] W7  sandbox/integrity[ ] W11  Kimi K3 case study
-[ ] W4  统计I 二元     [ ] W8  benchmark 家族   [ ] W12  capstone
+[x] W1  Benchmark Anatomy (4/6)     [ ] W5  Benchmark design / audit     [ ] W9   production eval
+[ ] W2  Eval runtime / trajectory   [ ] W6  Repro / failure semantics    [ ] W10  eval ↔ on-policy RL
+[ ] W3  Metrics & statistics        [ ] W7  Eval integrity / adversarial [ ] W11  Kimi K3 case study
+[ ] W4  Scorers / judges            [ ] W8  Leaderboards (plan exists)   [ ] W12  capstone
 ```

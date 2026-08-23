@@ -47,7 +47,7 @@ WEEKS = [
      "4/6", True),
     ("2", "Eval Runtime & Trajectory Engineering",
      "不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录",
-     None, False),
+     "plan exists · 5 lessons", False),
     ("3", "Metrics & Statistics",
      "一个 observation 是什么?误差棒怎么算?", None, False),
     ("4", "Scorers / Verifiers / LLM-as-Judge",

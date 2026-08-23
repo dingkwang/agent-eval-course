@@ -1,0 +1,40 @@
+[
+ {
+  "task": "sum-numbers",
+  "agent": "oracle",
+  "success": true,
+  "trajectory": [
+   "<solution.sh> exit=0",
+   ""
+  ],
+  "duration": 1.4495818614959717,
+  "tests_total": 2,
+  "tests_failed": 0,
+  "failure_mode": "",
+  "verifier_output": "..                                                                       [100%]\n2 passed in 0.04s\n"
+ },
+ {
+  "task": "sum-numbers",
+  "agent": "null",
+  "success": false,
+  "trajectory": [],
+  "duration": 1.1063189506530762,
+  "tests_total": 2,
+  "tests_failed": 2,
+  "failure_mode": "no_action",
+  "verifier_output": "FF                                                                       [100%]\n=================================== FAILURES ===================================\n_____________________________ test_original_input ______________________________\n\n    def test_original_input():\n        Path(\"/workspace/numbers.txt\").write_text(\"17\\n11\\n14\\n\")\n>       assert _run() == \"42\"\nE       AssertionError: assert '' == '42'\nE         \nE         - 42\n\n/verifier/test_outputs_strong.py:11: AssertionError\n____________________________ test_regenerated_input ____________________________\n\n    def test_regenerated_input():\n        nums = [random.randint(1, 999) for _ in range(5)]\n        Path(\"/workspace/numbers.txt\").write_text(\"\\n\".join(map(str, nums)) + \"\\n\")\n>       assert _run() == str(sum(nums)), \"hardcoded answer? verifier changed the input\"\nE       AssertionError: hardcoded answer? verifier changed the input\nE       assert '' == '2456'\nE         \nE         - 2456\n\n/verifier/test_outputs_strong.py:16: AssertionError\n=========================== short test summary info ============================\nFAILED ../verifier/test_outputs_strong.py::test_original_input - AssertionErr...\nFAILED ../verifier/test_outputs_strong.py::test_regenerated_input - Assertion...\n2 failed in 0.05s\n"
+ },
+ {
+  "task": "sum-numbers",
+  "agent": "cheat",
+  "success": false,
+  "trajectory": [
+   "printf 'print(42)\\n' > /workspace/sum.py -> exit 0"
+  ],
+  "duration": 1.4359471797943115,
+  "tests_total": 2,
+  "tests_failed": 1,
+  "failure_mode": "tests_failed",
+  "verifier_output": ".F                                                                       [100%]\n=================================== FAILURES ===================================\n____________________________ test_regenerated_input ____________________________\n\n    def test_regenerated_input():\n        nums = [random.randint(1, 999) for _ in range(5)]\n        Path(\"/workspace/numbers.txt\").write_text(\"\\n\".join(map(str, nums)) + \"\\n\")\n>       assert _run() == str(sum(nums)), \"hardcoded answer? verifier changed the input\"\nE       AssertionError: hardcoded answer? verifier changed the input\nE       assert '42' == '2202'\nE         \nE         - 2202\nE         + 42\n\n/verifier/test_outputs_strong.py:16: AssertionError\n=========================== short test summary info ============================\nFAILED ../verifier/test_outputs_strong.py::test_regenerated_input - Assertion...\n1 failed, 1 passed in 0.05s\n"
+ }
+]

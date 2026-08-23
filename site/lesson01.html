@@ -81,7 +81,7 @@ h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,7
   letter-spacing:-.015em;margin:0 0 4px}
 .sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
 .cards{display:grid;gap:12px}
-a.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
   text-decoration:none;color:var(--ink);background:var(--panel);
   border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
   transition:transform .16s,box-shadow .16s,background .16s}
@@ -92,6 +92,21 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .card .d{display:block;font-size:14px;color:var(--soft)}
 .card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
   text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+.card.off{border-style:dashed;border-color:var(--rule);background:transparent;cursor:default}
+.card.off .num,.card.off .t{color:var(--faint)}
+.card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
+.soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
+  padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+
+/* ---- lab cards ---- */
+.labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.lab{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);padding:16px 18px}
+.lab .lh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lab .lh b{font-family:"Archivo",sans-serif;font-weight:600;font-size:18px}
+.lab .lh span{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  color:var(--pass);white-space:nowrap}
+.lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
+.lab code{font-size:11.5px;color:var(--probe)}
 
 /* ---- lesson page ---- */
 .page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
@@ -101,11 +116,19 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
   border-left:2px solid var(--rule);line-height:1.4}
 .rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.rail a i{font-family:"JetBrains Mono",monospace;font-style:normal;font-size:10.5px;
+  color:var(--faint);margin-right:7px}
+.rail a:hover i{color:var(--signal)}
 .doc{min-width:0}
 .doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
-.doc h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:26px;letter-spacing:-.015em;
-  margin:44px 0 12px;padding-top:16px;border-top:1.5px solid var(--ink)}
-.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin:28px 0 8px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:31px;letter-spacing:-.02em;
+  line-height:1.22;margin:62px 0 14px;padding-top:22px;border-top:2.5px solid var(--ink)}
+.doc h2 .hn{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11.5px;
+  letter-spacing:.24em;color:var(--signal);margin-bottom:10px}
+.doc h2.sub{font-weight:600;font-size:23px;color:var(--soft);border-top:none;
+  margin:0 0 18px;padding-top:0}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19.5px;margin:30px 0 8px;
+  padding-left:12px;border-left:3px solid var(--rule)}
 .doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
 .doc p{margin:12px 0}
 .doc ul,.doc ol{padding-left:22px}
@@ -171,7 +194,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .layer .nm,.layer .note{border:none}
   .layer .note{padding-top:0}
   .waterline{grid-template-columns:1fr}
-  a.card{grid-template-columns:46px 1fr}
+  .card{grid-template-columns:46px 1fr}
   .card .tag{display:none}
 }
 @media(prefers-reduced-motion:reduce){
@@ -184,11 +207,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 
 <header class="mast"><div class="wrap">
 <span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 01</b></span>
-<nav><a href="index.html">目录</a><a href="lesson01.html" class="on">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><a href="lesson05.html">5</a><a href="lesson06.html">6</a></nav></div></header>
+<nav><a href="index.html">目录</a><a href="lesson01.html" class="on">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span></nav></div></header>
 <div class="wrap"><div class="page">
-<aside class="rail"><div class="rt">本课目录</div><a href="#s0">主流 Agent Benchmark 是怎么实现的</a><a href="#s1">零、每个 benchmark 只回答 6 个问题</a><a href="#s2">一、前 10 分钟:用 Artificial Analysis 当地图(仅此而已)</a><a href="#s3">二、六个 benchmark 的复杂度阶梯</a><a href="#s4">三、GAIA —— 回答一道需要搜索、读附件、算一算才能答出的现实问题</a><a href="#s5">四、BFCL —— 给定一组函数 schema,生成正确的那一个 function call</a><a href="#s6">五、SWE-bench —— 读一条 GitHub issue,改真实仓库的代码让测试通过</a><a href="#s7">六、⭐ Terminal-Bench —— 在一个容器的终端里,用任意命令完成工程/运维任务</a><a href="#s8">七、τ³-bench —— 扮演银行客服:查政策文档、跟模拟用户对话、真的改账户状态</a><a href="#s9">八、OSWorld —— 用鼠标键盘操作一整台电脑,完成跨应用的日常任务</a><a href="#s10">九、统一架构图(把六个填进去)</a><a href="#s11">十、今日作业:Benchmark Source Code Map</a><a href="#s12">十一、本课练习</a><a href="#s13">本课一句话总结</a></aside>
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">主流 Agent Benchmark 是怎么实现的</a><a href="#s1"><i>00</i>每个 benchmark 只回答 6 个问题</a><a href="#s2"><i>01</i>前 10 分钟:用 Artificial Analysis 当地图(仅此而已)</a><a href="#s3"><i>02</i>六个 benchmark 的复杂度阶梯</a><a href="#s4"><i>03</i>GAIA —— 回答一道需要搜索、读附件、算一算才能答出的现实问题</a><a href="#s5"><i>04</i>BFCL —— 给定一组函数 schema,生成正确的那一个 function call</a><a href="#s6"><i>05</i>SWE-bench —— 读一条 GitHub issue,改真实仓库的代码让测试通过</a><a href="#s7"><i>06</i>⭐ Terminal-Bench —— 在一个容器的终端里,用任意命令完成工程/运维任务</a><a href="#s8"><i>07</i>τ³-bench —— 扮演银行客服:查政策文档、跟模拟用户对话、真的改账户状态</a><a href="#s9"><i>08</i>OSWorld —— 用鼠标键盘操作一整台电脑,完成跨应用的日常任务</a><a href="#s10"><i>09</i>统一架构图(把六个填进去)</a><a href="#s11"><i>10</i>今日作业:Benchmark Source Code Map</a><a href="#s12"><i>11</i>本课练习</a><a href="#s13">本课一句话总结</a></aside>
 <article class="doc"><h1>第 1 课:Benchmark Anatomy</h1>
-<h2 id="s0">主流 Agent Benchmark 是怎么实现的</h2>
+<h2 id="s0" class="sub">主流 Agent Benchmark 是怎么实现的</h2>
 <p><strong>Week 1 Day 1</strong> · 建议 60 分钟 · <strong>工程课,不是评论课</strong></p>
 <blockquote>
 <h3>本课目标(只有一句)</h3>
@@ -202,7 +225,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 <code>../agent-sandbox-course/code/SWE-bench</code> · <code>docs/aa-*.md</code>(仅作地图)</p>
 </blockquote>
 <hr />
-<h2 id="s1">零、每个 benchmark 只回答 6 个问题</h2>
+<h2 id="s1"><span class="hn">§ 00</span>每个 benchmark 只回答 6 个问题</h2>
 <p>以后看任何 benchmark,都用这 6 问:</p>
 <pre><code>1. Task 是什么格式?
 2. Environment 是什么?
@@ -212,7 +235,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 6. 源代码分别在哪里?
 </code></pre>
 <hr />
-<h2 id="s2">一、前 10 分钟:用 Artificial Analysis 当地图(仅此而已)</h2>
+<h2 id="s2"><span class="hn">§ 01</span>前 10 分钟:用 Artificial Analysis 当地图(仅此而已)</h2>
 <p>AA 的价值只有一个:<strong>告诉你工业界现在关注哪些能力</strong>。用它把 benchmark 分个类,然后就离开:</p>
 <table>
 <thead>
@@ -246,11 +269,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 </blockquote>
 <p><strong>离开排行榜,进 repo。</strong></p>
 <hr />
-<h2 id="s3">二、六个 benchmark 的复杂度阶梯</h2>
+<h2 id="s3"><span class="hn">§ 02</span>六个 benchmark 的复杂度阶梯</h2>
 <figure class="ladder"><figcaption><span>Benchmark Complexity ↓</span><span>每下一级 = 多实例化一层现实</span></figcaption><div class="rung"><div class="rn">0</div><div class="rbody"><div class="rhead"><b>GAIA</b><code>task → answer</code></div><div class="chips"><span class="chip new">+ 题目</span><span class="chip new">+ 标准答案</span></div></div></div><div class="rung"><div class="rn">1</div><div class="rbody"><div class="rhead"><b>BFCL</b><code>task → structured tool call</code></div><div class="chips"><span class="chip old">题目</span><span class="chip old">标准答案</span><span class="chip new">+ 工具 schema</span><span class="chip new">+ 结构化 call</span></div></div></div><div class="rung"><div class="rn">2</div><div class="rbody"><div class="rhead"><b>SWE-bench</b><code>task → code change → executable test</code></div><div class="chips"><span class="chip old">题目</span><span class="chip old">标准答案</span><span class="chip old">工具 schema</span><span class="chip old">结构化 call</span><span class="chip new">+ 代码仓库</span><span class="chip new">+ 容器</span><span class="chip new">+ 测试套件</span></div></div></div><div class="wline"><span>▼ 现实水线</span><span>以下:benchmark 自己启动并管理有状态环境</span></div><div class="rung"><div class="rn">3</div><div class="rbody"><div class="rhead"><b>τ³-bench</b><code>task → interaction → tools → mutable state → verifier</code></div><div class="chips"><span class="chip old">题目</span><span class="chip old">标准答案</span><span class="chip old">工具 schema</span><span class="chip old">结构化 call</span><span class="chip old">代码仓库</span><span class="chip old">容器</span><span class="chip old">测试套件</span><span class="chip new">+ 可变状态库</span><span class="chip new">+ 模拟用户</span><span class="chip new">+ 多轮交互</span></div></div></div><div class="rung"><div class="rn">4</div><div class="rbody"><div class="rhead"><b>Terminal-Bench</b><code>task → agent → container → arbitrary commands → verifier</code></div><div class="chips"><span class="chip old">题目</span><span class="chip old">标准答案</span><span class="chip old">工具 schema</span><span class="chip old">结构化 call</span><span class="chip old">代码仓库</span><span class="chip old">容器</span><span class="chip old">测试套件</span><span class="chip old">可变状态库</span><span class="chip old">模拟用户</span><span class="chip old">多轮交互</span><span class="chip new">+ 任意 shell</span><span class="chip new">+ rollout 循环</span></div></div></div><div class="rung"><div class="rn">5</div><div class="rbody"><div class="rhead"><b>OSWorld</b><code>task → agent → complete computer environment → verifier</code></div><div class="chips"><span class="chip old">题目</span><span class="chip old">标准答案</span><span class="chip old">工具 schema</span><span class="chip old">结构化 call</span><span class="chip old">代码仓库</span><span class="chip old">容器</span><span class="chip old">测试套件</span><span class="chip old">可变状态库</span><span class="chip old">模拟用户</span><span class="chip old">多轮交互</span><span class="chip old">任意 shell</span><span class="chip old">rollout 循环</span><span class="chip new">+ 整台机器</span><span class="chip new">+ GUI / 键鼠</span><span class="chip new">+ VM 生命周期</span></div></div></div><div class="lfoot">灰色 = 上一级已有 · <b>橙色 = 这一级新增的现实</b> —— environment 越来越真,verifier 能查的状态越来越接近真实结果。</div></figure>
 <p><strong>这张图比记住十几个 benchmark 名字有价值得多。</strong> 每往下一层,environment 就多一层真实性,verifier 就多一层「查真实状态」。</p>
 <hr />
-<h2 id="s4">三、GAIA —— <strong>回答一道需要搜索、读附件、算一算才能答出的现实问题</strong></h2>
+<h2 id="s4"><span class="hn">§ 03</span>GAIA —— <strong>回答一道需要搜索、读附件、算一算才能答出的现实问题</strong></h2>
 <h3>最简单的形态:它其实没有 environment</h3>
 <p><strong>任务格式</strong>(HuggingFace 数据集,466 个真实世界问题):</p>
 <pre><code>question · level(1/2/3) · file_name(可选附件) · answer
@@ -279,7 +302,7 @@ environment benchmark  (其余五个)  —— 连运行环境一起给你
 <p>⟹ 也解释了为什么 GAIA 上的分数<strong>极度依赖 harness</strong> —— 因为 harness 是你自带的。</p>
 <p>📖 论文:<code>papers/gaia.pdf</code>(arXiv 2311.12983)</p>
 <hr />
-<h2 id="s5">四、BFCL —— <strong>给定一组函数 schema,生成正确的那一个 function call</strong></h2>
+<h2 id="s5"><span class="hn">§ 04</span>BFCL —— <strong>给定一组函数 schema,生成正确的那一个 function call</strong></h2>
 <h3>tool-use 不一定需要 sandbox</h3>
 <p>Berkeley Function Calling Leaderboard(现已到 <strong>V4</strong>),源码在 Gorilla repo。</p>
 <p><strong>本地路径(实测)</strong>:<code>code/gorilla/berkeley-function-call-leaderboard/</code></p>
@@ -309,7 +332,7 @@ function name + arguments
 </code></pre>
 <p>(接 Day 3:这正是「组件级 evaluation」的典型代表。)</p>
 <hr />
-<h2 id="s6">五、SWE-bench —— <strong>读一条 GitHub issue,改真实仓库的代码让测试通过</strong></h2>
+<h2 id="s6"><span class="hn">§ 05</span>SWE-bench —— <strong>读一条 GitHub issue,改真实仓库的代码让测试通过</strong></h2>
 <h3>第一次见到 executable evaluation</h3>
 <p><strong>任务实例的真实字段</strong>(从 <code>../agent-sandbox-course/code/SWE-bench/swebench/</code> 源码里 grep 出来的,<strong>实测</strong>):</p>
 <pre><code>instance_id · repo · base_commit · environment_setup_commit
@@ -350,7 +373,7 @@ apply model patch → apply test_patch → run tests
 </blockquote>
 <p>📖 论文:<code>papers/swebench.pdf</code></p>
 <hr />
-<h2 id="s7">六、⭐ Terminal-Bench —— <strong>在一个容器的终端里,用任意命令完成工程/运维任务</strong></h2>
+<h2 id="s7"><span class="hn">§ 06</span>⭐ Terminal-Bench —— <strong>在一个容器的终端里,用任意命令完成工程/运维任务</strong></h2>
 <h3>六个 benchmark 里最值得读透的那个</h3>
 <p><strong>本地路径</strong>:<code>code/terminal-bench/original-tasks/</code>(实测 <strong>241 个任务目录</strong>)</p>
 <p>一个 task 就是 <strong>6 个文件</strong>,整个解剖一目了然:</p>
@@ -373,7 +396,7 @@ apply model patch → apply test_patch → run tests
 <p>Terminal-Bench 的 6 文件结构、<strong>canary GUID</strong> 污染检测、<strong>oracle</strong> 先验基础设施、<strong>agent 接口与 12 个黑盒适配器</strong>、verifier 真实分布、以及<strong>它不隔离网络</strong>这件事 ——
 全部在 <strong><a href="lesson02.md">第 2 课:Terminal-Bench 深读</a></strong>。本节只做定位,不展开。</p>
 </blockquote>
-<h2 id="s8">七、τ³-bench —— <strong>扮演银行客服:查政策文档、跟模拟用户对话、真的改账户状态</strong></h2>
+<h2 id="s8"><span class="hn">§ 07</span>τ³-bench —— <strong>扮演银行客服:查政策文档、跟模拟用户对话、真的改账户状态</strong></h2>
 <h3>第一次见到完整 agent simulation</h3>
 <p><strong>本地路径</strong>:<code>code/tau2-bench/</code>(实测)</p>
 <h3>7.1 源码结构与概念一一对应(实测)</h3>
@@ -429,7 +452,7 @@ review_llm_judge.py · hallucination_reviewer.py · auth_classifier.py
 </code></pre>
 <p>📖 论文:<code>papers/tau_bench.pdf</code></p>
 <hr />
-<h2 id="s9">八、OSWorld —— <strong>用鼠标键盘操作一整台电脑,完成跨应用的日常任务</strong></h2>
+<h2 id="s9"><span class="hn">§ 08</span>OSWorld —— <strong>用鼠标键盘操作一整台电脑,完成跨应用的日常任务</strong></h2>
 <h3>完整计算机环境</h3>
 <p><strong>本地路径</strong>:<code>code/OSWorld-V2/</code>(实测;2026-08 的 V2 release,<strong>不要只看 2024 原始代码</strong>)</p>
 <pre><code>desktop_env/            ← ★ 虚拟机/桌面环境
@@ -454,7 +477,7 @@ OSWorld2.0.pdf · paper.pdf
 </blockquote>
 <p>📖 论文:<code>papers/webarena.pdf</code>(同类 browser 环境)· OSWorld 论文在 repo 内(<code>paper.pdf</code>)</p>
 <hr />
-<h2 id="s10">九、统一架构图(把六个填进去)</h2>
+<h2 id="s10"><span class="hn">§ 09</span>统一架构图(把六个填进去)</h2>
 <pre><code>Task
  ↓
 Environment setup
@@ -532,7 +555,7 @@ Score
 </tbody>
 </table>
 <hr />
-<h2 id="s11">十、今日作业:<strong>Benchmark Source Code Map</strong></h2>
+<h2 id="s11"><span class="hn">§ 10</span>今日作业:<strong>Benchmark Source Code Map</strong></h2>
 <p><strong>不要</strong>写「这个 benchmark 有什么 validity threat」(那是 Week 2 以后的事)。
 只交一份<strong>源码地图</strong>,推荐做 Terminal-Bench:</p>
 <pre><code class="language-text">Benchmark: Terminal-Bench 2.1
@@ -578,7 +601,7 @@ Output:
 [ ] 跑通一次 oracle,并解释为什么第一个实验要用 oracle
 </code></pre>
 <hr />
-<h2 id="s12">十一、本课练习</h2>
+<h2 id="s12"><span class="hn">§ 11</span>本课练习</h2>
 <h3>练习一:分类</h3>
 <p>把这六个 benchmark 分成 <strong>dataset benchmark</strong> 与 <strong>environment benchmark</strong> 两类,并说明判据。</p>
 <details><summary>参考</summary>
@@ -608,7 +631,7 @@ GAIA=输出字符串 · BFCL=结构化 function call · SWE-bench=测试通过�
 <div class="pager"><a href="index.html">← 目录</a><a href="lesson02.html">第 2 课 · Terminal-Bench 深读 →</a></div>
 </article></div></div>
 <footer><div class="wrap">
-<span>Week 01 · Evaluation 基本框架</span>
-<span>源:AA v4.1.1 快照 · SWE-bench · Terminal-Bench · tau2-bench · OSWorld-V2 · BFCL</span>
+<span>Week 01 · Benchmark Archaeology</span>
+<span>源:Terminal-Bench · SWE-bench · τ³-bench · OSWorld · WebArena · GAIA · BFCL</span>
 <span>由 week01/*.md 生成 · build_site.py</span>
 </div></footer></body></html>

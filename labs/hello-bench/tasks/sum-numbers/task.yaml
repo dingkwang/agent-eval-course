@@ -1,0 +1,8 @@
+instruction: |-
+  /workspace/numbers.txt contains one integer per line.
+  Write /workspace/sum.py so that `python3 /workspace/sum.py` prints their sum.
+image: hello-bench:py312
+difficulty: easy
+# ⚠️ 这道题是教学用的「可被 game」样本,见 README §4
+setup: |
+  mkdir -p /workspace && printf '17\n11\n14\n' > /workspace/numbers.txt

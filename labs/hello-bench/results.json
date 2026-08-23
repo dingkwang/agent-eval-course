@@ -1,0 +1,116 @@
+[
+ {
+  "task": "create-file",
+  "agent": "oracle",
+  "success": true,
+  "trajectory": [
+   "<solution.sh> exit=0",
+   ""
+  ],
+  "duration": 0.994347333908081,
+  "tests_total": 2,
+  "tests_failed": 0,
+  "failure_mode": "",
+  "verifier_output": "..                                                                       [100%]\n2 passed in 0.01s\n"
+ },
+ {
+  "task": "create-file",
+  "agent": "null",
+  "success": false,
+  "trajectory": [],
+  "duration": 0.6379766464233398,
+  "tests_total": 2,
+  "tests_failed": 2,
+  "failure_mode": "no_action",
+  "verifier_output": "= Path('/workspace/result.txt')\n\n/verifier/test_outputs.py:4: AssertionError\n_________________________________ test_content _________________________________\n\n    def test_content():\n>       assert Path(\"/workspace/result.txt\").read_text().strip() == \"42\"\n\n/verifier/test_outputs.py:7: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n/usr/local/lib/python3.12/pathlib.py:1027: in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = PosixPath('/workspace/result.txt'), mode = 'r', buffering = -1\nencoding = 'locale', errors = None, newline = None\n\n    def open(self, mode='r', buffering=-1, encoding=None,\n             errors=None, newline=None):\n        \"\"\"\n        Open the file pointed to by this path and return a file object, as\n        the built-in open() function does.\n        \"\"\"\n        if \"b\" not in mode:\n            encoding = io.text_encoding(encoding)\n>       return io.open(self, mode, buffering, encoding, errors, newline)\nE       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/result.txt'\n\n/usr/local/lib/python3.12/pathlib.py:1013: FileNotFoundError\n=========================== short test summary info ============================\nFAILED ../verifier/test_outputs.py::test_file_exists - AssertionError: assert...\nFAILED ../verifier/test_outputs.py::test_content - FileNotFoundError: [Errno ...\n2 failed in 0.04s\n"
+ },
+ {
+  "task": "create-file",
+  "agent": "cheat",
+  "success": false,
+  "trajectory": [
+   "<no shortcut known for this task>"
+  ],
+  "duration": 0.6730444431304932,
+  "tests_total": 2,
+  "tests_failed": 2,
+  "failure_mode": "tests_failed",
+  "verifier_output": "= Path('/workspace/result.txt')\n\n/verifier/test_outputs.py:4: AssertionError\n_________________________________ test_content _________________________________\n\n    def test_content():\n>       assert Path(\"/workspace/result.txt\").read_text().strip() == \"42\"\n\n/verifier/test_outputs.py:7: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n/usr/local/lib/python3.12/pathlib.py:1027: in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = PosixPath('/workspace/result.txt'), mode = 'r', buffering = -1\nencoding = 'locale', errors = None, newline = None\n\n    def open(self, mode='r', buffering=-1, encoding=None,\n             errors=None, newline=None):\n        \"\"\"\n        Open the file pointed to by this path and return a file object, as\n        the built-in open() function does.\n        \"\"\"\n        if \"b\" not in mode:\n            encoding = io.text_encoding(encoding)\n>       return io.open(self, mode, buffering, encoding, errors, newline)\nE       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/result.txt'\n\n/usr/local/lib/python3.12/pathlib.py:1013: FileNotFoundError\n=========================== short test summary info ============================\nFAILED ../verifier/test_outputs.py::test_file_exists - AssertionError: assert...\nFAILED ../verifier/test_outputs.py::test_content - FileNotFoundError: [Errno ...\n2 failed in 0.04s\n"
+ },
+ {
+  "task": "start-server",
+  "agent": "oracle",
+  "success": true,
+  "trajectory": [
+   "<solution.sh> exit=0",
+   ""
+  ],
+  "duration": 1.1958935260772705,
+  "tests_total": 2,
+  "tests_failed": 0,
+  "failure_mode": "",
+  "verifier_output": "..                                                                       [100%]\n2 passed in 0.14s\n"
+ },
+ {
+  "task": "start-server",
+  "agent": "null",
+  "success": false,
+  "trajectory": [],
+  "duration": 4.6706578731536865,
+  "tests_total": 2,
+  "tests_failed": 2,
+  "failure_mode": "no_action",
+  "verifier_output": "kspace/server.py\").exists()\nE       AssertionError: assert False\nE        +  where False = exists()\nE        +    where exists = PosixPath('/workspace/server.py').exists\nE        +      where PosixPath('/workspace/server.py') = Path('/workspace/server.py')\n\n/verifier/test_outputs.py:18: AssertionError\n_____________________________ test_server_responds _____________________________\n\n    def test_server_responds():\n        proc = subprocess.Popen([\"python3\", \"/workspace/server.py\"],\n                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)\n        try:\n            body, last = None, None\n            for _ in range(40):                       # up to ~4s of startup slack\n                try:\n                    body = urllib.request.urlopen(f\"http://127.0.0.1:{PORT}\", timeout=1).read()\n                    break\n                except (urllib.error.URLError, ConnectionError, OSError) as e:\n                    last = e\n                    time.sleep(0.1)\n>           assert body is not None, f\"server never came up: {last}\"\nE           AssertionError: server never came up: <urlopen error [Errno 111] Connection refused>\nE           assert None is not None\n\n/verifier/test_outputs.py:33: AssertionError\n=========================== short test summary info ============================\nFAILED ../verifier/test_outputs.py::test_artifact_exists - AssertionError: as...\nFAILED ../verifier/test_outputs.py::test_server_responds - AssertionError: se...\n2 failed in 4.05s\n"
+ },
+ {
+  "task": "start-server",
+  "agent": "cheat",
+  "success": false,
+  "trajectory": [
+   "<no shortcut known for this task>"
+  ],
+  "duration": 4.703662633895874,
+  "tests_total": 2,
+  "tests_failed": 2,
+  "failure_mode": "tests_failed",
+  "verifier_output": "kspace/server.py\").exists()\nE       AssertionError: assert False\nE        +  where False = exists()\nE        +    where exists = PosixPath('/workspace/server.py').exists\nE        +      where PosixPath('/workspace/server.py') = Path('/workspace/server.py')\n\n/verifier/test_outputs.py:18: AssertionError\n_____________________________ test_server_responds _____________________________\n\n    def test_server_responds():\n        proc = subprocess.Popen([\"python3\", \"/workspace/server.py\"],\n                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)\n        try:\n            body, last = None, None\n            for _ in range(40):                       # up to ~4s of startup slack\n                try:\n                    body = urllib.request.urlopen(f\"http://127.0.0.1:{PORT}\", timeout=1).read()\n                    break\n                except (urllib.error.URLError, ConnectionError, OSError) as e:\n                    last = e\n                    time.sleep(0.1)\n>           assert body is not None, f\"server never came up: {last}\"\nE           AssertionError: server never came up: <urlopen error [Errno 111] Connection refused>\nE           assert None is not None\n\n/verifier/test_outputs.py:33: AssertionError\n=========================== short test summary info ============================\nFAILED ../verifier/test_outputs.py::test_artifact_exists - AssertionError: as...\nFAILED ../verifier/test_outputs.py::test_server_responds - AssertionError: se...\n2 failed in 4.06s\n"
+ },
+ {
+  "task": "sum-numbers",
+  "agent": "oracle",
+  "success": true,
+  "trajectory": [
+   "<solution.sh> exit=0",
+   ""
+  ],
+  "duration": 1.4160194396972656,
+  "tests_total": 1,
+  "tests_failed": 0,
+  "failure_mode": "",
+  "verifier_output": ".                                                                        [100%]\n1 passed in 0.02s\n"
+ },
+ {
+  "task": "sum-numbers",
+  "agent": "null",
+  "success": false,
+  "trajectory": [],
+  "duration": 1.0489346981048584,
+  "tests_total": 1,
+  "tests_failed": 1,
+  "failure_mode": "no_action",
+  "verifier_output": "F                                                                        [100%]\n=================================== FAILURES ===================================\n_______________________________ test_prints_sum ________________________________\n\n    def test_prints_sum():\n        out = subprocess.run([\"python3\", \"/workspace/sum.py\"],\n                             capture_output=True, text=True, timeout=30).stdout\n>       assert out.strip() == \"42\"\nE       AssertionError: assert '' == '42'\nE         \nE         - 42\n\n/verifier/test_outputs.py:7: AssertionError\n=========================== short test summary info ============================\nFAILED ../verifier/test_outputs.py::test_prints_sum - AssertionError: assert ...\n1 failed in 0.03s\n"
+ },
+ {
+  "task": "sum-numbers",
+  "agent": "cheat",
+  "success": true,
+  "trajectory": [
+   "printf 'print(42)\\n' > /workspace/sum.py -> exit 0"
+  ],
+  "duration": 1.401982307434082,
+  "tests_total": 1,
+  "tests_failed": 0,
+  "failure_mode": "",
+  "verifier_output": ".                                                                        [100%]\n1 passed in 0.02s\n"
+ }
+]

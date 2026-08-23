@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>第 3 课 · 组件级 Evaluation 与 Trace</title>
+<title>第 3 课 · SWE-bench</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -81,7 +81,7 @@ h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,7
   letter-spacing:-.015em;margin:0 0 4px}
 .sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
 .cards{display:grid;gap:12px}
-a.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
   text-decoration:none;color:var(--ink);background:var(--panel);
   border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
   transition:transform .16s,box-shadow .16s,background .16s}
@@ -92,6 +92,21 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .card .d{display:block;font-size:14px;color:var(--soft)}
 .card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
   text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+.card.off{border-style:dashed;border-color:var(--rule);background:transparent;cursor:default}
+.card.off .num,.card.off .t{color:var(--faint)}
+.card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
+.soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
+  padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+
+/* ---- lab cards ---- */
+.labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.lab{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);padding:16px 18px}
+.lab .lh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lab .lh b{font-family:"Archivo",sans-serif;font-weight:600;font-size:18px}
+.lab .lh span{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  color:var(--pass);white-space:nowrap}
+.lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
+.lab code{font-size:11.5px;color:var(--probe)}
 
 /* ---- lesson page ---- */
 .page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
@@ -101,11 +116,19 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
   border-left:2px solid var(--rule);line-height:1.4}
 .rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.rail a i{font-family:"JetBrains Mono",monospace;font-style:normal;font-size:10.5px;
+  color:var(--faint);margin-right:7px}
+.rail a:hover i{color:var(--signal)}
 .doc{min-width:0}
 .doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
-.doc h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:26px;letter-spacing:-.015em;
-  margin:44px 0 12px;padding-top:16px;border-top:1.5px solid var(--ink)}
-.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin:28px 0 8px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:31px;letter-spacing:-.02em;
+  line-height:1.22;margin:62px 0 14px;padding-top:22px;border-top:2.5px solid var(--ink)}
+.doc h2 .hn{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11.5px;
+  letter-spacing:.24em;color:var(--signal);margin-bottom:10px}
+.doc h2.sub{font-weight:600;font-size:23px;color:var(--soft);border-top:none;
+  margin:0 0 18px;padding-top:0}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19.5px;margin:30px 0 8px;
+  padding-left:12px;border-left:3px solid var(--rule)}
 .doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
 .doc p{margin:12px 0}
 .doc ul,.doc ol{padding-left:22px}
@@ -171,7 +194,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .layer .nm,.layer .note{border:none}
   .layer .note{padding-top:0}
   .waterline{grid-template-columns:1fr}
-  a.card{grid-template-columns:46px 1fr}
+  .card{grid-template-columns:46px 1fr}
   .card .tag{display:none}
 }
 @media(prefers-reduced-motion:reduce){
@@ -184,326 +207,343 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 
 <header class="mast"><div class="wrap">
 <span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 01</b></span>
-<nav><a href="index.html">目录</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html" class="on">3</a><a href="lesson04.html">4</a><a href="lesson05.html">5</a><a href="lesson06.html">6</a></nav></div></header>
+<nav><a href="index.html">目录</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html" class="on">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span></nav></div></header>
 <div class="wrap"><div class="page">
-<aside class="rail"><div class="rt">本课目录</div><a href="#s0">当任务失败时,你怎么知道是哪一环失败了?</a><a href="#s1">一、上一课留下的问题</a><a href="#s2">二、Trace:agent evaluation 的第一手材料</a><a href="#s3">三、四种评价单位(Week 1 的核心分类)</a><a href="#s4">四、组件级 evaluation:切在哪里</a><a href="#s5">五、Scorer 的两大家族(工程视角)</a><a href="#s6">六、Offline vs Online Evaluation</a><a href="#s7">七、Survey 论文给的全局地图(§1–§5)</a><a href="#s8">八、本课练习</a><a href="#s9">九、本课要带走的三句话</a></aside>
-<article class="doc"><h1>第 2 课:组件级 Evaluation 与 Trace</h1>
-<h2 id="s0">当任务失败时,你怎么知道是<strong>哪一环</strong>失败了?</h2>
-<p><strong>Week 1 Day 3</strong> · 建议 60 分钟</p>
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">Dataset、Agent Runtime 与 Evaluation Harness 为什么必须分开</a><a href="#s1"><i>01</i>SWE-bench 给你 dataset 和 evaluation harness,但不给 agent runtime</a><a href="#s2"><i>02</i>一条真实实例里,哪些字段 agent 看得到、哪些只有判分器看得到</a><a href="#s3"><i>03</i>⭐ 四种 patch 喂进同一个 harness,得到四种不同的结局</a><a href="#s4"><i>04</i>为什么 agent 绝不能跑在 eval 容器里 —— 反作弊是写死在代码里的</a><a href="#s5"><i>05</i>跑 lab 时,每一步该翻哪个源码文件</a><a href="#s6"><i>06</i>两个真踩过的坑:装错版本,和「以为造了个负例,其实没有」</a><a href="#s7"><i>07</i>Hands-on:四条命令,复现上面那四种结局</a><a href="#s8"><i>08</i>本课自检:这七件事你能不能说清</a><a href="#s9">本课一句话总结</a></aside>
+<article class="doc"><h1>第 3 课:SWE-bench</h1>
+<h2 id="s0" class="sub">Dataset、Agent Runtime 与 Evaluation Harness 为什么必须分开</h2>
+<p><strong>Week 1 Day 3</strong> · 源码 + 实验课 · 建议 90 分钟</p>
 <blockquote>
-<p>📎 <strong>素材锚点</strong>:<code>papers/survey_agent_eval_2025.pdf</code>(<em>A Survey on Evaluation of LLM-based Agents</em>, arXiv 2503.16416)· DeepLearning.AI <em>Evaluating AI Agents</em> 前半部分(在线,可选)· 跨课复用 <code>../agent-sandbox-course/docs/agentic/anthropic-demystifying-evals.md</code></p>
+<h3>本课唯一命题</h3>
+<h1>SWE-bench evaluator ≠ SWE-bench agent environment</h1>
+<p>这不是措辞讲究,是<strong>信任边界</strong>。搞混它,你会写出一个可以被作弊的 benchmark。</p>
+<p>📎 <strong>本课所有输出都是真跑出来的</strong>(2026-08,<code>SWE-bench_Verified</code> / <code>astropy__astropy-13398</code>)。
+💻 <strong>先做 lab,再读讲义</strong>:<code>../labs/swe-bench-teardown/</code></p>
 </blockquote>
 <hr />
-<h2 id="s1">一、上一课留下的问题</h2>
-<p>Day 1 我们学会了拆解 benchmark:任务、repeat、scorer、harness、environment。但那些 benchmark 给你的是<strong>一个数字</strong>:</p>
-<pre><code>Terminal-Bench v2.1: 42.7%
+<h2 id="s1"><span class="hn">§ 01</span>SWE-bench 给你 <strong>dataset</strong> 和 <strong>evaluation harness</strong>,但<strong>不给 agent runtime</strong></h2>
+<pre><code>                 SWE-bench dataset
+                        │
+        ┌───────────────┼───────────────┐
+        │                               │
+ problem_statement                 hidden eval info
+ repo / base_commit                test_patch
+        │                           FAIL_TO_PASS
+        ▼                           PASS_TO_PASS
+┌──────────────────┐                      │
+│ Agent Runtime    │  ← ❌ SWE-bench 不提供 │
+│ repo checkout    │                      │
+│ shell/editor     │                      │
+│ network policy   │                      │
+└────────┬─────────┘                      │
+         │                                │
+    model_patch                           │
+         └───────────────┬────────────────┘
+                         ▼
+              ┌─────────────────────┐
+              │ SWE-bench Harness   │  ← ✅ SWE-bench 提供
+              │ Docker              │
+              │ apply patch         │
+              │ apply tests         │
+              │ execute tests       │
+              │ parse results       │
+              └──────────┬──────────┘
+                         ▼
+                    resolved?
 </code></pre>
-<p>现在问一个工程问题:<strong>这 57.3% 的失败,是怎么失败的?</strong></p>
-<ul>
-<li>模型根本没理解任务?</li>
-<li>理解了但选错了工具?</li>
-<li>选对工具但参数写错?</li>
-<li>工具返回了错误,模型没有重试?</li>
-<li>一切都对,但超出了 250 步预算?</li>
-<li>做完了但最后一步忘了保存文件?</li>
-</ul>
-<p><strong>end-to-end 分数无法回答任何一个。</strong> 这就是组件级 evaluation 存在的理由。</p>
-<blockquote>
-<h3>本课主命题</h3>
-<p><strong>end-to-end score 用于「判断好坏」,component-level eval 用于「知道为什么」。产品迭代靠后者,排行榜只给你前者。</strong></p>
-</blockquote>
-<hr />
-<h2 id="s2">二、Trace:agent evaluation 的第一手材料</h2>
-<h3>2.1 什么是 trace</h3>
-<p>Trace 是<strong>一次 agent 运行的完整结构化记录</strong>。它不是日志文本,而是一棵有语义的树:</p>
-<pre><code>run_id: abc-123
-├── span: llm_call        (prompt, response, tokens, latency, model, params)
-├── span: tool_call       (name=search_kb, args={...}, result, error?, ms)
-├── span: llm_call        (…)
-├── span: tool_call       (name=update_account, args={...}, result, ms)
-│     └── span: retry     (attempt=2, reason=timeout)
-├── span: llm_call        (…)
-└── outcome: {success: false, reason: budget_exceeded, steps: 200}
-</code></pre>
-<p><strong>每个 span 至少要有</strong>:类型 · 输入 · 输出 · 耗时 · token/成本 · 错误 · 父子关系。</p>
-<h3>2.2 为什么 trace 是「第一手材料」</h3>
 <table>
 <thead>
 <tr>
-<th>你想回答</th>
-<th>需要 trace 里的什么</th>
+<th>组件</th>
+<th>SWE-bench 提供?</th>
+<th>证据</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>它在哪一步崩的?</td>
-<td>span 序列 + outcome</td>
+<td><strong>Dataset</strong></td>
+<td>✅</td>
+<td>HuggingFace,每条含 9 个字段(见 §二)</td>
 </tr>
 <tr>
-<td>是模型问题还是工具问题?</td>
-<td>tool_call 的 error 字段</td>
+<td><strong>Agent Runtime</strong>(怎么产出 patch)</td>
+<td>❌ <strong>不提供</strong></td>
+<td>README 指向外部:<em>"[Apr. 2, 2024]: We have released </em><em>SWE-agent</em><em>"</em>;<code>swebench/inference/</code> 只有 <code>run_api.py</code>/<code>run_llama.py</code>/<code>bm25_retrieval.py</code> = <strong>单轮基线脚本</strong>,不是 agent loop;grep 整个 <code>swebench/harness/*.py</code> <strong>零处调用模型</strong>,唯一命中是 <code>utils.py:59</code> 的注释 <code># compatible with SWE-agent predictions</code></td>
 </tr>
 <tr>
-<td>花了多少钱?</td>
-<td>各 llm_call 的 token 累加</td>
-</tr>
-<tr>
-<td>慢在哪?</td>
-<td>各 span 的 latency</td>
-</tr>
-<tr>
-<td>有没有绕圈?</td>
-<td>重复 span 模式</td>
-</tr>
-<tr>
-<td>有没有做危险动作?</td>
-<td>tool_call 的 name + args</td>
-</tr>
-<tr>
-<td><strong>它说自己成功了吗?最终状态真的成功了吗?</strong></td>
-<td>末次 llm_call 的措辞 <strong>vs</strong> outcome verifier</td>
+<td><strong>Evaluation Harness</strong></td>
+<td>✅ 且容器化</td>
+<td><code>run_evaluation.py</code> 官方入口;<code>dockerfiles/</code> 有 <strong>9 种语言</strong>的镜像生成器;README:<em>"fully containerized evaluation harness using Docker for more reproducible evaluations"</em></td>
 </tr>
 </tbody>
 </table>
-<p>最后一行是 agent eval 的灵魂问题 —— Day 1 的 τ³-Banking 案例(Agent A 说提交了争议但没调工具)只有在 trace + environment verifier <strong>同时存在</strong>时才能被抓住。</p>
 <blockquote>
-<p>📌 跨课呼应:Anthropic 在 <em>Demystifying evals for AI agents</em> 中把这条点为核心 ——
-<strong>必须区分 transcript 里「agent 自称成功」与 environment 里「真正的 outcome」。</strong></p>
+<h3>一句话</h3>
+<p><strong>SWE-bench 管「判」,不管「做」。</strong> 两者之间的<strong>唯一契约是一个 patch 文件</strong>。</p>
 </blockquote>
-<h3>2.3 工程要求</h3>
-<ul>
-<li><strong>无侵入</strong>:trace 采集不应改变 agent 行为(否则你测的是被观测过的系统)</li>
-<li><strong>可回放</strong>:能从 trace 重建当时发生了什么</li>
-<li><strong>可采样</strong>:生产环境不可能 100% 全存(Week 9 会讲 trace sampling)</li>
-<li><strong>标准化</strong>:OpenTelemetry 是当前事实标准,span 语义可跨框架</li>
-</ul>
 <hr />
-<h2 id="s3">三、四种评价单位(Week 1 的核心分类)</h2>
-<p>Day 1 讲的 benchmark 大多在 <strong>task 层</strong>打分。但一个 agent 可以在四个不同粒度被评价:</p>
-<table>
-<thead>
-<tr>
-<th>单位</th>
-<th>问什么</th>
-<th>典型指标</th>
-<th>什么时候用</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Turn</strong></td>
-<td>这一次交互对不对?</td>
-<td>单步准确率 · 工具选择正确率 · 参数正确率</td>
-<td>定位组件缺陷</td>
-</tr>
-<tr>
-<td><strong>Trajectory</strong></td>
-<td>整个过程好不好?</td>
-<td>步数 · 冗余动作 · 违规动作 · 成本 · 是否绕圈</td>
-<td>效率与安全</td>
-</tr>
-<tr>
-<td><strong>Task</strong></td>
-<td>最终达成没有?</td>
-<td>success rate(由 verifier 判定)</td>
-<td><strong>benchmark 主指标</strong></td>
-</tr>
-<tr>
-<td><strong>Session</strong></td>
-<td>跨多轮/多用户表现如何?</td>
-<td>状态保持 · 记忆正确性 · 权限正确性 · 跨会话泄漏</td>
-<td>真实产品 · capstone</td>
-</tr>
-</tbody>
-</table>
-<p><strong>关键认识:四者可以互相矛盾。</strong></p>
-<pre><code>高 task success + 差 trajectory  = 蛮力成功(50 步做完 5 步的事,成本爆炸)
-低 task success + 好 trajectory  = 思路对但能力不足(或环境/预算卡死)
-好 turn 指标   + 低 task success = 每步都合理,但组合起来到不了终点(规划缺陷)
-好 task success + 差 session     = 单任务没问题,多用户/长期就泄漏(← 你的 capstone 场景)
+<h2 id="s2"><span class="hn">§ 02</span>一条真实实例里,<strong>哪些字段 agent 看得到、哪些只有判分器看得到</strong></h2>
+<p><code>astropy__astropy-13398</code>,跑 <code>python3 ../labs/swe-bench-teardown/teardown.py</code> 可复现。</p>
+<h3>agent 看得到的</h3>
+<pre><code>instance_id   astropy__astropy-13398
+repo          astropy/astropy
+base_commit   6500928dc0e57be8f06d1162eacc3ba5e2eff692
+version       5.0
+problem_statement   5,323 chars
 </code></pre>
-<blockquote>
-<p>只报 task success 的 benchmark,对上面第 1、3、4 行<strong>完全失明</strong>。</p>
-</blockquote>
-<hr />
-<h2 id="s4">四、组件级 evaluation:切在哪里</h2>
-<p>Survey 论文(§2 Agent Capabilities Evaluation)把 agentic workflow 需要的核心能力拆成:<strong>planning · tool use · reflection · memory</strong>。这正好对应工程上最值得单独评的四个切面:</p>
-<h3>4.1 Router / 意图与技能选择</h3>
-<blockquote>
-<p>「用户问这句话,agent 该走哪条分支?」</p>
-</blockquote>
-<ul>
-<li>指标:分类准确率 · 混淆矩阵</li>
-<li>数据:从生产 trace 里采样 + 人工标注</li>
-<li>常见缺陷:相似技能混淆 · 边界 case 全部落到 fallback</li>
-</ul>
-<h3>4.2 Tool selection &amp; argument construction</h3>
-<blockquote>
-<p>「该不该调工具?调哪个?参数对不对?」</p>
-</blockquote>
-<p>拆成<strong>三个独立指标</strong>(很多团队错误地合成一个):</p>
-<pre><code>① 该调工具时调了吗?     (recall)
-② 调的是对的那个吗?     (precision on tool name)
-③ 参数构造正确吗?       (argument exact/semantic match)
+<h3>只有 grader 看得到的(<strong>agent 绝不能看到</strong>)</h3>
+<pre><code>patch (gold)              13,884 B, 4 files
+test_patch                 7,533 B, 1 file
+FAIL_TO_PASS               4    改完必须由失败转通过
+PASS_TO_PASS              68    本来就过,不许弄坏
+environment_setup_commit  cdf311e0714e…
 </code></pre>
-<p>一个 agent 可能 ① ② 都对但 ③ 错 —— 表现出来是「它一直在调对的工具却总失败」。</p>
-<h3>4.3 Retrieval / grounding</h3>
+<p><strong>两个字段值得单独说</strong>:</p>
+<p><strong><code>environment_setup_commit</code></strong> —— 它和 <code>base_commit</code> <strong>不是同一个 commit</strong>。装依赖用前者,checkout 代码用后者。</p>
 <blockquote>
-<p>「检索到的文档,包含答案吗?回答是否基于它?」</p>
+<p>为什么要分开?因为「这个 bug 存在于哪个 commit」和「用哪个版本的依赖能装起来」是两件事。这是可复现性的关键设计,也是很多自制 benchmark 会漏掉的。</p>
 </blockquote>
-<ul>
-<li>检索质量:recall@k · precision@k · MRR</li>
-<li><strong>grounding / faithfulness</strong>:回答的每个断言能否在检索结果中找到支撑</li>
-<li>Day 1 的 τ³-Banking 就是典型:约 700 份互相关联的政策文档,<strong>检索不对就必然做错动作</strong></li>
-</ul>
-<h3>4.4 Reflection / 错误恢复</h3>
-<blockquote>
-<p>「工具报错后,它做了什么?」</p>
-</blockquote>
-<ul>
-<li>指标:错误后恢复成功率 · 重试次数 · 是否在同一错误上死循环</li>
-<li>这是最常被漏掉的一类评价,却是生产环境体验差异的主因</li>
-</ul>
-<hr />
-<h2 id="s5">五、Scorer 的两大家族(工程视角)</h2>
+<p><strong><code>PASS_TO_PASS</code> 有 68 个</strong> —— 它防的是「把测试删了就通过」。</p>
+<pre><code>resolved = 4 个 FAIL_TO_PASS 全过  AND  68 个 PASS_TO_PASS 仍过
+         = 72 个断言全绿
+</code></pre>
+<h3>⭐ 但「agent 看不到测试」这句话要说准</h3>
+<p>上面那张表说的是<strong>数据集字段</strong>。仓库本身是另一回事 —— agent 拿到的是 <code>base_commit</code> 时刻的
+完整 checkout,<strong>里面的测试它全都读得到、也跑得动</strong>。</p>
+<p>全 500 条 SWE-bench Verified 里,<code>test_patch</code> 到底动了什么:</p>
+<pre><code>只新建测试文件 :   3
+新建 + 改已有   :  12
+只改已有文件    : 485      ← 97%
+</code></pre>
+<p>我们这条 <code>astropy__astropy-13398</code> 就属于那 485 条 —— <code>test_patch</code> 只改一个文件
+<code>astropy/coordinates/tests/test_intermediate_transformations.py</code>,而这个文件在 <code>base_commit</code>
+里<strong>本来就存在</strong>。逐个核对那 4 个 FAIL_TO_PASS 函数在 diff 里是新增行还是上下文行:</p>
+<pre><code>test_itrs_topo_to_altaz_with_refraction     新增=True  原有=False
+test_itrs_topo_to_hadec_with_refraction     新增=True  原有=False
+test_cirs_itrs_topo                         新增=True  原有=False
+test_itrs_straight_overhead                 新增=True  原有=False
+</code></pre>
+<p>所以精确的边界是:</p>
 <table>
 <thead>
 <tr>
 <th></th>
-<th><strong>Code evaluator(程序化)</strong></th>
-<th><strong>LLM-as-a-judge</strong></th>
+<th>agent 能看到?</th>
+<th></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>形式</td>
-<td>assert / 正则 / unit test / DB 状态查询</td>
-<td>另一个模型按 rubric 打分或两两比较</td>
+<td>测试<strong>文件</strong>本身</td>
+<td>✅</td>
+<td>仓库里本来就有</td>
 </tr>
 <tr>
-<td>确定性</td>
-<td>✅ 完全确定,可复现</td>
-<td>❌ 有随机性,换 judge/版本会变</td>
+<td>68 个 <strong>PASS_TO_PASS</strong></td>
+<td>✅ 能读能跑</td>
+<td>就在同一个文件里,是已有测试</td>
 </tr>
 <tr>
-<td>成本</td>
-<td>几乎为零</td>
-<td>每次评价都要花 token</td>
+<td>4 个 <strong>FAIL_TO_PASS</strong> 的代码</td>
+<td>❌</td>
+<td><code>test_patch</code> 才加进去</td>
 </tr>
 <tr>
-<td>能评什么</td>
-<td>有客观正确定义的</td>
-<td>开放式、主观、复杂 deliverable</td>
-</tr>
-<tr>
-<td>主要风险</td>
-<td>覆盖不足 → 错误实现也通过</td>
-<td>bias(position/verbosity/self-preference)· rubric ambiguity · <strong>grader drift</strong></td>
+<td>F2P / P2P 的<strong>名字列表</strong></td>
+<td>❌</td>
+<td>dataset 里的 grader-only 字段</td>
 </tr>
 </tbody>
 </table>
-<p><strong>工程原则(优先级从高到低)</strong>:</p>
-<pre><code>1. 能用 environment state 验证的 → 用 environment state
-2. 能用 unit test / 程序化断言的 → 用程序化
-3. 剩下真的没法客观化的        → 才用 LLM judge,并且必须做 judge 校准(Day 5 / Week 5)
-</code></pre>
 <blockquote>
-<p>⚠️ 反模式:<strong>因为 LLM judge 好写,就把本可程序化验证的东西也交给它。</strong> 这会同时损失确定性和钱。</p>
+<p><strong>一句话</strong>:agent 看得到「不许弄坏什么」,看不到「必须修好什么」。
+这个不对称是故意的 —— P2P 可见无所谓,它们本来就该过;F2P 不可见才是防作弊的核心。</p>
 </blockquote>
+<p><strong>连带的推论</strong>:agent 没法「跑测试跑到绿」,因为判分的那 4 个测试还不存在。
+官方参考 scaffold(<code>mini-swe-agent</code>,<code>config/benchmarks/swebench.yaml:30-36</code>)的措辞也印证了这点:</p>
+<pre><code>2. Create a script to reproduce the issue        ← 自己写复现脚本
+4. Verify your fix works by running your script again   ← 跑自己写的
+</code></pre>
+<pre><code>agent 的「绿」  = 它自己写的复现脚本过了
+harness 的「绿」= 官方那 4 + 68 个测试过了
+</code></pre>
+<p><strong>两套不同的测试。</strong> SWE-bench 考的不是「跑到测试通过」,是「猜中出题人会怎么测」。</p>
 <hr />
-<h2 id="s6">六、Offline vs Online Evaluation</h2>
+<h2 id="s3"><span class="hn">§ 03</span>⭐ 四种 patch 喂进<strong>同一个</strong> harness,得到<strong>四种不同的结局</strong></h2>
+<blockquote>
+<p>这是本课的核心。四种 prediction 喂进<strong>同一个</strong> harness,得到<strong>四种不同类别</strong>的结果。</p>
+</blockquote>
 <table>
 <thead>
 <tr>
-<th></th>
-<th><strong>Offline</strong></th>
-<th><strong>Online</strong></th>
+<th>实验</th>
+<th>prediction</th>
+<th>harness 输出</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>数据</td>
-<td>固定数据集 / benchmark</td>
-<td>生产流量采样</td>
+<td><strong>gold</strong></td>
+<td>官方参考解法</td>
+<td><code>Instances resolved: 1</code></td>
 </tr>
 <tr>
-<td>标签</td>
-<td>预先准备的 gold answer</td>
-<td>通常没有 gold,靠 judge / 用户信号 / 人工抽检</td>
+<td><strong>empty</strong></td>
+<td><code>""</code></td>
+<td><strong><code>Instances with empty patches: 1</code></strong></td>
 </tr>
 <tr>
-<td>用途</td>
-<td>回归测试 · 版本比较 · 排行榜</td>
-<td>真实分布监控 · drift 发现 · 长尾捕获</td>
+<td><strong>partial</strong></td>
+<td>只保留 gold 的第一个文件(加了 import,但被 import 的模块不存在)</td>
+<td><code>Instances unresolved: 1</code></td>
 </tr>
 <tr>
-<td>优点</td>
-<td>可复现 · 可比较 · 便宜</td>
-<td>反映真实用户</td>
-</tr>
-<tr>
-<td>缺点</td>
-<td><strong>分布与真实使用不一致</strong> · 会过拟合</td>
-<td>不可复现 · 有隐私与成本约束</td>
+<td><strong>malformed</strong></td>
+<td>指向不存在文件的假 diff</td>
+<td><strong><code>Instances with errors: 1</code></strong></td>
 </tr>
 </tbody>
 </table>
-<p><strong>两者互补,不能互相替代</strong>:
-- 只有 offline → 你在一个和用户无关的分布上不断刷分(benchmark overfitting)
-- 只有 online → 每次改动都没法可靠比较(没有对照)</p>
+<h3>gold 的判分明细(真实 <code>report.json</code>)</h3>
+<pre><code>resolved: True | patch applied: True
+  FAIL_TO_PASS   success=  4  failure=0
+  PASS_TO_PASS   success= 68  failure=0
+  FAIL_TO_FAIL   success=  0  failure=0
+  PASS_TO_FAIL   success=  0  failure=0
+</code></pre>
+<p>72 个断言全绿,与 §二 的契约<strong>完全一致</strong>。这同时证明了:<strong>evaluator 本身是好的</strong>。</p>
+<h3>🔑 四种结局 = 四个类别</h3>
+<pre><code>resolved        →  真的修好了
+unresolved      →  patch 应用了,但测试没过        ← 模型能力问题
+empty patch     →  agent 什么都没产出              ← 通常是 agent runtime 挂了
+error           →  patch 无法 apply                ← infra / 格式问题
+</code></pre>
 <blockquote>
-<p>Week 9 会把它们串成 <code>offline → staging → online</code> 的完整 pipeline。</p>
+<p><strong>只报 "resolved %" 的 leaderboard,把后三类混成了一个数字。</strong>
+一个 agent 得 0 分,可能是它不会修 bug(unresolved),也可能是它的 runtime 崩了(empty)——
+<strong>这两件事的改进方向完全相反。</strong>
+⟹ 这就是 <strong>W6 Failure Taxonomy</strong> 的起点,也是为什么 SWE-bench 官方后来把 infra failure 与正常 unresolved 区分开。</p>
+</blockquote>
+<p><strong>对照 Day 2 的 oracle 原则</strong>:gold patch 之于 SWE-bench,就是 <code>solution.sh</code> 之于 Terminal-Bench ——
+<strong>先证明尺子是准的,再用它量东西。</strong></p>
+<hr />
+<h2 id="s4"><span class="hn">§ 04</span>为什么 agent <strong>绝不能</strong>跑在 eval 容器里 —— 反作弊是写死在代码里的</h2>
+<p>为什么 agent <strong>绝不能</strong>跑在 eval 容器里?看 eval 脚本的生成顺序(<code>test_spec/python.py:419-425</code>):</p>
+<pre><code class="language-bash">git checkout {base_commit} {test_patch 改过的文件}   # ← 抹掉 agent 对测试的任何改动
+rm -f {test_patch 新增的文件}                        # ← 删掉 agent 可能造的假测试
+git apply -v - &lt;&lt;'EOF' {官方 test_patch} EOF         # ← 再贴上权威测试
+# 然后才跑测试
+</code></pre>
+<p><strong>先强制还原测试文件,再贴官方测试。</strong> 这是「<strong>不信任 agent 碰过的任何东西</strong>」写进代码里。</p>
+<p>三条理由:
+1. <strong>反作弊</strong> —— agent 改不了判分标准
+2. <strong>确定性</strong> —— 每个 instance 起<strong>全新</strong>容器,agent 装过的包、改过的 env 不会污染判分
+3. <strong>verifier independence</strong> —— verifier 必须在 agent 够不到的地方</p>
+<blockquote>
+<p>⚠️ 但注意:<strong>agent 自己也需要一个 sandbox</strong>,只是不是这一个。
+<code>Agent sandbox   ← SWE-bench 不管,SWE-agent 等自带  (探索 repo、改代码、跑局部测试)
+Eval sandbox    ← SWE-bench 提供                    (全新容器 → apply → 跑官方测试 → 判分)</code></p>
 </blockquote>
 <hr />
-<h2 id="s7">七、Survey 论文给的全局地图(§1–§5)</h2>
-<p>读 survey 时,按它自己的五个视角建立索引:</p>
-<pre><code>① Core LLM capabilities        planning · tool use · reflection · memory
-② Application-specific bench   Web agents · SWE agents · Scientific agents · Conversational agents
-③ Generalist agent evaluation  GAIA 这类跨域 benchmark
-④ Core benchmark dimensions    ← 与本课第 3、4 节直接对应
-⑤ Evaluation frameworks/tools  开发者用的框架
-</code></pre>
-<p>论文也点明当前的主要缺口:<strong>成本、安全、鲁棒性与细粒度评价</strong>。</p>
+<h2 id="s5"><span class="hn">§ 05</span>跑 lab 时,<strong>每一步该翻哪个源码文件</strong></h2>
+<p><code>../agent-sandbox-course/code/SWE-bench/swebench/harness/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>你在跑什么</th>
+<th>源码入口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>整个评测</td>
+<td><code>run_evaluation.py</code> —— 参数是 <code>--predictions_path</code>,<strong>吃已产出的 patch</strong></td>
+</tr>
+<tr>
+<td>建镜像</td>
+<td><code>docker_build.py</code> · <code>dockerfiles/</code>(python/java/js/go/rust/c/php/ruby)· <code>prepare_images.py</code></td>
+</tr>
+<tr>
+<td>容器里执行什么</td>
+<td><code>test_spec/python.py</code> —— 生成 eval 脚本</td>
+</tr>
+<tr>
+<td>判分</td>
+<td><code>grading.py</code></td>
+</tr>
+<tr>
+<td>解析测试输出</td>
+<td><code>log_parsers/</code> —— <strong>每个测试框架一个 parser</strong></td>
+</tr>
+<tr>
+<td>汇总</td>
+<td><code>reporting.py</code></td>
+</tr>
+<tr>
+<td>云端执行</td>
+<td><code>modal_eval/</code></td>
+</tr>
+</tbody>
+</table>
 <blockquote>
-<p>这四个缺口正好是本课程 Week 3(指标)、Week 7(integrity)、Week 9(生产)、Week 12(capstone)要补的。</p>
+<p><strong>镜像分层</strong>(W2 会展开):<code>base → env → instance</code>。<code>--cache_level</code> 控制保留哪一层。</p>
 </blockquote>
 <hr />
-<h2 id="s8">八、本课练习</h2>
-<h3>练习一:给一次失败归因</h3>
-<p>拿任意一个 agent(可以是你自己的、也可以是 Claude Code / Codex)让它做一个会失败的任务,收集 trace,然后回答:</p>
-<ol>
-<li>它在<strong>第几步</strong>开始走错?</li>
-<li>失败属于:理解 / 规划 / 工具选择 / 参数构造 / 工具本身报错 / 恢复失败 / 预算耗尽 —— 哪一类?</li>
-<li>如果只看 task success = 0,你能得出上面结论吗?</li>
-<li><strong>要抓住这类失败,trace 里最少必须记录哪三个字段?</strong></li>
-</ol>
-<h3>练习二:设计一个组件级指标</h3>
-<p>为「tool selection」设计三个独立指标(见 §4.2),并各写一句它失效时的<strong>具体症状</strong>。</p>
-<h3>练习三:分辨四种评价单位</h3>
-<p>下面五句话各属于 turn / trajectory / task / session 哪一层?</p>
-<pre><code>a. 「它调用了正确的 API」
-b. 「它用 47 步完成了本可 6 步完成的事」
-c. 「数据库里确实创建了 dispute」
-d. 「第二个用户提问时,它复述了第一个用户的私有数据」
-e. 「它在同一个报错上重试了 12 次」
+<h2 id="s6"><span class="hn">§ 06</span>两个真踩过的坑:<strong>装错版本</strong>,和<strong>「以为造了个负例,其实没有」</strong></h2>
+<h3>坑 ① pip 版 harness ≠ repo 版</h3>
+<pre><code>pip install swebench   → 5.0.2,不支持 --cache_level / --namespace / --force_rebuild
+clone 的 repo          → 支持
 </code></pre>
-<details><summary>参考答案</summary>
-a=turn · b=trajectory · c=task · d=**session**(且是权限/信息流失效)· e=trajectory
-</details>
-
+<p>症状:<code>run_evaluation.py: error: unrecognized arguments: --cache_level</code></p>
+<blockquote>
+<p><strong>教训</strong>:讲义引用的是 repo 源码,lab 就必须跑同一份代码,<strong>否则你验证的不是你讲的东西</strong>。</p>
+</blockquote>
+<h3>坑 ② 「把 patch 改坏」比想象中难 ⭐</h3>
+<p>第一次造 broken patch 用的是:</p>
+<pre><code class="language-python">x[&quot;patch&quot;].replace(&quot;+&quot;, &quot;-&quot;, 1)
+</code></pre>
+<p>结果 <strong>仍然 <code>resolved: True</code></strong>。</p>
+<p>原因:整个 diff 里第一个 <code>+</code> 出现在 <strong><code>+++ b/...</code> 文件头</strong>,不是代码行。<code>git apply</code> 容忍了这个畸形头。</p>
+<blockquote>
+<p><strong>教训</strong>:<strong>要让一个 patch 失败,必须改它「做什么」,而不是改它「怎么拼写」。</strong>
+更普适的版本 —— <strong>你以为你造了个负例,其实没有。</strong> 这条会在 <strong>W5 任务质量</strong> 再遇到:
+一个没有真正区分能力的任务,和一个坏掉的负例,在数据里长得一模一样。</p>
+</blockquote>
 <hr />
-<h2 id="s9">九、本课要带走的三句话</h2>
-<ol>
-<li><strong>end-to-end 分数判断好坏,组件级 evaluation 才告诉你为什么。</strong></li>
-<li><strong>trace 是 agent evaluation 的第一手材料;没有 trace,一切归因都是猜测。</strong></li>
-<li><strong>能程序化 / 能查环境状态就别用 LLM judge —— judge 是最后手段,不是默认手段。</strong></li>
-</ol>
+<h2 id="s7"><span class="hn">§ 07</span>Hands-on:<strong>四条命令,复现上面那四种结局</strong></h2>
+<pre><code class="language-bash">python3 ../labs/swe-bench-teardown/teardown.py          # 拆实例 + 生成四份 prediction
+bash    ../labs/swe-bench-teardown/run.sh gold          # 应 resolved
+bash    ../labs/swe-bench-teardown/run.sh empty         # empty patch(不是 unresolved!)
+bash    ../labs/swe-bench-teardown/run.sh partial       # unresolved
+bash    ../labs/swe-bench-teardown/run.sh malformed     # error
+</code></pre>
+<p><strong>留给你的两个实验</strong>:</p>
+<pre><code>[ ] 实验 3:同一个 run_id 换不同 prediction 再跑一次 → 观察 result caching 这个坑
+[ ] 实验 4:docker exec 进容器,对比 agent-visible repo 与 grader-visible test_patch
+</code></pre>
 <hr />
-<p><strong>下一课(Day 4)</strong>:把 Day 1–2 收敛成一篇自己的讲义《为什么 agent 分数不是 model 分数》。</p>
-<div class="pager"><a href="lesson02.html">← 第 2 课 · Terminal-Bench 深读</a><a href="lesson04.html">第 4 课 · Agent 分数 ≠ Model 分数 →</a></div>
+<h2 id="s8"><span class="hn">§ 08</span>本课自检:<strong>这七件事你能不能说清</strong></h2>
+<pre><code>[ ] 1. 能说清 dataset / agent runtime / evaluation harness 为什么是三件事
+[ ] 2. 能说出 SWE-bench 提供哪两件、不提供哪一件,并给出源码证据
+[ ] 3. 能解释 base_commit 与 environment_setup_commit 为什么分开
+[ ] 4. 能解释 PASS_TO_PASS 防的是什么
+[ ] 5. 能说出四种 harness 结局及各自意味着什么
+[ ] 6. 能指出 eval 脚本里的反作弊那三行,并说明为什么 agent 不能在 eval 容器里
+[ ] 7. 能说出「你以为你造了个负例,其实没有」是怎么发生的
+</code></pre>
+<hr />
+<h2 id="s9">本课一句话总结</h2>
+<blockquote>
+<p><strong>SWE-bench 的精髓不在数据集,在那条 patch 契约:agent 在外面做,harness 在里面判,中间只传一个 diff。</strong>
+这条边界让它可复现、可防作弊 —— 也让「agent 环境」成了你自己的责任。</p>
+</blockquote>
+<hr />
+<p><strong>上一课(Day 2)</strong>:<a href="lesson02.md">Terminal-Bench 深读</a>。
+<strong>下一课(Day 4)</strong>:<a href="lesson04-tau3-bench.md">τ³-bench</a> —— 从 repo state 走向 <strong>application state + user state + conversational trajectory</strong>,以及 verifier 为什么会裂成四个。</p>
+<div class="pager"><a href="lesson02.html">← 第 2 课 · Terminal-Bench 深读</a><a href="lesson04.html">第 4 课 · τ³-bench →</a></div>
 </article></div></div>
 <footer><div class="wrap">
-<span>Week 01 · Evaluation 基本框架</span>
-<span>源:AA v4.1.1 快照 · SWE-bench · Terminal-Bench · tau2-bench · OSWorld-V2 · BFCL</span>
+<span>Week 01 · Benchmark Archaeology</span>
+<span>源:Terminal-Bench · SWE-bench · τ³-bench · OSWorld · WebArena · GAIA · BFCL</span>
 <span>由 week01/*.md 生成 · build_site.py</span>
 </div></footer></body></html>

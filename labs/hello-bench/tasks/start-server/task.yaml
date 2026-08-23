@@ -1,0 +1,8 @@
+instruction: |-
+  Write /workspace/server.py so that running `python3 /workspace/server.py`
+  starts an HTTP server on port 8080 whose response body is exactly: hello
+image: hello-bench:py312
+difficulty: medium
+# The deliverable is an ARTIFACT (a file), not a live process.
+# "Leave a server running" would need the verifier to share the agent's
+# container — a much stronger coupling. See README §3.

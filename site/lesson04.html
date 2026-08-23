@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>第 4 课 · Agent 分数 ≠ Model 分数</title>
+<title>第 4 课 · τ³-bench</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -81,7 +81,7 @@ h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,7
   letter-spacing:-.015em;margin:0 0 4px}
 .sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
 .cards{display:grid;gap:12px}
-a.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
   text-decoration:none;color:var(--ink);background:var(--panel);
   border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
   transition:transform .16s,box-shadow .16s,background .16s}
@@ -92,6 +92,21 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .card .d{display:block;font-size:14px;color:var(--soft)}
 .card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
   text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+.card.off{border-style:dashed;border-color:var(--rule);background:transparent;cursor:default}
+.card.off .num,.card.off .t{color:var(--faint)}
+.card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
+.soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
+  padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+
+/* ---- lab cards ---- */
+.labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.lab{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);padding:16px 18px}
+.lab .lh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lab .lh b{font-family:"Archivo",sans-serif;font-weight:600;font-size:18px}
+.lab .lh span{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  color:var(--pass);white-space:nowrap}
+.lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
+.lab code{font-size:11.5px;color:var(--probe)}
 
 /* ---- lesson page ---- */
 .page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
@@ -101,11 +116,19 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
   border-left:2px solid var(--rule);line-height:1.4}
 .rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.rail a i{font-family:"JetBrains Mono",monospace;font-style:normal;font-size:10.5px;
+  color:var(--faint);margin-right:7px}
+.rail a:hover i{color:var(--signal)}
 .doc{min-width:0}
 .doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
-.doc h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:26px;letter-spacing:-.015em;
-  margin:44px 0 12px;padding-top:16px;border-top:1.5px solid var(--ink)}
-.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin:28px 0 8px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:31px;letter-spacing:-.02em;
+  line-height:1.22;margin:62px 0 14px;padding-top:22px;border-top:2.5px solid var(--ink)}
+.doc h2 .hn{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11.5px;
+  letter-spacing:.24em;color:var(--signal);margin-bottom:10px}
+.doc h2.sub{font-weight:600;font-size:23px;color:var(--soft);border-top:none;
+  margin:0 0 18px;padding-top:0}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19.5px;margin:30px 0 8px;
+  padding-left:12px;border-left:3px solid var(--rule)}
 .doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
 .doc p{margin:12px 0}
 .doc ul,.doc ol{padding-left:22px}
@@ -171,7 +194,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .layer .nm,.layer .note{border:none}
   .layer .note{padding-top:0}
   .waterline{grid-template-columns:1fr}
-  a.card{grid-template-columns:46px 1fr}
+  .card{grid-template-columns:46px 1fr}
   .card .tag{display:none}
 }
 @media(prefers-reduced-motion:reduce){
@@ -184,276 +207,488 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 
 <header class="mast"><div class="wrap">
 <span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 01</b></span>
-<nav><a href="index.html">目录</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html" class="on">4</a><a href="lesson05.html">5</a><a href="lesson06.html">6</a></nav></div></header>
+<nav><a href="index.html">目录</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html" class="on">4</a><span class="soonnav">5</span><span class="soonnav">6</span></nav></div></header>
 <div class="wrap"><div class="page">
-<aside class="rail"><div class="rt">本课目录</div><a href="#s0">今日流程</a><a href="#s1">一、核心命题</a><a href="#s2">二、逐因子:改它,分数就变</a><a href="#s3">三、一个决定性的实证:等权、三次、task-normalized</a><a href="#s4">四、那到底什么是「model evaluation」,什么是「agent-system evaluation」?</a><a href="#s5">五、四种评价单位(再强调一次,因为它决定你报什么数)</a><a href="#s6">六、写作任务(今天的主产出)</a><a href="#s7">七、练习</a><a href="#s8">本课一句话总结</a></aside>
-<article class="doc"><h1>第 3 课:为什么 Agent 分数不是 Model 分数</h1>
-<p><strong>Week 1 Day 4</strong> · 写作日 · 建议 60 分钟</p>
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">当对面坐着一个 LLM 扮演的用户,verifier 就得拆成四个</a><a href="#s1"><i>00</i>复杂度阶梯上,τ³ 比 SWE-bench 多了什么</a><a href="#s2"><i>01</i>τ³ 的世界里有三方,其中一方是 LLM —— 与 SWE-bench 最根本的区别</a><a href="#s3"><i>02</i>四个 evaluator 各查什么,以及为什么必须是「相乘」</a><a href="#s4"><i>03</i>⭐ 每个 domain 一把不同的尺子</a><a href="#s5"><i>04</i>⭐ CommunicateEvaluator 是子串匹配</a><a href="#s6"><i>05</i>EnvironmentEvaluator:整库 hash,以及它反过来对 environment 提的要求</a><a href="#s7"><i>06</i>pass^k 不是 pass@k</a><a href="#s8"><i>07</i>Hands-on:四条手写轨迹喂进真实的 evaluator</a><a href="#s9"><i>08</i>本课自检</a><a href="#s10">本课一句话总结</a></aside>
+<article class="doc"><h1>第 4 课:τ³-bench</h1>
+<h2 id="s0" class="sub">当对面坐着一个 LLM 扮演的用户,verifier 就得拆成四个</h2>
+<p><strong>Week 1 Day 4</strong> · 源码课 · 建议 90 分钟</p>
 <blockquote>
-<p>本课是<strong>产出日</strong>:先闭卷复述 Day 1–3,再写出自己的一页讲义。
-这份文件同时是<strong>参考答案</strong>——写完你自己的版本后再对照,别先读完再写(那样只是抄)。</p>
-<p>📎 素材锚点:<code>docs/aa-coding-agents-leaderboard.md</code> · <code>docs/aa-intelligence-benchmarking-methodology.md</code>(均 2026-08 快照,已核验)</p>
+<h3>本课唯一命题</h3>
+<h1>一个 benchmark 里可以有四种 verifier,它们<strong>相乘</strong></h1>
+<h1>—— 而且每个 domain 用的还<strong>不一样</strong></h1>
+<p>Day 3 的 SWE-bench:一个 patch → 跑单元测试 → <code>bool</code>。
+τ³:一段多轮对话 → 四种 verifier 相乘 → <code>[0, 1]</code>。</p>
+<p>📎 源码:<code>../code/tau2-bench/</code>(目录名沿用旧的 tau2,内容是 <strong>τ³-bench v1.0.1</strong>,<code>c339866</code>)
+💻 lab:<code>../labs/tau3-verifier/</code></p>
 </blockquote>
 <hr />
-<h2 id="s0">今日流程</h2>
+<h2 id="s1"><span class="hn">§ 00</span>复杂度阶梯上,τ³ 比 SWE-bench 多了什么</h2>
+<pre><code>SWE-bench      repo state                              一个仓库,判它的测试过不过
+τ³-bench       application state                       一个业务数据库,判它最后长什么样
+             + user state                              用户自己的一套状态(手机、设备),他会动手改它
+             + conversational trajectory                agent 说了什么,也算分
+</code></pre>
+<p>多出来的这三样,每一样都逼出一种新的 verifier。<strong>这就是为什么 τ³ 有四个 evaluator 而 SWE-bench 只有一个。</strong></p>
+<hr />
+<h2 id="s2"><span class="hn">§ 01</span>τ³ 的世界里有<strong>三方</strong>,其中一方是 LLM —— 与 SWE-bench 最根本的区别</h2>
+<p>SWE-bench 的 environment 是一个 Docker 容器:确定的文件系统、确定的依赖、<code>git apply</code> 之后跑 pytest。
+<strong>同样的输入永远给出同样的输出。</strong></p>
+<p>τ³ 不是。但要说清它哪里不一样,得先把「environment」这个词的两个意思分开 ——
+<strong>这是本节最容易搞错、也最要紧的一点。</strong></p>
+<h3>τ³ 自己的代码分了三方</h3>
+<p><code>orchestrator/orchestrator.py:90-96</code>:</p>
+<pre><code class="language-python">def __init__(
+    self,
+    domain: str,
+    agent: BaseAgentT,          # ← LLM
+    user: BaseUserT,            # ← LLM
+    environment: Environment,   # ← 零 LLM
+    task: Task,
+    ...
+</code></pre>
+<p>三个<strong>并列</strong>的参与方。而且注意:<code>Environment</code> 类里<strong>一个模型调用都没有</strong> ——
+grep 整个 <code>environment/</code> 目录,和 LLM 沾边的只有 <code>tool.py</code> 里两句 docstring
+(<code>"can be called by LLMs"</code>)和 <code>openai_schema</code>。它只管工具执行和数据库。</p>
+<p>加上时钟被冻成常量(§五),<strong>τ³ 的 <code>Environment</code> 类是完全确定性的。</strong></p>
+<h3>但 RL 意义上的 environment 不是这么划的</h3>
+<pre><code>τ³ 代码里的 Environment    工具 + 数据库                        确定
+RL 意义的 environment      agent 之外、它不能控制的一切          随机
+                           ↑ 用户模拟器在这一边
+</code></pre>
+<p>从 agent 的视角看,那个会追问、会施压、会被说服的「用户」,和数据库一样是它无法控制、
+只能观测和影响的外部世界。<strong>在 MDP 的意义上,用户模拟器就是环境的一部分。</strong></p>
+<p>而那个用户是一个 LLM:</p>
+<pre><code class="language-python"># user/user_simulator.py
+class UserSimulator(...):
+    def generate_next_message(self, message, state):
+        ...
+        generate(model=self.llm, ...)          # ← 一次真实的 LLM 调用
+</code></pre>
+<pre><code class="language-python"># config.py:17-18
+DEFAULT_LLM_AGENT = &quot;gpt-4.1-2025-04-14&quot;
+DEFAULT_LLM_USER  = &quot;gpt-4.1-2025-04-14&quot;      # ← 用户模拟器
+</code></pre>
+<blockquote>
+<h3>⚠️ 为什么这个区分不是文字游戏</h3>
+<p>它直接决定你对「τ³ 可不可复现」的判断:
+<code>只看 Environment 类   → 确定的 → 结论:跑两次结果一样   ❌
+算上用户模拟器         → 随机的 → 结论:必须跑多次       ✅</code>
+<strong>τ³ 的随机性 100% 来自用户模拟器。</strong> 数据库那边被刻意做成确定的(冻结时钟、写死 ID),
+正是为了让随机源只剩这一个。pass^k(§六)就是为它准备的。</p>
+</blockquote>
+<h3>用户不只是「说话」,他还会动手</h3>
+<p>这一点最容易漏。用户模拟器<strong>有自己的一套工具、自己的一个数据库</strong>
+(<code>environment/environment.py:44,59</code>):</p>
+<pre><code class="language-python">user_tools: Optional[ToolKitBase] = None
+self.user_tools = user_tools
+</code></pre>
+<p>telecom domain 里,用户能干这些(<code>domains/telecom/user_tools.py</code>):</p>
+<pre><code>toggle_airplane_mode · turn_airplane_mode_on / off
+run_speed_test       · check_network_status
+set_network_mode_preference · check_status_bar
+</code></pre>
+<p><strong>这是一个会照着 agent 的指示去动手机的用户。</strong> agent 说「请开一下飞行模式再关掉」,
+用户模拟器真的会调那个工具,手机状态真的会变。</p>
+<p>所以判分时是<strong>两个数据库分别 hash</strong>(<code>evaluator_env.py:118-123</code>):</p>
+<pre><code class="language-python">agent_db_hash            = gold_environment.get_db_hash()        # 运营商侧
+user_db_hash             = gold_environment.get_user_db_hash()   # 用户手机侧
+predicted_agent_db_hash  = predicted_environment.get_db_hash()
+predicted_user_db_hash   = predicted_environment.get_user_db_hash()
+agent_db_match = agent_db_hash == predicted_agent_db_hash
+user_db_match  = user_db_hash  == predicted_user_db_hash
+</code></pre>
+<blockquote>
+<p><strong>「user state」不是比喻,是一个真的会被 hash 的数据库。</strong>
+这就是 §零 里 τ³ 比 SWE-bench 多出来的那一层的实体形态。</p>
+</blockquote>
+<h3>用户模拟器照着什么演</h3>
+<p>看一条真任务(<code>data/tau2/domains/airline/tasks.json</code>,<code>id=0</code>):</p>
+<pre><code class="language-json">&quot;user_scenario&quot;: {
+  &quot;instructions&quot;: {
+    &quot;known_info&quot;:  &quot;You are Emma Kim. Your user id is emma_kim_9957.&quot;,
+    &quot;reason_for_call&quot;: &quot;You want to cancel reservation EHGLP3.
+                        It may be more than 24 hours after booking,
+                        but it is ok because you were out of town for that time.&quot;,
+    &quot;task_instructions&quot;: &quot;If Agent tells you that cancellation is not possible,
+                          mention that you were told that you didn't need to get insurance…
+                          You don't want to cancel if you don't get a refund.&quot;
+  }
+}
+</code></pre>
+<p>这段话不是给 agent 看的,是<strong>给用户模拟器看的剧本</strong>。它会照着这个剧本施压。</p>
+<h3>后果:没有离线 rollout 这条路</h3>
+<p>想不花钱跑一遍?没有。已经确认过两条看起来可行的路都是死的:</p>
 <table>
 <thead>
 <tr>
-<th>时间</th>
-<th>做什么</th>
+<th>看起来可以</th>
+<th>实际</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>10 min</td>
-<td><strong>合上所有材料</strong>,凭记忆写下:七因子是什么?四种评价单位是什么?</td>
+<td><code>DummyUser</code>(<code>user_simulator.py:269</code>)</td>
+<td>只用于 solo 模式,<code>generate_next_message</code> 直接抛 <code>NotImplementedError</code></td>
 </tr>
 <tr>
-<td>35 min</td>
-<td>写你自己的《为什么 agent 分数不是 model 分数》(800–1,200 字)</td>
-</tr>
-<tr>
-<td>15 min</td>
-<td>对照本文补例子 + 做练习</td>
+<td><code>LLMGTAgent</code>(<code>llm_agent.py:166</code>)</td>
+<td>名字是 GroundTruth,但它是<strong>被告知标准答案的 LLM</strong>,照样要 key</td>
 </tr>
 </tbody>
 </table>
+<p><strong>能离线跑的只有 evaluator。</strong> 这也正是本课 lab 的形状。</p>
 <hr />
-<h2 id="s1">一、核心命题</h2>
-<pre><code>Evaluation Result = f( Task, Model, Harness, Environment, Budget, Scorer, Randomness )
-</code></pre>
-<blockquote>
-<p><strong>七个自变量,只有一个是 Model。</strong>
-所以「模型 X 在 benchmark Y 上得了 Z 分」这句话,严格说测的是<strong>一整套系统</strong>,不是模型。</p>
-</blockquote>
-<p>下面逐个因子给一个「只改它、分数就变」的例子。</p>
-<hr />
-<h2 id="s2">二、逐因子:改它,分数就变</h2>
-<h3>1. Task(任务分布)</h3>
-<p><strong>同一个 benchmark 名字,任务集可能不同。</strong></p>
-<p>已核验的真实例子 —— <strong>Terminal-Bench 在 AA 的两个产品里任务数不一样</strong>:</p>
+<h2 id="s3"><span class="hn">§ 02</span>四个 evaluator 各查什么,以及为什么必须是「相乘」</h2>
+<p><code>src/tau2/evaluator/</code> 下四个,<code>evaluator/AGENTS.md</code> 自带对照表:</p>
 <table>
 <thead>
 <tr>
-<th>出现位置</th>
-<th>版本</th>
-<th>任务数</th>
+<th>Evaluator</th>
+<th>查什么</th>
+<th>RewardType</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Intelligence Index v4.1.1</td>
-<td>Terminal-Bench <strong>v2.1</strong></td>
-<td><strong>89 tasks</strong></td>
+<td><code>EnvironmentEvaluator</code></td>
+<td>重放 gold actions 得到 DB hash,和 agent 跑完的 DB hash 比</td>
+<td><code>DB</code> / <code>ENV_ASSERTION</code></td>
 </tr>
 <tr>
-<td>Coding Agent Index</td>
-<td>Terminal-Bench <strong>v2</strong></td>
-<td><strong>84 tasks</strong></td>
+<td><code>ActionEvaluator</code></td>
+<td>工具调用的名字和参数对不对</td>
+<td><code>ACTION</code></td>
+</tr>
+<tr>
+<td><code>CommunicateEvaluator</code></td>
+<td>agent 有没有把指定信息<strong>说出来</strong></td>
+<td><code>COMMUNICATE</code></td>
+</tr>
+<tr>
+<td><code>NLAssertionsEvaluator</code></td>
+<td><strong>LLM judge</strong> 判自然语言断言</td>
+<td><code>NL_ASSERTION</code></td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>⟹ 看到「Terminal-Bench 得分 X%」时,<strong>必须问是哪个版本、哪个子集</strong>。跨来源直接比较同名 benchmark 的分数是不安全的。</p>
-</blockquote>
-<h3>2. Model(被测模型)</h3>
-<p>唯一一个大家以为在测的东西。但注意:<strong>同一模型不同 reasoning effort / 采样参数,是不同配置</strong>。AA 在方法论中把 reasoning effort 作为显式配置项(Kimi K3 论文里更是把它当训练维度)。</p>
-<h3>3. Harness(执行框架)⭐ 本课重点</h3>
-<p><strong>已核验</strong>:AA 的 Coding Agent Index 页面单独提供 <strong>"Harness Comparison"</strong> 视图 —— 也就是说,<strong>同一底层模型换 harness,结果值得单列一张图来比</strong>。</p>
-<p>harness 决定了:</p>
-<pre><code>上下文怎么管(满了是截断?总结?清理早期?)
-tool call 怎么解析(格式错了重试还是判死?)
-最大轮数多少
-工具报错怎么呈现给模型
-何时判定「结束」
-能不能提前放弃
+<p>对应 §零 那三样新东西:</p>
+<pre><code>application state      →  EnvironmentEvaluator 的 agent_db_hash
+user state             →  EnvironmentEvaluator 的 user_db_hash      ← 同一个 evaluator,第二个 hash
+conversational traj.   →  CommunicateEvaluator + NLAssertionsEvaluator
+(过程本身)             →  ActionEvaluator
 </code></pre>
-<p><strong>GDPval-AA 的真实证据</strong>:AA 用自研 harness <strong>Stirrup</strong>,并在 v2 中把 <strong>turn 上限提到 250</strong>,还新增了「模型认为做不完时可以提前退出」的能力。这两项都是 harness 特性 —— 换个 harness,同一模型的分数必然移动。</p>
-<blockquote>
-<p><strong>推论</strong>:一个 benchmark 如果不公开 harness,它的分数<strong>不可复现</strong>。</p>
-</blockquote>
-<h3>4. Environment(环境)</h3>
-<p>Terminal-Bench 跑在 <strong>E2B sandbox</strong>;τ³-Banking 跑在带约 700 份政策文档的模拟银行后台。环境的<strong>版本、镜像、网络可达性、依赖</strong>全都影响结果。</p>
-<blockquote>
-<p>跨课呼应:<code>../agent-sandbox-course/docs/agentic/anthropic-infra-noise.md</code> —— <strong>runtime 配置本身能让 agentic coding eval 成绩变化数个百分点</strong>。runtime 已经是被测内容的一部分。</p>
-</blockquote>
-<h3>5. Budget(预算)</h3>
-<p>已核验的三个真实预算:</p>
-<pre><code>GDPval-AA v2     250 turns
-τ³-Banking       200 steps  (step = 模拟中传递的每一条消息)
-Terminal-Bench   250 episodes,per-task timeout 两小时(7,200 秒)
+<h3>相乘,不是加权平均</h3>
+<p><code>evaluator.py:222-256</code>:</p>
+<pre><code class="language-python">## Combine all the rewards.
+reward = 1.0
+...
+if task_reward_basis &amp; env_bases:        reward *= env_reward_info.reward
+if task_reward_basis &amp; action_bases:     reward *= action_reward_info.reward
+if task_reward_basis &amp; nl_bases:         reward *= nl_reward_info.reward
+if task_reward_basis &amp; comm_bases:       reward *= communicate_reward_info.reward
 </code></pre>
-<p><strong>把预算翻倍,分数会变</strong> —— 这测的是「在预算内完成」的能力,不是「能否完成」的能力。</p>
-<h3>6. Scorer(评分器)</h3>
-<p>已核验:v4.1.1 在 <strong>2026-08-06</strong> 把 HLE、AA-LCR、AA-Omniscience 的 grader 统一改成 <strong>GPT-5.6 Luna (medium)</strong>。</p>
+<p><code>AGENTS.md</code> 规则 3 说得很直白:</p>
 <blockquote>
-<p><strong>模型没变,分数可能变</strong> —— 因为尺子换了。历史分数的可比性因此需要显式标注 grader 版本。</p>
+<p><em>"Reward is multiplicative. </em><em>A 0 in any component zeroes the total.</em><em>"</em></p>
 </blockquote>
-<h3>7. Randomness(随机性)</h3>
-<p>同一任务多次运行结果可能不同。来源至少三处:<strong>模型采样</strong> · <strong>环境非确定性</strong> · <strong>工具偶发失败</strong>。</p>
+<p><strong>为什么不能是平均?</strong> 因为这些分量之间不是「哪个更重要」的关系,是<strong>合取</strong>关系:</p>
+<pre><code>把订单改对了,但没告诉用户改成什么       → 任务没完成
+说对了话,但数据库里什么都没变            → 任务没完成
+</code></pre>
+<p>平均会给出 0.5,相乘给出 0。<strong>0.5 会骗你,0 不会。</strong></p>
 <blockquote>
-<p>这就是为什么要 repeat;也是为什么 repeat 不同的 benchmark 不能简单比较稳定性。</p>
+<p>⚠️ 但相乘有个代价:<strong>你再也说不出「差在哪」了。</strong> 最终分数 0,可能是 DB 错、也可能是话没说到。
+所以 <code>RewardInfo</code> 里必须同时留一份 <code>reward_breakdown</code>(<code>evaluator.py:243</code>)。
+这和 Day 3 「只报 resolved% 会把三类失败压成一个数字」是同一件事。</p>
+</blockquote>
+<h3>还有一道更早的闸:没正常结束就是 0</h3>
+<p><code>evaluator.py:119-129</code>,在任何 evaluator 跑之前:</p>
+<pre><code class="language-python">if simulation.termination_reason not in {
+    TerminationReason.AGENT_STOP,
+    TerminationReason.USER_STOP,
+}:
+    return RewardInfo(reward=0.0, ...)
+</code></pre>
+<p><code>TerminationReason</code> 一共 <strong>10 种</strong>(<code>data_model/simulation.py:1254-1264</code>),只有 2 种算正常收尾:</p>
+<pre><code>✅ user_stop  agent_stop
+❌ max_steps · timeout · too_many_errors · agent_error · user_error
+   infrastructure_error · context_window_exceeded · unexpected_error
+</code></pre>
+<h3>⭐ 但 τ³ 在这里比 SWE-bench 更讲究</h3>
+<p><code>infrastructure_error</code> 拿 0 分很合理 —— 可它不该算进模型的成绩。τ³ 在算指标时把它<strong>剔掉了</strong>:</p>
+<pre><code class="language-python"># metrics/agent_metrics.py:138-145
+infra_count = (df.termination_reason == TerminationReason.INFRASTRUCTURE_ERROR).sum()
+if infra_count &gt; 0:
+    logger.warning(f&quot;Excluding {infra_count} infrastructure error simulation(s) from metrics.&quot;)
+    df = df[df.termination_reason != TerminationReason.INFRASTRUCTURE_ERROR]
+</code></pre>
+<blockquote>
+<p>对照 Day 3:SWE-bench 的 <code>empty patch</code>(通常是 agent runtime 挂了)是<strong>混在总分里</strong>的。
+τ³ 明确地把「基础设施坏了」和「模型不行」分开。
+<strong>这是 W6 Failure Taxonomy 的正面教材</strong>,而 SWE-bench 那边是反面教材。</p>
 </blockquote>
 <hr />
-<h2 id="s3">三、一个决定性的实证:等权、三次、task-normalized</h2>
-<p>AA Coding Agent Index 的口径(<strong>已核验原文</strong>):</p>
-<blockquote>
-<p><em>"Composite index of 3 benchmarks: </em><em>DeepSWE</em><em> (Software engineering tasks, </em><em>113 tasks</em><em>, by Datacurve) · </em><em>Terminal-Bench v2</em><em> (Agentic terminal use, </em><em>84 tasks</em><em>, by Laude Institute) · </em><em>SWE-Atlas-QnA</em><em> (Technical Q&amp;A, </em><em>124 tasks</em><em>, by Scale AI). Each benchmark score averages </em><em>pass@1 across three attempts per task</em><em>. The Index gives </em><em>equal weight</em><em> to its 3 benchmark components."</em></p>
-<p><em>"For each benchmark, we </em><em>first average the three evaluated attempts for each task, then average those task-level scores so every task has equal weight</em><em>."</em></p>
-</blockquote>
-<p>这段话里藏着三个独立的设计选择,<strong>每一个都会改变排名</strong>:</p>
+<h2 id="s4"><span class="hn">§ 03</span>⭐ 每个 domain 一把不同的尺子</h2>
+<p>这是本课最反直觉的地方。把四个 domain 的 <code>tasks.json</code> 全量数一遍
+(<code>data/tau2/domains/*/tasks.json</code> 的 <code>evaluation_criteria.reward_basis</code>):</p>
 <table>
 <thead>
 <tr>
-<th>选择</th>
-<th>换一种做法会怎样</th>
+<th>domain</th>
+<th style="text-align: right;">base tasks</th>
+<th>reward_basis</th>
+<th>也就是说,判分靠</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>三次取平均</strong>(repeated pass@1)</td>
-<td>若改成 pass@3(至少一次成功),<strong>分数会系统性变高</strong>,且高方差模型受益最大</td>
+<td><strong>airline</strong></td>
+<td style="text-align: right;">50</td>
+<td><code>DB + COMMUNICATE</code>(50/50)</td>
+<td>数据库 hash + <strong>子串匹配</strong></td>
 </tr>
 <tr>
-<td><strong>task-normalized</strong>(先按任务平均,再按任务等权)</td>
-<td>若改成「所有 attempt 直接平均」,<strong>任务数多的 benchmark 会被隐性加权</strong></td>
+<td><strong>retail</strong></td>
+<td style="text-align: right;">114</td>
+<td><code>DB + NL_ASSERTION</code>(112/114)</td>
+<td>数据库 hash + <strong>LLM judge</strong></td>
 </tr>
 <tr>
-<td><strong>三个组件等权</strong></td>
-<td>若按任务数加权(113 : 84 : 124),<strong>Terminal-Bench 的影响会被压低</strong></td>
+<td><strong>telecom</strong></td>
+<td style="text-align: right;">114</td>
+<td><code>ENV_ASSERTION</code>(2253)+ <code>ACTION</code>(32)</td>
+<td>在环境里跑断言函数</td>
+</tr>
+<tr>
+<td><strong>banking_knowledge</strong></td>
+<td style="text-align: right;">97</td>
+<td><code>DB</code>(88)/ <code>ACTION</code>(9)</td>
+<td>数据库 hash / 工具调用匹配</td>
 </tr>
 </tbody>
 </table>
 <blockquote>
-<p>⟹ <strong>聚合方式本身就是一个自变量。</strong> 同一批原始 rollout 数据,换聚合口径就能产出不同的第一名。</p>
+<h3>读懂这张表</h3>
+<p><strong>airline 的分数和 retail 的分数,不是同一种量。</strong>
+一个是确定性字符串匹配得出的,一个是 <code>gpt-4.1</code> 判出来的。
+拿它们求平均、放进同一个 leaderboard 列,等于<strong>拿卡尺量出来的数和拿手掂出来的数相加</strong>。</p>
 </blockquote>
-<hr />
-<h2 id="s4">四、那到底什么是「model evaluation」,什么是「agent-system evaluation」?</h2>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Model evaluation</th>
-<th>Agent-system evaluation</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>被测对象</td>
-<td>模型权重 + 采样参数</td>
-<td>Model + Prompt + Harness + Tools + Environment</td>
-</tr>
-<tr>
-<td>典型 benchmark</td>
-<td>GPQA Diamond · HLE(无工具)</td>
-<td>GDPval-AA · τ³-Banking · Terminal-Bench</td>
-</tr>
-<tr>
-<td>分数可归因于模型吗</td>
-<td>大体可以</td>
-<td><strong>不可以</strong></td>
-</tr>
-<tr>
-<td>换 harness 分数会变吗</td>
-<td>不会(没有 harness)</td>
-<td><strong>会,而且可能很大</strong></td>
-</tr>
-<tr>
-<td>它回答的问题</td>
-<td>这个模型知道/会推什么?</td>
-<td><strong>这套系统能不能把活干完?</strong></td>
-</tr>
-</tbody>
-</table>
-<p>在 AA 的九项里,<strong>明确带 Tool Usage ✓ 的只有 Agents 类的两项</strong>(GDPval-AA、τ³-Banking)。其余七项没有 agent 工具 —— 它们更接近 model evaluation。</p>
+<p>τ³ 自己在总分里就是这么合的。这不是它的 bug —— 是所有 multi-domain benchmark 的固有困难。
+<strong>但你必须知道这件事,才能读懂那个总分。</strong></p>
+<h3>顺带:112 个 task 的分数里有 LLM judge</h3>
+<p><code>evaluator/AGENTS.md</code> 和 enum 注释都把 NL assertions 标成 <code># WIP</code>,容易让人以为它不生效。
+但代码是这么写的(<code>evaluator.py:215-216</code>):</p>
+<pre><code class="language-python">task_needs_nl = RewardType.NL_ASSERTION in task.evaluation_criteria.reward_basis
+if evaluation_type == EvaluationType.ALL_WITH_NL_ASSERTIONS or task_needs_nl:
+</code></pre>
+<p>runner 默认就是 <code>EvaluationType.ALL</code>(<code>run.py:85</code>、<code>runner/batch.py:349</code>),而 retail 有
+<strong>112 个 task 把 <code>NL_ASSERTION</code> 写进了 <code>reward_basis</code></strong>。判官是:</p>
+<pre><code class="language-python"># config.py:24-26
+DEFAULT_LLM_NL_ASSERTIONS = &quot;gpt-4.1-2025-04-14&quot;
+DEFAULT_LLM_NL_ASSERTIONS_TEMPERATURE = 0.0
+</code></pre>
+<p>⟹ <strong>retail 的分数带着 LLM judge 的方差,airline 不带。</strong></p>
+<p>反方向也有一个坑:<strong>58 个 task 写了 <code>nl_assertions</code> 但没放进 <code>reward_basis</code></strong> —— 写了不算数,
+纯文档。比如 airline <code>id=0</code> 里那句 <code>"Agent should refuse to proceed with the cancellation."</code>
+读起来像判分标准,其实一分不占。</p>
 <blockquote>
-<p>📌 <strong>建议你自己写下的定义</strong>(参考版):
-<strong>Agent-system evaluation 测量的是「模型 + prompt + harness + 工具 + 环境 + 预算」这一整套配置在给定任务分布上的成功率;它的结论只在该配置下成立,换掉其中任何一项都需要重新测量。</strong></p>
+<p>🔍 <strong>看 benchmark 的固定动作</strong>:不要只看它<strong>定义</strong>了哪些 criteria,要看 <code>reward_basis</code>
+里<strong>实际用了</strong>哪些。写了不用的字段,在任何 benchmark 里都比你想的多。</p>
 </blockquote>
 <hr />
-<h2 id="s5">五、四种评价单位(再强调一次,因为它决定你报什么数)</h2>
-<table>
-<thead>
-<tr>
-<th>单位</th>
-<th>例句</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Turn</strong></td>
-<td>「它调用了正确的 API」</td>
-</tr>
-<tr>
-<td><strong>Trajectory</strong></td>
-<td>「它用 47 步完成了本可 6 步完成的事」</td>
-</tr>
-<tr>
-<td><strong>Task</strong></td>
-<td>「数据库里确实创建了 dispute」</td>
-</tr>
-<tr>
-<td><strong>Session</strong></td>
-<td>「第二个用户提问时,它复述了第一个用户的私有数据」</td>
-</tr>
-</tbody>
-</table>
-<p><strong>benchmark 几乎只报 task 层。</strong> 你的产品如果关心成本(trajectory)或多用户安全(session),<strong>排行榜第一名对你可能毫无意义</strong>。</p>
-<hr />
-<h2 id="s6">六、写作任务(今天的主产出)</h2>
-<p>写一页 <strong>800–1,200 字</strong>的《为什么 agent 分数不是 model 分数》,交付到 <code>sec1-why-agent-score-is-not-model-score.md</code>。</p>
-<p><strong>必须包含</strong>:
-1. 七因子公式,并<strong>逐项</strong>给一个「改它就改分数」的例子(可以直接用本文核验过的真实例子)
-2. 同一模型换 harness 分数会变 —— 用 AA 单列 Harness Comparison 这一事实佐证
-3. 四种评价单位各一例
-4. <strong>一段你自己的定义</strong>:agent-system evaluation 是什么,与 model evaluation 的边界在哪
-5. 一句「所以我读排行榜时会先问什么」</p>
-<p><strong>自检</strong>:写完后确认——</p>
-<pre><code>[ ] 全文没有出现「模型 X 的能力是 Y%」这种表述
-[ ] 每个因子都有具体例子,不是只列名词
-[ ] 有至少一个带出处的真实数字(版本号/任务数/预算)
-[ ] 结尾能落到「对我的产品意味着什么」
+<h2 id="s5"><span class="hn">§ 04</span>⭐ <code>CommunicateEvaluator</code> 是子串匹配</h2>
+<p><code>evaluator_communicate.py:64-71</code>:</p>
+<pre><code class="language-python">for message in full_trajectory:
+    if not isinstance(message, AssistantMessage):
+        continue
+    if not message.has_text_content():
+        continue
+    if info_str.lower() in message.content.lower().replace(&quot;,&quot;, &quot;&quot;):
+        found = True
+        break
 </code></pre>
-<hr />
-<h2 id="s7">七、练习</h2>
-<h3>练习一:找出隐含假设</h3>
-<p>下面每句话都隐含了一个未言明的假设,指出来:</p>
-<pre><code>a. 「Model A 在 Terminal-Bench 上比 Model B 高 3 个点,所以 A 更适合做编码 agent。」
-b. 「我们的 agent 在 SWE-bench 上达到了 SOTA。」
-c. 「换了新模型后分数涨了,说明新模型更强。」
-d. 「这个 benchmark 跑了 5 次,所以结果很稳。」
+<p>后面还跟着一行原文注释:</p>
+<pre><code class="language-python">    ):  # TODO: This could be improved!
 </code></pre>
-<details><summary>参考</summary>
-a. 假设两者用同一 harness/预算/版本,且你的任务分布 ≈ Terminal-Bench 分布<br>
-b. 假设 SOTA 归因于模型而非 harness/scaffold;且未说明是否 contamination<br>
-c. 假设其他六个因子都没动(常见的是同时也升级了 harness 或 prompt)<br>
-d. 5 次只压低了「模型采样随机性」,压不掉 task selection bias / scorer bias / contamination
-</details>
+<p><strong>判据就是「这个字符串有没有在 agent 的任何一句话里出现过」。</strong></p>
+<p>现在看 airline <code>id=3</code> 这道题。用户以为自己是 Gold 会员,其实是 Silver,要问能带几件行李:</p>
+<pre><code class="language-json">&quot;communicate_info&quot;: [&quot;4&quot;],
+&quot;reward_basis&quot;: [&quot;DB&quot;, &quot;COMMUNICATE&quot;]
+</code></pre>
+<p><strong><code>communicate_info</code> 就是一个字符 <code>4</code>。</strong> 于是 COMMUNICATE 这一分的实际判据是:</p>
+<blockquote>
+<p>agent 说过的任何一句话里,出现过字符 <code>4</code>。</p>
+</blockquote>
+<p><code>"your flight is AA-1234"</code> —— 过。
+<code>"that'll be $412"</code> —— 过。
+<code>"I'll transfer you at 4 PM"</code> —— 过。</p>
+<p><strong>agent 可以完全没搞懂会员等级、没算行李额度,只要嘴里蹦出过一个 4。</strong></p>
+<h3>这不是孤例</h3>
+<p>把四个 domain 的 <code>communicate_info</code> 全量拉出来:</p>
+<pre><code>共 73 条
+其中长度 ≤ 3 的:8 条  ——  &quot;4&quot;  &quot;IL&quot;  &quot;10&quot;  &quot;60&quot;
+</code></pre>
+<p>最短的一批长这样:</p>
+<pre><code>4 · IL · 10 · 60 · 327 · 1786 · 9.89 · 1286 · 1000 · 64GB · full · 5244 …
+</code></pre>
+<p><code>"IL"</code> 不是随手挑的。它来自 retail <code>id=43</code> —— 用户要求 agent 把发货地址念回来:</p>
+<pre><code class="language-json">&quot;communicate_info&quot;: [&quot;840887978435&quot;, &quot;943 Maple Drive&quot;, &quot;Suite 356&quot;,
+                     &quot;Chicago&quot;, &quot;IL&quot;, &quot;60621&quot;, &quot;64GB&quot;]
+</code></pre>
+<p><code>IL</code> 是州名缩写,而判据是 <code>"il" in message.content.lower()</code>。于是 agent 只要说过
+<code>available</code>、<code>while</code>、<code>email</code>、<code>until</code> 里的<strong>任何一个词</strong>,这一项就算念对了州。</p>
+<blockquote>
+<h3>🔁 这就是 Day 6 那道题的真实版本</h3>
+<p>hello-bench 的 <code>sum-numbers</code> 里,弱 verifier 只判 <code>out.strip() == "42"</code>,
+<code>print(42)</code> 就能过。当时的结论是:</p>
+<blockquote>
+<p><strong>你以为在测「会不会读文件求和」,实际在测「知不知道答案是 42」。</strong></p>
+</blockquote>
+<p>这里一模一样,只不过发生在一个被广泛引用的 benchmark 上:</p>
+<blockquote>
+<p><strong>你以为在测「算没算对行李额度」,实际在测「说没说过字符 4」。</strong></p>
+</blockquote>
+<p>每写一个 verifier,都要先问那句话:<strong>有没有一个不解决问题、却能让它变绿的最短程序?</strong></p>
+<p>💻 <strong>这个洞有多大,§七 有实测</strong>:一个完全没干活、只说了 <code>"your flight is AA-1234"</code>
+的 agent,在这道题上拿到的<strong>官方 reward 是 1.0</strong> —— 不是「过了一项」,是满分通过。</p>
+</blockquote>
+<p><strong>留一个洞给 W3</strong>:一个真的失败了的 agent,它的回复里会不会<strong>碰巧</strong>出现 <code>4</code>?
+这决定了这个洞到底有多严重。回答它需要几十次 rollout 再做统计 —— 那是 W3 的事。</p>
+<hr />
+<h2 id="s6"><span class="hn">§ 05</span><code>EnvironmentEvaluator</code>:整库 hash,以及它反过来对 environment 提的要求</h2>
+<h3>判的是「世界变成什么样」,不是「你走了哪条路」</h3>
+<p><code>evaluator_env.py:118-123</code>:</p>
+<pre><code class="language-python">agent_db_hash           = gold_environment.get_db_hash()
+predicted_agent_db_hash = predicted_environment.get_db_hash()
+agent_db_match = agent_db_hash == predicted_agent_db_hash
+</code></pre>
+<p>gold 环境是<strong>把任务里的参考 actions 重放一遍</strong>得到的。<code>AGENTS.md</code> 规则 6:</p>
+<blockquote>
+<p><em>"<code>evaluation_criteria.actions</code> is </em><em>one</em><em> reference trajectory, not a per-action requirement…
+Other agent trajectories producing an equivalent end state also pass."</em></p>
+</blockquote>
+<p>对照 Day 3:SWE-bench 判「测试过不过」,τ³ 判「数据库长什么样」。<strong>换了一类 verifier。</strong></p>
+<h3>⭐ 但「整库 hash」是一个很强的要求</h3>
+<p><code>toolkit.py:242-244</code>:</p>
+<pre><code class="language-python">def get_db_hash(self) -&gt; str:
+    &quot;&quot;&quot;Get the hash of the database.&quot;&quot;&quot;
+    return get_dict_hash(self.db.model_dump())      # ← 整个数据库 dump 进哈希
+</code></pre>
+<p><strong>整个库。</strong> 那么库里任何一个「跟 agent 干得好不好无关、但会变」的字段,都会毁掉判分:
+真实时钟、随机 ID、自增计数器 —— 两条正确的轨迹会算出两个不同的 hash。</p>
+<p>τ³ 的解法是把它们全部<strong>冻死</strong>(<code>domains/airline/tools.py:98-102</code>):</p>
+<pre><code class="language-python">def _get_payment_ids(self):
+    return [3221322, 3221323, 3221324]        # ← 支付 ID 写死
 
-<h3>练习二:设计一次公平比较</h3>
-<p>你要比较 harness X 与 harness Y 哪个更好。列出<strong>必须固定</strong>的所有变量,以及<strong>必须报告</strong>的所有元数据。</p>
-<h3>练习三:重算排名</h3>
-<p>三个 benchmark 的任务数为 113 / 84 / 124。某模型分数分别为 40% / 60% / 80%。
-1. 按<strong>组件等权</strong>,总分是多少?
-2. 按<strong>任务数加权</strong>,总分是多少?
-3. 差多少?这说明什么?</p>
-<details><summary>答案</summary>
-① (40+60+80)/3 = <b>60.0%</b><br>
-② (113×40 + 84×60 + 124×80)/(113+84+124) = (4520+5040+9920)/321 = 19480/321 ≈ <b>60.7%</b><br>
-③ 相差约 0.7 个点。看似小,但在排行榜上 0.7 点常常就是好几个名次 —— <b>聚合口径是自变量。</b>
-</details>
-
-<hr />
-<h2 id="s8">本课一句话总结</h2>
+def _get_datetime(self) -&gt; str:
+    &quot;&quot;&quot;Get the current datetime.&quot;&quot;&quot;
+    return &quot;2024-05-15T15:00:00&quot;              # ← 时间是个常量
+</code></pre>
 <blockquote>
-<p><strong>排行榜分数不是模型的属性,是一次测量的属性。</strong> 报分数时不报 harness、预算、grader 版本和聚合口径,等于报了一个无法复现的数。</p>
+<h3>本节的真正收获</h3>
+<p><strong>verifier 的选择,反过来约束了 environment 的设计。</strong></p>
+<p><code>选了「整库 hash」当 verifier
+      ⟹ environment 里不许有任何路径依赖的字段
+      ⟹ 时钟必须冻结、ID 必须写死</code></p>
+<p>这不是实现细节,这是<strong>设计顺序</strong>:先想清楚怎么判,才能决定环境怎么造。
+你在 Day 6 造自己的 benchmark 时会立刻撞上同一件事。</p>
 </blockquote>
 <hr />
-<p><strong>下一课(Day 6)</strong>:第一次亲手算「这个分数能不能信」—— Bernoulli、标准误、Wilson 置信区间。</p>
-<div class="pager"><a href="lesson03.html">← 第 3 课 · 组件级 Evaluation 与 Trace</a><a href="lesson05.html">第 5 课 · 这个分数能不能信 →</a></div>
+<h2 id="s7"><span class="hn">§ 06</span>pass^k 不是 pass@k</h2>
+<p>因为 environment 里住着一个 LLM(§一),同一个 agent 跑同一道题,结果会不一样。
+所以「跑一次拿到的分」意义有限。τ-bench 提出了 pass^k(<code>metrics/agent_metrics.py:113-127</code>):</p>
+<pre><code class="language-python">def pass_hat_k(num_trials: int, success_count: int, k: int) -&gt; float:
+    &quot;&quot;&quot;... from https://arxiv.org/pdf/2406.12045&quot;&quot;&quot;
+    return math.comb(success_count, k) / math.comb(num_trials, k)
+</code></pre>
+<pre><code>pass@k    跑 k 次,至少成功一次的概率      —— 乐观,问「能力上限在哪」
+pass^k    随机抽 k 次,全部成功的概率       —— 悲观,问「能不能交给它去做」
+</code></pre>
+<p>同一份数据(8 次成功 / 10 次):</p>
+<pre><code>pass@1 = 0.8      pass^1 = 0.8
+pass@3 ≈ 0.99     pass^3 = C(8,3)/C(10,3) = 56/120 ≈ 0.47
+</code></pre>
+<p><strong>k 越大,pass@k 往上走,pass^k 往下掉。</strong> 一个衡量「最好能做到什么」,
+一个衡量「每次都做到的可能性」。客服场景显然要后者。</p>
+<blockquote>
+<p>📌 本课到此为止。<strong>pass^k 的统计性质、要跑多少次才够、置信区间怎么算 —— 全部留给 W3。</strong></p>
+</blockquote>
+<hr />
+<h2 id="s8"><span class="hn">§ 07</span>Hands-on:四条手写轨迹喂进<strong>真实的</strong> evaluator</h2>
+<pre><code class="language-bash">(cd ../code/tau2-bench &amp;&amp; uv sync)                                   # 无需 API key
+uv run --project ../code/tau2-bench python ../labs/tau3-verifier/run.py
+</code></pre>
+<p>四条轨迹,全部针对 airline <code>id=3</code>(<code>communicate_info: ["4"]</code>):</p>
+<pre><code>gold     两次 gold GET + 说「You can bring 4 suitcases」
+silent   同样两次 GET,但从不说那个数字
+cheat    什么都不查、什么都不解,只说了一句 &quot;your flight is AA-1234&quot;
+refuse   空的,agent 缺席
+</code></pre>
+<h3>真实输出</h3>
+<pre><code>traj   COMMUNICATE      ACTION          DB     DB*COMM
+------------------------------------------------------
+gold           1.0         1.0         1.0         1.0
+silent         0.0         1.0         1.0         0.0
+cheat          1.0         0.0         1.0         1.0     ← ⚠️
+refuse         0.0         0.0         1.0         0.0
+
+  cheat  '4' met=True: Information '4' communicated in the message: 'your flight is AA-1234'
+
+sanity: cheat utterance AA-1234 -&gt; AA-1235   COMMUNICATE 1.0 -&gt; 0.0
+</code></pre>
+<h3>三件比 §四 更狠的事</h3>
+<p><strong>① <code>cheat</code> 拿到的不是「COMMUNICATE 那一分」,是满分。</strong>
+airline 的 <code>reward_basis</code> 是 <code>["DB", "COMMUNICATE"]</code>,所以官方 reward = <code>1.0 × 1.0 = 1.0</code>。
+<strong>一个什么都没做的 agent,在这道题上完整通过。</strong></p>
+<p><strong>② <code>refuse</code> 的 DB 也是 1.0。</strong>
+这条 task 的 gold <code>actions</code> 全是只读 GET,数据库从头到尾不变 —— 所以「终态 hash 等于 gold」
+对<strong>任何</strong>轨迹都成立,包括空轨迹。</p>
+<pre><code>DB 这个因子在只读任务上是恒等于 1 的空操作
+⟹ 官方 reward = 1.0 × COMMUNICATE = COMMUNICATE
+⟹ 这道题的判分,塌缩成了「assistant 文本里有没有字符 4」
+</code></pre>
+<p><strong>③ 最扎心的:<code>ActionEvaluator</code> 抓得住 <code>cheat</code>,但 airline 不用它。</strong></p>
+<pre><code>cheat 的 ACTION = 0.0     ← 它一次工具都没调,查得清清楚楚
+airline reward_basis      = [&quot;DB&quot;, &quot;COMMUNICATE&quot;]      ← 没有 ACTION
+</code></pre>
+<p><strong>benchmark 手里有一把能识破这个作弊的尺子,而它选择了不用。</strong>
+这就是 §三「每个 domain 一把不同的尺子」的代价 —— <code>reward_basis</code> 不是配置项,
+<strong>它直接决定哪些作弊会被抓到。</strong></p>
+<h3>拨弄它</h3>
+<p>把 <code>trajectories.py</code> 里 <code>cheat</code> 那句的 <code>AA-1234</code> 改成 <code>AA-1235</code>,重跑:
+COMMUNICATE 从 <strong>1.0 掉到 0.0</strong>。同一个 agent、同一份工作量(零),<strong>差的只有一个字符。</strong></p>
+<hr />
+<h2 id="s9"><span class="hn">§ 08</span>本课自检</h2>
+<pre><code>[ ] 1. 能说清 τ³ 代码里的 `Environment` 类和 RL 意义的 environment 差在哪,以及为什么这个差别决定了「τ³ 可不可复现」
+[ ] 1b. 能说出 τ³ 的随机性来自哪里,以及 user state 为什么是一个真的数据库
+[ ] 2. 能列出四个 evaluator 各查什么
+[ ] 3. 能解释为什么是相乘而不是加权平均,以及相乘的代价是什么
+[ ] 4. 能说出 10 种 TerminationReason 里只有哪 2 种算正常收尾
+[ ] 5. 能说出 τ³ 在指标层怎么处理 infrastructure_error,以及为什么这比 SWE-bench 讲究
+[ ] 6. 能说出 airline / retail / telecom 各自用哪种 verifier,以及为什么这让总分难解释
+[ ] 7. 能说出 CommunicateEvaluator 的实际判据,并举出一个能骗过它的回复
+[ ] 8. 能解释「整库 hash」为什么逼得 airline 把时钟冻成常量
+[ ] 9. 能说清 pass@k 和 pass^k 的区别,以及客服场景为什么要后者
+[ ] 10. 能说出为什么 airline id=3 的 DB 因子是个空操作,以及它对官方分数意味着什么
+[ ] 11. 能说出「benchmark 手里有一把抓得住这个作弊的尺子却没用」指的是什么
+</code></pre>
+<hr />
+<h2 id="s10">本课一句话总结</h2>
+<blockquote>
+<p><strong>SWE-bench 的 verifier 是一个函数,τ³ 的 verifier 是一个乘积 —— 而乘积里每一项,
+都是它多实例化的那一层现实逼出来的。</strong>
+environment 里放进一个用户,你就得判对话;放进一个数据库,你就得判状态;
+而只要判据里出现「说了什么」,子串匹配这种洞就迟早会出现。</p>
+</blockquote>
+<hr />
+<p><strong>上一课(Day 3)</strong>:<a href="lesson03-swe-bench.md">SWE-bench</a>。
+<strong>下一课(Day 5)</strong>:OSWorld · WebArena —— 把<strong>整台电脑</strong>当 environment,以及 verifier
+从「查数据库」变成「查屏幕和文件系统」之后会发生什么。</p>
+<div class="pager"><a href="lesson03.html">← 第 3 课 · SWE-bench</a><a href="index.html">回目录 →</a></div>
 </article></div></div>
 <footer><div class="wrap">
-<span>Week 01 · Evaluation 基本框架</span>
-<span>源:AA v4.1.1 快照 · SWE-bench · Terminal-Bench · tau2-bench · OSWorld-V2 · BFCL</span>
+<span>Week 01 · Benchmark Archaeology</span>
+<span>源:Terminal-Bench · SWE-bench · τ³-bench · OSWorld · WebArena · GAIA · BFCL</span>
 <span>由 week01/*.md 生成 · build_site.py</span>
 </div></footer></body></html>

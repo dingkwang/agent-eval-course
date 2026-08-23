@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Week 01 · Agent Evaluation 讲义</title>
+<title>Week 01 · Benchmark Archaeology</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -81,7 +81,7 @@ h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,7
   letter-spacing:-.015em;margin:0 0 4px}
 .sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
 .cards{display:grid;gap:12px}
-a.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
   text-decoration:none;color:var(--ink);background:var(--panel);
   border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
   transition:transform .16s,box-shadow .16s,background .16s}
@@ -92,6 +92,21 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .card .d{display:block;font-size:14px;color:var(--soft)}
 .card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
   text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+.card.off{border-style:dashed;border-color:var(--rule);background:transparent;cursor:default}
+.card.off .num,.card.off .t{color:var(--faint)}
+.card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
+.soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
+  padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+
+/* ---- lab cards ---- */
+.labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.lab{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);padding:16px 18px}
+.lab .lh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lab .lh b{font-family:"Archivo",sans-serif;font-weight:600;font-size:18px}
+.lab .lh span{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  color:var(--pass);white-space:nowrap}
+.lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
+.lab code{font-size:11.5px;color:var(--probe)}
 
 /* ---- lesson page ---- */
 .page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
@@ -101,11 +116,19 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
   border-left:2px solid var(--rule);line-height:1.4}
 .rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.rail a i{font-family:"JetBrains Mono",monospace;font-style:normal;font-size:10.5px;
+  color:var(--faint);margin-right:7px}
+.rail a:hover i{color:var(--signal)}
 .doc{min-width:0}
 .doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
-.doc h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:26px;letter-spacing:-.015em;
-  margin:44px 0 12px;padding-top:16px;border-top:1.5px solid var(--ink)}
-.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin:28px 0 8px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:31px;letter-spacing:-.02em;
+  line-height:1.22;margin:62px 0 14px;padding-top:22px;border-top:2.5px solid var(--ink)}
+.doc h2 .hn{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11.5px;
+  letter-spacing:.24em;color:var(--signal);margin-bottom:10px}
+.doc h2.sub{font-weight:600;font-size:23px;color:var(--soft);border-top:none;
+  margin:0 0 18px;padding-top:0}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19.5px;margin:30px 0 8px;
+  padding-left:12px;border-left:3px solid var(--rule)}
 .doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
 .doc p{margin:12px 0}
 .doc ul,.doc ol{padding-left:22px}
@@ -171,7 +194,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .layer .nm,.layer .note{border:none}
   .layer .note{padding-top:0}
   .waterline{grid-template-columns:1fr}
-  a.card{grid-template-columns:46px 1fr}
+  .card{grid-template-columns:46px 1fr}
   .card .tag{display:none}
 }
 @media(prefers-reduced-motion:reduce){
@@ -184,12 +207,14 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 
 <header class="mast"><div class="wrap">
 <span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 01</b></span>
-<nav><a href="index.html" class="on">目录</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><a href="lesson05.html">5</a><a href="lesson06.html">6</a></nav></div></header>
+<nav><a href="index.html" class="on">目录</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span></nav></div></header>
 <section class="hero"><div class="wrap">
-<span class="eyebrow">Week 01 · 五节课</span>
-<h1>Evaluation<br>基本框架</h1>
-<p class="thesis">测得的性能 = Model × Harness × Environment × Task Distribution × Budget × Scorer × Randomness。
-<b>七个因子里只有一个是模型</b> —— 所以 leaderboard 分数不是模型的属性,是一次测量的属性。</p>
+<span class="eyebrow">Week 01 · 六天 · 源码优先</span>
+<h1>Benchmark<br>Archaeology</h1>
+<p class="thesis">目标只有一句:<b>拿到任何一个 agent benchmark 的 repo,我能从源码追通
+task → environment → agent → rollout → verifier → result。</b></p>
+<p class="thesis" style="margin-top:12px;color:var(--soft)">本周<b style="color:var(--soft)">不讲</b>统计(→ W3)、trace(→ W2)、聚合与排行榜(→ W8)。
+只做一件事:把六个真 benchmark 的源码读穿,然后自己写一个。</p>
 </div></section>
 
 <section class="sec"><div class="wrap">
@@ -204,21 +229,19 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 </div></section>
 
 <section class="sec"><div class="wrap">
-<h2>六节课</h2>
-<p class="lede">2 天源码 · 1 天概念 · 1 天写作 · 1 天编码 · 1 天分析。每节 60 分钟。</p>
-<div class="cards"><a class="card" href="lesson01.html"><span class="num">1</span><span><span class="t">Benchmark Anatomy</span><span class="d">六个 benchmark 的复杂度阶梯</span></span><span class="tag">源码</span></a><a class="card" href="lesson02.html"><span class="num">2</span><span><span class="t">Terminal-Bench 深读</span><span class="d">从 task 定义一路追到 score</span></span><span class="tag">源码</span></a><a class="card" href="lesson03.html"><span class="num">3</span><span><span class="t">组件级 Evaluation 与 Trace</span><span class="d">任务失败时,哪一环失败了</span></span><span class="tag">概念</span></a><a class="card" href="lesson04.html"><span class="num">4</span><span><span class="t">Agent 分数 ≠ Model 分数</span><span class="d">七因子里只有一个是模型</span></span><span class="tag">写作</span></a><a class="card" href="lesson05.html"><span class="num">5</span><span><span class="t">这个分数能不能信</span><span class="d">Bernoulli · 标准误 · Wilson CI</span></span><span class="tag">编码</span></a><a class="card" href="lesson06.html"><span class="num">6</span><span><span class="t">三个 Benchmark 横向解剖</span><span class="d">统一维度 + 怎么 game 它</span></span><span class="tag">分析</span></a></div>
+<h2>六天</h2>
+<p class="lede">Day 1 总览,Day 2–5 一天一个真 benchmark 读源码,Day 6 自己造一个。
+已完成 <b>4/6</b> —— 灰色的还没写。</p>
+<div class="cards"><a class="card" href="lesson01.html"><span class="num">1</span><span><span class="t">Benchmark Anatomy</span><span class="d">六个 benchmark 的复杂度阶梯</span></span><span class="tag">总览</span></a><a class="card" href="lesson02.html"><span class="num">2</span><span><span class="t">Terminal-Bench 深读</span><span class="d">从 task 定义一路追到 score</span></span><span class="tag">源码</span></a><a class="card" href="lesson03.html"><span class="num">3</span><span><span class="t">SWE-bench</span><span class="d">Dataset / Runtime / Harness 为什么必须分开</span></span><span class="tag">源码 + 实验</span></a><a class="card" href="lesson04.html"><span class="num">4</span><span><span class="t">τ³-bench</span><span class="d">environment 里住着一个 LLM,verifier 裂成四个</span></span><span class="tag">源码</span></a><div class="card off"><span class="num">5</span><span><span class="t">OSWorld · WebArena</span><span class="d">把整台机器当 environment</span></span><span class="tag">源码</span></div><div class="card off"><span class="num">6</span><span><span class="t">造一个自己的 benchmark</span><span class="d">五个抽象亲手写一遍</span></span><span class="tag">编码</span></div></div>
 </div></section>
 
 <section class="sec"><div class="wrap">
-<h2>本周交付</h2>
-<pre><code>notes/day1-aa-benchmark-catalog.md          九项 evaluation 解剖表 + 3 个疑问
-sec1-why-agent-score-is-not-model-score.md 800–1,200 字自写讲义
-notes/day4-ci-findings.md                  Wilson CI 三个结论 + 扩展代码
-sec2-benchmark-teardown.md                 另选三个 benchmark 的解剖表
-figures/evaluation-stack.txt               完整 evaluation stack 图</code></pre>
+<h2>本周 Lab</h2>
+<p class="lede">讲义里的每个结论都来自这两个 lab 的真实输出,不是复述文档。</p>
+<div class="labs"><div class="lab"><div class="lh"><b>SWE-bench Teardown</b><span>Day 3 · 已跑通</span></div><p>同一个 harness,四种 prediction → resolved / unresolved / empty patch / error</p><code>labs/swe-bench-teardown/</code></div><div class="lab"><div class="lh"><b>hello-bench</b><span>Day 6 · 已跑通</span></div><p>290 行写完 Task→Environment→Agent→Verifier→Result;cheat agent 在弱 verifier 下 PASS、强 verifier 下 fail</p><code>labs/hello-bench/</code></div></div>
 </div></section>
 <footer><div class="wrap">
-<span>Week 01 · Evaluation 基本框架</span>
-<span>源:AA v4.1.1 快照 · SWE-bench · Terminal-Bench · tau2-bench · OSWorld-V2 · BFCL</span>
+<span>Week 01 · Benchmark Archaeology</span>
+<span>源:Terminal-Bench · SWE-bench · τ³-bench · OSWorld · WebArena · GAIA · BFCL</span>
 <span>由 week01/*.md 生成 · build_site.py</span>
 </div></footer></body></html>

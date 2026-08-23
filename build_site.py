@@ -17,13 +17,24 @@ ROOT = Path(__file__).parent
 SRC = ROOT / "week01"
 OUT = ROOT / "site"
 
+# (slug, day, title, desc, tag, source .md — None = 尚未写)
 LESSONS = [
-    ("lesson01", "1", "Benchmark Anatomy", "六个 benchmark 的复杂度阶梯", "源码"),
-    ("lesson02", "2", "Terminal-Bench 深读", "从 task 定义一路追到 score", "源码"),
-    ("lesson03", "3", "组件级 Evaluation 与 Trace", "任务失败时,哪一环失败了", "概念"),
-    ("lesson04", "4", "Agent 分数 ≠ Model 分数", "七因子里只有一个是模型", "写作"),
-    ("lesson05", "5", "这个分数能不能信", "Bernoulli · 标准误 · Wilson CI", "编码"),
-    ("lesson06", "6", "三个 Benchmark 横向解剖", "统一维度 + 怎么 game 它", "分析"),
+    ("lesson01", "1", "Benchmark Anatomy", "六个 benchmark 的复杂度阶梯", "总览", "lesson01.md"),
+    ("lesson02", "2", "Terminal-Bench 深读", "从 task 定义一路追到 score", "源码", "lesson02.md"),
+    ("lesson03", "3", "SWE-bench", "Dataset / Runtime / Harness 为什么必须分开", "源码 + 实验", "lesson03-swe-bench.md"),
+    ("lesson04", "4", "τ³-bench", "environment 里住着一个 LLM,verifier 裂成四个", "源码", "lesson04-tau3-bench.md"),
+    ("lesson05", "5", "OSWorld · WebArena", "把整台机器当 environment", "源码", None),
+    ("lesson06", "6", "造一个自己的 benchmark", "五个抽象亲手写一遍", "编码", None),
+]
+
+# 本周两个已跑通的 lab。课程被批评过「lesson 很多、lab 太少」——所以 lab 上首页。
+LABS = [
+    ("labs/swe-bench-teardown/", "SWE-bench Teardown",
+     "同一个 harness,四种 prediction → resolved / unresolved / empty patch / error",
+     "Day 3 · 已跑通"),
+    ("labs/hello-bench/", "hello-bench",
+     "290 行写完 Task→Environment→Agent→Verifier→Result;cheat agent 在弱 verifier 下 PASS、强 verifier 下 fail",
+     "Day 6 · 已跑通"),
 ]
 
 # depth cross-section: the signature figure. depth = how much real environment.
@@ -47,6 +58,20 @@ LADDER = [
     ("Terminal-Bench", "task → agent → container → arbitrary commands → verifier", ["任意 shell", "rollout 循环"]),
     ("OSWorld", "task → agent → complete computer environment → verifier", ["整台机器", "GUI / 键鼠", "VM 生命周期"]),
 ]
+
+
+_CJK = "零一二三四五六七八九"
+
+
+def cjk_section_number(text: str) -> int | None:
+    """`三、…` → 3, `十一、…` → 11. None if the heading isn't numbered."""
+    head = text.split("、", 1)[0].strip() if "、" in text else ""
+    if not head or any(c not in _CJK + "十" for c in head):
+        return None
+    if "十" not in head:
+        return sum(_CJK.index(c) for c in head) if len(head) == 1 else None
+    tens, _, ones = head.partition("十")
+    return (_CJK.index(tens) if tens else 1) * 10 + (_CJK.index(ones) if ones else 0)
 
 
 def ladder_figure() -> str:
@@ -151,7 +176,7 @@ h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,7
   letter-spacing:-.015em;margin:0 0 4px}
 .sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
 .cards{display:grid;gap:12px}
-a.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
   text-decoration:none;color:var(--ink);background:var(--panel);
   border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
   transition:transform .16s,box-shadow .16s,background .16s}
@@ -162,6 +187,21 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .card .d{display:block;font-size:14px;color:var(--soft)}
 .card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
   text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+.card.off{border-style:dashed;border-color:var(--rule);background:transparent;cursor:default}
+.card.off .num,.card.off .t{color:var(--faint)}
+.card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
+.soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
+  padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+
+/* ---- lab cards ---- */
+.labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.lab{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);padding:16px 18px}
+.lab .lh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lab .lh b{font-family:"Archivo",sans-serif;font-weight:600;font-size:18px}
+.lab .lh span{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  color:var(--pass);white-space:nowrap}
+.lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
+.lab code{font-size:11.5px;color:var(--probe)}
 
 /* ---- lesson page ---- */
 .page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
@@ -171,11 +211,19 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
   border-left:2px solid var(--rule);line-height:1.4}
 .rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.rail a i{font-family:"JetBrains Mono",monospace;font-style:normal;font-size:10.5px;
+  color:var(--faint);margin-right:7px}
+.rail a:hover i{color:var(--signal)}
 .doc{min-width:0}
 .doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
-.doc h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:26px;letter-spacing:-.015em;
-  margin:44px 0 12px;padding-top:16px;border-top:1.5px solid var(--ink)}
-.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin:28px 0 8px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:31px;letter-spacing:-.02em;
+  line-height:1.22;margin:62px 0 14px;padding-top:22px;border-top:2.5px solid var(--ink)}
+.doc h2 .hn{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11.5px;
+  letter-spacing:.24em;color:var(--signal);margin-bottom:10px}
+.doc h2.sub{font-weight:600;font-size:23px;color:var(--soft);border-top:none;
+  margin:0 0 18px;padding-top:0}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19.5px;margin:30px 0 8px;
+  padding-left:12px;border-left:3px solid var(--rule)}
 .doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
 .doc p{margin:12px 0}
 .doc ul,.doc ol{padding-left:22px}
@@ -241,7 +289,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .layer .nm,.layer .note{border:none}
   .layer .note{padding-top:0}
   .waterline{grid-template-columns:1fr}
-  a.card{grid-template-columns:46px 1fr}
+  .card{grid-template-columns:46px 1fr}
   .card .tag{display:none}
 }
 @media(prefers-reduced-motion:reduce){
@@ -265,7 +313,10 @@ HEAD = """<!DOCTYPE html>
 
 def masthead(active: str) -> str:
     items = ['<a href="index.html"%s>目录</a>' % (' class="on"' if active == "index" else "")]
-    for slug, n, *_ in LESSONS:
+    for slug, n, _t, _d, _tag, src in LESSONS:
+        if src is None:
+            items.append(f'<span class="soonnav">{n}</span>')
+            continue
         on = ' class="on"' if active == slug else ""
         items.append(f'<a href="{slug}.html"{on}>{n}</a>')
     return f"""<header class="mast"><div class="wrap">
@@ -274,8 +325,8 @@ def masthead(active: str) -> str:
 
 
 FOOT = """<footer><div class="wrap">
-<span>Week 01 · Evaluation 基本框架</span>
-<span>源:AA v4.1.1 快照 · SWE-bench · Terminal-Bench · tau2-bench · OSWorld-V2 · BFCL</span>
+<span>Week 01 · Benchmark Archaeology</span>
+<span>源:Terminal-Bench · SWE-bench · τ³-bench · OSWorld · WebArena · GAIA · BFCL</span>
 <span>由 week01/*.md 生成 · build_site.py</span>
 </div></footer></body></html>"""
 
@@ -296,19 +347,27 @@ def build_index() -> str:
                 "<span>以下:benchmark 自己启动并管理有状态环境 —— agent 真的在里面跑</span></div>"
             )
     cards = []
-    for slug, n, title, desc, tag in LESSONS:
-        cards.append(
-            f'<a class="card" href="{slug}.html"><span class="num">{n}</span>'
-            f'<span><span class="t">{title}</span><span class="d">{desc}</span></span>'
-            f'<span class="tag">{tag}</span></a>'
-        )
-    return f"""{HEAD.format(title="Week 01 · Agent Evaluation 讲义", css=CSS)}
+    for slug, n, title, desc, tag, src in LESSONS:
+        body = (f'<span class="num">{n}</span>'
+                f'<span><span class="t">{title}</span><span class="d">{desc}</span></span>'
+                f'<span class="tag">{tag}</span>')
+        cards.append(f'<a class="card" href="{slug}.html">{body}</a>' if src
+                     else f'<div class="card off">{body}</div>')
+    labs = "".join(
+        f'<div class="lab"><div class="lh"><b>{name}</b><span>{state}</span></div>'
+        f'<p>{desc}</p><code>{path}</code></div>'
+        for path, name, desc, state in LABS
+    )
+    done = sum(1 for *_x, src in LESSONS if src)
+    return f"""{HEAD.format(title="Week 01 · Benchmark Archaeology", css=CSS)}
 {masthead("index")}
 <section class="hero"><div class="wrap">
-<span class="eyebrow">Week 01 · 五节课</span>
-<h1>Evaluation<br>基本框架</h1>
-<p class="thesis">测得的性能 = Model × Harness × Environment × Task Distribution × Budget × Scorer × Randomness。
-<b>七个因子里只有一个是模型</b> —— 所以 leaderboard 分数不是模型的属性,是一次测量的属性。</p>
+<span class="eyebrow">Week 01 · 六天 · 源码优先</span>
+<h1>Benchmark<br>Archaeology</h1>
+<p class="thesis">目标只有一句:<b>拿到任何一个 agent benchmark 的 repo,我能从源码追通
+task → environment → agent → rollout → verifier → result。</b></p>
+<p class="thesis" style="margin-top:12px;color:var(--soft)">本周<b style="color:var(--soft)">不讲</b>统计(→ W3)、trace(→ W2)、聚合与排行榜(→ W8)。
+只做一件事:把六个真 benchmark 的源码读穿,然后自己写一个。</p>
 </div></section>
 
 <section class="sec"><div class="wrap">
@@ -323,36 +382,43 @@ def build_index() -> str:
 </div></section>
 
 <section class="sec"><div class="wrap">
-<h2>六节课</h2>
-<p class="lede">2 天源码 · 1 天概念 · 1 天写作 · 1 天编码 · 1 天分析。每节 60 分钟。</p>
+<h2>六天</h2>
+<p class="lede">Day 1 总览,Day 2–5 一天一个真 benchmark 读源码,Day 6 自己造一个。
+已完成 <b>{done}/6</b> —— 灰色的还没写。</p>
 <div class="cards">{''.join(cards)}</div>
 </div></section>
 
 <section class="sec"><div class="wrap">
-<h2>本周交付</h2>
-<pre><code>notes/day1-aa-benchmark-catalog.md          九项 evaluation 解剖表 + 3 个疑问
-sec1-why-agent-score-is-not-model-score.md 800–1,200 字自写讲义
-notes/day4-ci-findings.md                  Wilson CI 三个结论 + 扩展代码
-sec2-benchmark-teardown.md                 另选三个 benchmark 的解剖表
-figures/evaluation-stack.txt               完整 evaluation stack 图</code></pre>
+<h2>本周 Lab</h2>
+<p class="lede">讲义里的每个结论都来自这两个 lab 的真实输出,不是复述文档。</p>
+<div class="labs">{labs}</div>
 </div></section>
 {FOOT}"""
 
 
-def build_lesson(slug: str, idx: int) -> str:
-    md_text = (SRC / f"{slug}.md").read_text()
+def build_lesson(idx: int) -> str:
+    slug, _n, _t, _d, _tag, src = LESSONS[idx]
+    md_text = (SRC / src).read_text()
     md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
     html = md.convert(md_text)
 
-    # anchor every h2 and collect the rail
+    # anchor every h2 and collect the rail. Headings numbered 一、二、… get a
+    # loud "§ NN" eyebrow so sections read as sections; anything else (the
+    # subtitle under h1, the closing 总结) stays quiet.
     rail = []
 
     def anchor(m):
         inner = m.group(1)
         plain = re.sub(r"<[^>]+>", "", inner).strip()
         aid = f"s{len(rail)}"
-        rail.append((aid, plain))
-        return f'<h2 id="{aid}">{inner}</h2>'
+        n = cjk_section_number(plain)
+        if n is None:
+            cls = ' class="sub"' if not rail else ""
+            rail.append((aid, plain, None))
+            return f'<h2 id="{aid}"{cls}>{inner}</h2>'
+        body = inner.split("、", 1)[1] if "、" in inner else inner
+        rail.append((aid, plain.split("、", 1)[-1], n))
+        return f'<h2 id="{aid}"><span class="hn">§ {n:02d}</span>{body}</h2>'
 
     html = re.sub(r"<h2>(.*?)</h2>", anchor, html, flags=re.S)
 
@@ -364,13 +430,26 @@ def build_lesson(slug: str, idx: int) -> str:
         )
         if not n:
             print("  ! warn: ladder code block not found in lesson01")
-    rail_html = "".join(f'<a href="#{a}">{t}</a>' for a, t in rail)
+    rail_html = "".join(
+        f'<a href="#{a}">{f"<i>{n:02d}</i>" if n is not None else ""}{t}</a>'
+        for a, t, n in rail
+    )
 
-    title = LESSONS[idx][2]
-    prev_l = f'<a href="{LESSONS[idx-1][0]}.html">← 第 {LESSONS[idx-1][1]} 课 · {LESSONS[idx-1][2]}</a>' if idx else '<a href="index.html">← 目录</a>'
-    next_l = f'<a href="{LESSONS[idx+1][0]}.html">第 {LESSONS[idx+1][1]} 课 · {LESSONS[idx+1][2]} →</a>' if idx + 1 < len(LESSONS) else '<a href="index.html">回目录 →</a>'
+    def neighbor(step: int):
+        j = idx + step
+        while 0 <= j < len(LESSONS):
+            if LESSONS[j][5]:
+                return LESSONS[j]
+            j += step
+        return None
 
-    return f"""{HEAD.format(title=f"第 {LESSONS[idx][1]} 课 · {title}", css=CSS)}
+    p, nx = neighbor(-1), neighbor(1)
+    prev_l = (f'<a href="{p[0]}.html">← 第 {p[1]} 课 · {p[2]}</a>' if p
+              else '<a href="index.html">← 目录</a>')
+    next_l = (f'<a href="{nx[0]}.html">第 {nx[1]} 课 · {nx[2]} →</a>' if nx
+              else '<a href="index.html">回目录 →</a>')
+
+    return f"""{HEAD.format(title=f"第 {LESSONS[idx][1]} 课 · {LESSONS[idx][2]}", css=CSS)}
 {masthead(slug)}
 <div class="wrap"><div class="page">
 <aside class="rail"><div class="rt">本课目录</div>{rail_html}</aside>
@@ -382,12 +461,21 @@ def build_lesson(slug: str, idx: int) -> str:
 
 def main() -> None:
     OUT.mkdir(exist_ok=True)
-    (OUT / "index.html").write_text(build_index())
-    print(f"  index.html         {len(build_index()):>7,} B")
-    for i, (slug, *_rest) in enumerate(LESSONS):
-        page = build_lesson(slug, i)
+    idx = build_index()
+    (OUT / "index.html").write_text(idx)
+    print(f"  index.html      {len(idx):>8,} B")
+    live = {"index.html"}
+    for i, (slug, *_rest, src) in enumerate(LESSONS):
+        if src is None:
+            print(f"  {slug}.html    {'—':>8}   (未写)")
+            continue
+        page = build_lesson(i)
         (OUT / f"{slug}.html").write_text(page)
-        print(f"  {slug}.html      {len(page):>7,} B")
+        live.add(f"{slug}.html")
+        print(f"  {slug}.html   {len(page):>8,} B   ← {src}")
+    for stale in sorted(p for p in OUT.glob("*.html") if p.name not in live):
+        stale.unlink()
+        print(f"  removed stale   {stale.name}")
     print(f"\n→ {OUT}")
 
 

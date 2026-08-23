@@ -1,0 +1,4 @@
+instruction: |-
+  Create a file called /workspace/result.txt containing exactly: 42
+image: hello-bench:py312
+difficulty: easy

@@ -12,7 +12,7 @@
 
 ---
 
-## 零、本课要追通的那条线
+## 零、本课要追通的那条线:**从 task 目录一路到一个 True/False**
 
 ```
 task.yaml ──→ Dockerfile ──→ 容器起来 ──→ Agent 拿到 instruction + TmuxSession
@@ -68,7 +68,7 @@ run_tests_in_same_shell: false
 
 ---
 
-## 二、canary GUID:污染检测的第一道防线
+## 二、canary GUID —— **一串写在文件头的魔法字符串,用来发现题目泄漏进了训练集**
 
 ### 它是什么
 
@@ -117,7 +117,7 @@ GUID 是随机的,**猜不出来**。所以可以直接测:
 
 ---
 
-## 三、Oracle:先证明尺子是准的
+## 三、Oracle agent —— **先跑一遍标准答案,证明尺子本身是准的**
 
 ### 它就是「跑一遍标准答案」
 
@@ -246,7 +246,7 @@ def benchmark_all_methods(size, p, threshold=100):
 
 ---
 
-## 五、Agent 接口:给你一个终端,把活干完
+## 五、Agent 接口 —— **只给一个终端,任何 black-box agent 都能接进来**
 
 ### 接口只有一个抽象方法
 
@@ -322,7 +322,7 @@ __init__.py
 
 ---
 
-## 六、Runner:rollout 主循环在哪
+## 六、Runner —— **rollout 主循环在哪、一次 rollout 到底做了什么**
 
 `code/terminal-bench/terminal_bench/`(实测):
 ```
@@ -382,7 +382,7 @@ Terminal-Bench 的任务大多是运维/工程操作,**答案不是一段能搜�
 
 ---
 
-## 八、Hands-on
+## 八、Hands-on:**自己跑一遍 oracle,看它全绿**
 
 ### 任务 1(必做):跑 oracle
 ```bash
@@ -415,7 +415,7 @@ oracle 解法用了什么手段:
 
 ---
 
-## 九、本课自检
+## 九、本课自检:**这几件事你能不能说清**
 
 ```
 [ ] 1. 能默画出 task → environment → agent → rollout → verifier → score 这条链

@@ -22,7 +22,7 @@ LESSONS = [
     ("lesson01", "1", "Benchmark Anatomy", "六个 benchmark 的复杂度阶梯", "总览", "lesson01.md"),
     ("lesson02", "2", "Terminal-Bench 深读", "从 task 定义一路追到 score", "源码", "lesson02.md"),
     ("lesson03", "3", "SWE-bench", "Dataset / Runtime / Harness 为什么必须分开", "源码 + 实验", "lesson03-swe-bench.md"),
-    ("lesson04", "4", "τ³-bench", "environment 里住着一个 LLM,verifier 裂成四个", "源码", "lesson04-tau3-bench.md"),
+    ("lesson04", "4", "τ³-bench", "reward_basis 选出 verifier 再相乘;User LLM 在尺子里", "源码", "lesson04-tau3-bench.md"),
     ("lesson05", "5", "OSWorld · WebArena", "把整台机器当 environment", "源码", None),
     ("lesson06", "6", "造一个自己的 benchmark", "五个抽象亲手写一遍", "编码", None),
 ]

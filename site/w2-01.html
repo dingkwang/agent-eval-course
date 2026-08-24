@@ -260,8 +260,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 <p><strong>Week 2 Day 1</strong> · 源码课 · 建议 60 分钟 + 小 lab</p>
 <blockquote>
 <h3>本课唯一命题</h3>
-<h1>可解释单位是编译后锁死的 <strong>Trial</strong>,不是 Task,也不是 model 名。</h1>
-<h1><code>Trial = Task × Agent × Attempt</code>。checksum 是 <code>lock.json</code>,不是 YAML。</h1>
+<h1>Harbor:<code>Trial = Task × Agent × Attempt</code>。Inspect:<code>Task = Dataset + Solver + Scorer</code>。</h1>
+<h1>两个 framework 的可跑单位不是同一个东西。</h1>
 </blockquote>
 <p>「Trial 不是 Task」「先编译再跑」只是这句话的词汇。值得一课的是失败模式,而且全部发生在第一行 agent 代码之前:</p>
 <ul>

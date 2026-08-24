@@ -14,6 +14,7 @@ import markdown
 
 ROOT = Path(__file__).parent
 SRC = ROOT / "week01"
+SRC_W2 = ROOT / "week02"
 OUT = ROOT / "site"
 
 # (slug, day, title, desc, tag, source .md — None = 尚未写)
@@ -47,7 +48,7 @@ WEEKS = [
      "4/6", True),
     ("2", "Eval Runtime & Trajectory Engineering",
      "不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录",
-     "plan exists · 4 lectures + lab", False),
+     "1/5", False),
     ("3", "Metrics & Statistics",
      "一个 observation 是什么?误差棒怎么算?", None, False),
     ("4", "Scorers / Verifiers / LLM-as-Judge",
@@ -68,6 +69,16 @@ WEEKS = [
      "前沿是怎么把这些拼在一起的?", None, False),
     ("12", "Capstone Benchmark",
      "自己从零做一个可运行、可复现、可评分的 benchmark", None, False),
+]
+
+# Week 2: 4 lectures + 1 lab. slug w2-0N so it does not collide with W1 lesson01.html.
+W2_LESSONS = [
+    ("w2-01", "1", "从 Eval Spec 到可执行 Trial", "JobPlan 编译,不是开跑", "源码",
+     "lesson01-eval-spec-to-trial.md"),
+    ("w2-02", "2", "Agent / Environment / Trial 协议", "换 adapter 后仍是同一道题", "源码", None),
+    ("w2-03", "3", "Trajectory / 因果 / 副作用", "没收到 response 时怎么记", "源码", None),
+    ("w2-04", "4", "并发与 Runtime Correctness", "并发不改变实验语义", "源码", None),
+    ("w2-05", "5", "EvalRT Core", "五个强不变量", "lab", None),
 ]
 
 # depth cross-section: the signature figure. depth = how much real environment.
@@ -392,7 +403,19 @@ def masthead(active: str) -> str:
             continue
         on = ' class="on"' if active == slug else ""
         items.append(f'<a href="{slug}.html"{on}>{n}</a>')
-    badge = "12 WEEKS" if active == "index" else "WEEK 01"
+    for slug, n, _t, _d, _tag, src in W2_LESSONS:
+        label = f"W2·{n}"
+        if src is None:
+            items.append(f'<span class="soonnav">{label}</span>')
+            continue
+        on = ' class="on"' if active == slug else ""
+        items.append(f'<a href="{slug}.html"{on}>{label}</a>')
+    if active == "index":
+        badge = "12 WEEKS"
+    elif active.startswith("w2-"):
+        badge = "WEEK 02"
+    else:
+        badge = "WEEK 01"
     return f"""<header class="mast"><div class="wrap">
 <span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>{badge}</b></span>
 <nav>{''.join(items)}</nav></div></header>"""
@@ -459,12 +482,31 @@ def w1_body() -> str:
 <div class="labs">{labs}</div>"""
 
 
+def w2_body() -> str:
+    cards = []
+    for slug, n, title, desc, tag, src in W2_LESSONS:
+        body = (f'<span class="num">{n}</span>'
+                f'<span><span class="t">{title}</span><span class="d">{desc}</span></span>'
+                f'<span class="tag">{tag}</span>')
+        cards.append(f'<a class="card" href="{slug}.html">{body}</a>' if src
+                     else f'<div class="card off">{body}</div>')
+    done = sum(1 for *_x, src in W2_LESSONS if src)
+    return f"""<p class="lede" style="margin-top:16px">4 节深课 + Day 5 EvalRT Core。Harbor 贯穿;Inspect 对照。
+已完成 <b>{done}/5</b>。Agent ≠ Model 是第 1 课开头 10 分钟,不是单独一课。</p>
+<div class="cards">{''.join(cards)}</div>"""
+
+
 def build_index() -> str:
     week_html = []
     for n, title, q, status, expand in WEEKS:
         soon = "" if expand or status else " soon"
         st = status or "未写"
-        body = w1_body() if expand else ""
+        if n == "1":
+            body = w1_body()
+        elif n == "2":
+            body = w2_body()
+        else:
+            body = ""
         inner = f'<div class="wbody">{body}</div>' if body else ""
         week_html.append(
             f'<div class="week{soon}" id="w{n}"><div class="wh">'
@@ -512,7 +554,7 @@ W2 产生 observation · W5 是否测到目标能力 · W6 是否被运行噪声
 
 <section class="sec"><div class="wrap">
 <h2>12 周</h2>
-<p class="lede">点 W1 的课直接进讲义。其余周先占位 —— 名字已经是真问题,不是待填的标签。</p>
+<p class="lede">点 W1 / W2 已写的课直接进讲义。其余周先占位 —— 名字已经是真问题,不是待填的标签。</p>
 {''.join(week_html)}
 </div></section>
 {FOOT_INDEX}"""
@@ -581,6 +623,50 @@ def build_lesson(idx: int) -> str:
 {FOOT}"""
 
 
+def _anchor_h2(html: str) -> tuple[str, str]:
+    rail = []
+
+    def anchor(m):
+        inner = m.group(1)
+        plain = re.sub(r"<[^>]+>", "", inner).strip()
+        aid = f"s{len(rail)}"
+        n = cjk_section_number(plain)
+        if n is None:
+            cls = ' class="sub"' if not rail else ""
+            rail.append((aid, plain, None))
+            return f'<h2 id="{aid}"{cls}>{inner}</h2>'
+        body = inner.split("、", 1)[1] if "、" in inner else inner
+        rail.append((aid, plain.split("、", 1)[-1], n))
+        return f'<h2 id="{aid}"><span class="hn">§ {n:02d}</span>{body}</h2>'
+
+    html = re.sub(r"<h2>(.*?)</h2>", anchor, html, flags=re.S)
+    rail_html = "".join(
+        f'<a href="#{a}">{f"<i>{n:02d}</i>" if n is not None else ""}{t}</a>'
+        for a, t, n in rail
+    )
+    return html, rail_html
+
+
+def build_w2_lesson(idx: int) -> str:
+    slug, n, title, _d, _tag, src = W2_LESSONS[idx]
+    md_text = (SRC_W2 / src).read_text()
+    md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
+    html, rail_html = _anchor_h2(md.convert(md_text))
+    foot = footer(
+        "Week 02 · Eval Runtime & Trajectory Engineering",
+        "Harbor b378332 · Inspect 499e615",
+        "由 week02/*.md 生成 · build_site.py",
+    )
+    return f"""{HEAD.format(title=f"W2 第 {n} 课 · {title}", css=CSS)}
+{masthead(slug)}
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div>{rail_html}</aside>
+<article class="doc">{html}
+<div class="pager"><a href="index.html#w2">← Week 2</a><a href="index.html">回课程 →</a></div>
+</article></div></div>
+{foot}"""
+
+
 def main() -> None:
     OUT.mkdir(exist_ok=True)
     idx = build_index()
@@ -592,6 +678,14 @@ def main() -> None:
             print(f"  {slug}.html    {'—':>8}   (未写)")
             continue
         page = build_lesson(i)
+        (OUT / f"{slug}.html").write_text(page)
+        live.add(f"{slug}.html")
+        print(f"  {slug}.html   {len(page):>8,} B   ← {src}")
+    for i, (slug, *_rest, src) in enumerate(W2_LESSONS):
+        if src is None:
+            print(f"  {slug}.html    {'—':>8}   (未写)")
+            continue
+        page = build_w2_lesson(i)
         (OUT / f"{slug}.html").write_text(page)
         live.add(f"{slug}.html")
         print(f"  {slug}.html   {len(page):>8,} B   ← {src}")

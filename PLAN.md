@@ -69,7 +69,7 @@ AA 另有一批更直接的 agent evaluations:
 | 周 | 主题 | 核心问题 | 状态 |
 |---|---|---|---|
 | **1** | **Popular Benchmark Anatomy** | 拿到 repo,源码追通 task → environment → agent → rollout → verifier → result | 🔨 4/6 |
-| **2** | **Eval Runtime & Trajectory Engineering** | 不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录 | |
+| **2** | **Eval Runtime & Trajectory Engineering** | 不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录 | 📄 [4 课 + Day 5 lab](week02/PLAN.md) |
 | **3** | **Metrics & Statistics** | 一个 observation 是什么?误差棒怎么算? | |
 | **4** | **Scorers / Verifiers / LLM-as-Judge** | 成功如何被判定?judge 准不准? | |
 | **5** | **Benchmark Design, Audit & Dataset Lifecycle** | 成功/失败反映的是能力,还是题目和测试写坏了? | |
@@ -292,7 +292,7 @@ cross-session leakage rate · recovery success · token/cost/latency
 # 进度
 ```
 [x] W1  Benchmark Anatomy (4/6)     [ ] W5  Benchmark design / audit     [ ] W9   production eval
-[ ] W2  Eval runtime / trajectory   [ ] W6  Repro / failure semantics    [ ] W10  eval ↔ on-policy RL
+[ ] W2  Eval runtime (4 lectures + lab)  [ ] W6  Repro / failure semantics    [ ] W10  eval ↔ on-policy RL
 [ ] W3  Metrics & statistics        [ ] W7  Eval integrity / adversarial [ ] W11  Kimi K3 case study
 [ ] W4  Scorers / judges            [ ] W8  Leaderboards (plan exists)   [ ] W12  capstone
 ```

@@ -1,12 +1,21 @@
 # 第 1 课:从 Eval Spec 到可执行 Trial
 
-## Runtime 如何把一份 evaluation 声明,确定地编译成一组可审计的 Trial
+## 分数解释的是锁死的 Trial,不是 YAML 里的 model 名
 
 **Week 2 Day 1** · 源码课 · 建议 60 分钟 + 小 lab
 
 > ### 本课唯一命题
-> # Harbor 的执行单位是 **Trial**,不是 Task。
-> # Runtime 的第一件事是把 Job 声明 **展开并锁死**,不是开跑。
+> # 可解释单位是编译后锁死的 **Trial**,不是 Task,也不是 model 名。
+> # `Trial = Task × Agent × Attempt`。checksum 是 `lock.json`,不是 YAML。
+
+「Trial 不是 Task」「先编译再跑」只是这句话的词汇。值得一课的是失败模式,而且全部发生在第一行 agent 代码之前:
+
+- 空 `name` 默成 **oracle**(`config.py:166-169`),leaderboard 写着模型名,测的不是那个模型
+- 空 dataset / 不可达的 package task 若拖到 exec 才炸,前面的 Trial 已经跑过了;Harbor 在 `from_config` 里就 `EmptyDatasetError` / `ValueError`(`job_plan.py:44-46,135`)
+- `job_name` 默认是墙钟(`config.py:357-359`),`trial_name` 是 UUID。两次「同一份 YAML」对不上号。相等和 checksum 必须丢掉这些身份字段,看 `lock.json` 的 digest
+- Harbor 的乘积是 `n_attempts × tasks × agents`;Inspect 的 `Task` 是 Dataset + Solver + Scorer。两个「task 分」不是同一个实验对象
+
+本课只处理这一层。Agent 怎么跑是第 2 课;trajectory 是第 3 课。
 
 > 📎 Harbor `b378332` · Inspect `499e615`
 > 💻 lab:`../labs/eval-runtime/compile.py`
@@ -197,5 +206,5 @@ EvalSpec(tasks, agents, n_attempts)
 
 ## 本课一句话
 
-> **Runtime 的第一件事是编译:把声明展开成 Trial,把输入锁进 digest。
+> **分数解释的是 lock 里那一组 Trial,不是 YAML 里的 model 名。
 > 还没 exec,实验语义已经定了。**

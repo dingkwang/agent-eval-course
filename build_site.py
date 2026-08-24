@@ -72,7 +72,7 @@ WEEKS = [
 
 # Week 2: 4 lectures + 1 lab. slug w2-0N so it does not collide with W1 lesson01.html.
 W2_LESSONS = [
-    ("w2-01", "1", "从 Eval Spec 到可执行 Trial", "JobPlan 编译,不是开跑", "源码",
+    ("w2-01", "1", "从 Eval Spec 到可执行 Trial", "分数解释 lock 里的 Trial,不是 model 名", "源码",
      "lesson01-eval-spec-to-trial.md"),
     ("w2-02", "2", "Agent / Environment / Trial 协议", "换 adapter 后仍是同一道题", "源码", None),
     ("w2-03", "3", "Trajectory / 因果 / 副作用", "没收到 response 时怎么记", "源码", None),

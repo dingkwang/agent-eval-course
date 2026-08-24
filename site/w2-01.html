@@ -254,14 +254,24 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 <span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 02</b></span>
 <nav><a href="index.html">Introduction</a><a href="toc.html">Contents</a><span class="lnav"><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><a href="w2-01.html" class="on">W2·1</a></span></nav></div></header>
 <div class="wrap"><div class="page">
-<aside class="rail"><div class="rt">本课目录</div><a href="#s0">Runtime 如何把一份 evaluation 声明,确定地编译成一组可审计的 Trial</a><a href="#s1"><i>00</i>十分钟前置:Agent ≠ Model</a><a href="#s2"><i>01</i>Harbor 先编译,再执行</a><a href="#s3"><i>02</i>展开公式(以源码为准,不要脑补第四轴)</a><a href="#s4"><i>03</i>身份字段进 lock,不进相等</a><a href="#s5"><i>04</i>SUT 的边界在编译期就定了</a><a href="#s6"><i>05</i>Hands-on:compile_eval(spec) → JobPlan</a><a href="#s7">本课自检</a><a href="#s8">本课一句话</a></aside>
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">分数解释的是锁死的 Trial,不是 YAML 里的 model 名</a><a href="#s1"><i>00</i>十分钟前置:Agent ≠ Model</a><a href="#s2"><i>01</i>Harbor 先编译,再执行</a><a href="#s3"><i>02</i>展开公式(以源码为准,不要脑补第四轴)</a><a href="#s4"><i>03</i>身份字段进 lock,不进相等</a><a href="#s5"><i>04</i>SUT 的边界在编译期就定了</a><a href="#s6"><i>05</i>Hands-on:compile_eval(spec) → JobPlan</a><a href="#s7">本课自检</a><a href="#s8">本课一句话</a></aside>
 <article class="doc"><h1>第 1 课:从 Eval Spec 到可执行 Trial</h1>
-<h2 id="s0" class="sub">Runtime 如何把一份 evaluation 声明,确定地编译成一组可审计的 Trial</h2>
+<h2 id="s0" class="sub">分数解释的是锁死的 Trial,不是 YAML 里的 model 名</h2>
 <p><strong>Week 2 Day 1</strong> · 源码课 · 建议 60 分钟 + 小 lab</p>
 <blockquote>
 <h3>本课唯一命题</h3>
-<h1>Harbor 的执行单位是 <strong>Trial</strong>,不是 Task。</h1>
-<h1>Runtime 的第一件事是把 Job 声明 <strong>展开并锁死</strong>,不是开跑。</h1>
+<h1>可解释单位是编译后锁死的 <strong>Trial</strong>,不是 Task,也不是 model 名。</h1>
+<h1><code>Trial = Task × Agent × Attempt</code>。checksum 是 <code>lock.json</code>,不是 YAML。</h1>
+</blockquote>
+<p>「Trial 不是 Task」「先编译再跑」只是这句话的词汇。值得一课的是失败模式,而且全部发生在第一行 agent 代码之前:</p>
+<ul>
+<li>空 <code>name</code> 默成 <strong>oracle</strong>(<code>config.py:166-169</code>),leaderboard 写着模型名,测的不是那个模型</li>
+<li>空 dataset / 不可达的 package task 若拖到 exec 才炸,前面的 Trial 已经跑过了;Harbor 在 <code>from_config</code> 里就 <code>EmptyDatasetError</code> / <code>ValueError</code>(<code>job_plan.py:44-46,135</code>)</li>
+<li><code>job_name</code> 默认是墙钟(<code>config.py:357-359</code>),<code>trial_name</code> 是 UUID。两次「同一份 YAML」对不上号。相等和 checksum 必须丢掉这些身份字段,看 <code>lock.json</code> 的 digest</li>
+<li>Harbor 的乘积是 <code>n_attempts × tasks × agents</code>;Inspect 的 <code>Task</code> 是 Dataset + Solver + Scorer。两个「task 分」不是同一个实验对象</li>
+</ul>
+<p>本课只处理这一层。Agent 怎么跑是第 2 课;trajectory 是第 3 课。</p>
+<blockquote>
 <p>📎 Harbor <code>b378332</code> · Inspect <code>499e615</code>
 💻 lab:<code>../labs/eval-runtime/compile.py</code></p>
 </blockquote>
@@ -389,7 +399,7 @@ verifier      判分器;install_only 时会被 copy 成 disable=True
 <hr />
 <h2 id="s8">本课一句话</h2>
 <blockquote>
-<p><strong>Runtime 的第一件事是编译:把声明展开成 Trial,把输入锁进 digest。
+<p><strong>分数解释的是 lock 里那一组 Trial,不是 YAML 里的 model 名。
 还没 exec,实验语义已经定了。</strong></p>
 </blockquote>
 <div class="pager"><a href="toc.html#w2">← Week 2</a><a href="toc.html">Contents →</a></div>

@@ -30,7 +30,7 @@ BrowserGym ServiceNow/BrowserGym@9e779f087de9a65668b6974d11f9ce9816026e96
 
 | Day | 讲义 | 核心问题 | 当天 Lab |
 |---|---|---|---|
-| **1** | `lesson01-eval-spec-to-trial.md` | Runtime 如何把 evaluation 声明,确定地编译成一组可审计的 Trial? | `compile_eval(spec) -> JobPlan` |
+| **1** | `lesson01-eval-spec-to-trial.md` | 分数解释的是哪一个实验对象?编译后锁死的 Trial,还是 YAML 里的 model 名? | `compile_eval(spec) -> JobPlan` |
 | **2** | `lesson02-protocol-boundary.md` | 换 Agent 或 backend 后,怎样证明仍在执行同一个任务? | Null / Oracle / LLM adapter + Local / Docker env + conformance + 生命周期注入异常 |
 | **3** | `lesson03-trajectory-causality.md` | 工具已改环境、Agent 没收到 response 时,trajectory 怎么记?能不能安全重试? | canonical events + causal validation / tamper / replay |
 | **4** | `lesson04-concurrency.md` | 100 个 Trial 并发时,并发只提高吞吐、不改变实验语义? | hanging agent、rate limit、crash、Ctrl-C |
@@ -38,7 +38,7 @@ BrowserGym ServiceNow/BrowserGym@9e779f087de9a65668b6974d11f9ce9816026e96
 
 ### 第 1 课 · 从 Eval Spec 到可执行 Trial
 
-10 分钟前置:Agent ≠ Model。然后:SUT 边界;`Dataset × Agent × Attempt → JobPlan`;Task / Trial / Attempt / Job 身份;config resolution 与默认参数物化;immutable plan、checksum、artifact version;Harbor vs Inspect 执行模型。
+可解释单位是编译后锁死的 Trial(`Task × Agent × Attempt`),不是 Task,也不是 model 名。10 分钟前置:Agent ≠ Model。然后:SUT 边界;乘积公式;身份字段进 lock 不进相等;Harbor vs Inspect 执行模型。
 
 源码:Harbor `job_plan.py` · `models/trial/config.py` · `job.py`;Inspect `Task` / sample planning。不读 CLI/UI。
 

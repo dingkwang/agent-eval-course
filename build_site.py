@@ -1,8 +1,7 @@
-"""Render the course homepage and week01 markdown lessons into site/.
+"""Render the course site: Introduction, Contents, and markdown lessons.
 
-index.html is the 12-week introduction (not a Week 1 splash). Lesson pages
-are generated from week01/*.md. Design: "specimen teardown" — field-manual
-type, depth cross-section as the signature figure.
+index.html is the course Introduction. toc.html is the 12-week table of
+contents. Lesson pages come from week01/*.md and week02/*.md.
 
 Run from the course root:  python3 build_site.py
 """
@@ -167,11 +166,12 @@ pre code{background:none;padding:0;color:inherit;font-size:inherit}
 /* ---- masthead ---- */
 .mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
 .mast .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;
-  padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+  padding-top:14px;padding-bottom:14px;flex-wrap:nowrap}
 .mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--soft);white-space:nowrap}
 .mast .id b{color:var(--signal);font-weight:500}
-.mast nav{display:flex;gap:4px;flex-wrap:wrap}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap;min-width:0;align-items:center;
+  justify-content:flex-end}
 .mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
   color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
 .mast nav a:hover{border-color:var(--rule);color:var(--ink)}
@@ -236,6 +236,7 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
 .soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
   padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+.lnav{display:flex;gap:4px;flex-wrap:wrap}
 
 /* ---- lab cards ---- */
 .labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
@@ -362,7 +363,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
 
 @media(max-width:900px){
+  .mast .wrap{display:block}
   .mast .id{letter-spacing:.08em;font-size:10.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .mast nav{width:100%;max-width:100%;margin-top:8px;justify-content:flex-start}
+  .lnav{display:none}
   .page{grid-template-columns:1fr;gap:20px}
   .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
   .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
@@ -396,22 +400,28 @@ HEAD = """<!DOCTYPE html>
 
 
 def masthead(active: str) -> str:
-    items = ['<a href="index.html"%s>课程</a>' % (' class="on"' if active == "index" else "")]
+    items = [
+        '<a href="index.html"%s>Introduction</a>' % (
+            ' class="on"' if active == "index" else ""),
+        '<a href="toc.html"%s>Contents</a>' % (
+            ' class="on"' if active == "toc" else ""),
+    ]
+    pills = []
     for slug, n, _t, _d, _tag, src in LESSONS:
         if src is None:
-            items.append(f'<span class="soonnav">{n}</span>')
             continue
         on = ' class="on"' if active == slug else ""
-        items.append(f'<a href="{slug}.html"{on}>{n}</a>')
+        pills.append(f'<a href="{slug}.html"{on}>{n}</a>')
     for slug, n, _t, _d, _tag, src in W2_LESSONS:
-        label = f"W2·{n}"
         if src is None:
-            items.append(f'<span class="soonnav">{label}</span>')
             continue
         on = ' class="on"' if active == slug else ""
-        items.append(f'<a href="{slug}.html"{on}>{label}</a>')
+        pills.append(f'<a href="{slug}.html"{on}>W2·{n}</a>')
+    items.append(f'<span class="lnav">{"".join(pills)}</span>')
     if active == "index":
         badge = "12 WEEKS"
+    elif active == "toc":
+        badge = "CONTENTS"
     elif active.startswith("w2-"):
         badge = "WEEK 02"
     else:
@@ -496,7 +506,7 @@ def w2_body() -> str:
 <div class="cards">{''.join(cards)}</div>"""
 
 
-def build_index() -> str:
+def week_catalog() -> str:
     week_html = []
     for n, title, q, status, expand in WEEKS:
         soon = "" if expand or status else " soon"
@@ -514,6 +524,10 @@ def build_index() -> str:
             f'<div><div class="wt">{title}</div><div class="wq">{q}</div></div>'
             f'<div class="st">{st}</div></div>{inner}</div>'
         )
+    return "".join(week_html)
+
+
+def build_intro() -> str:
     return f"""{HEAD.format(title="Agent Evaluation & Benchmark Engineering", css=CSS)}
 {masthead("index")}
 <section class="hero"><div class="wrap">
@@ -553,9 +567,23 @@ W2 产生 observation · W5 是否测到目标能力 · W6 是否被运行噪声
 </div></section>
 
 <section class="sec"><div class="wrap">
-<h2>12 周</h2>
-<p class="lede">点 W1 / W2 已写的课直接进讲义。其余周先占位 —— 名字已经是真问题,不是待填的标签。</p>
-{''.join(week_html)}
+<a class="card" href="toc.html"><span class="num">12</span>
+<span><span class="t">周目录</span><span class="d">点已写的课直接进讲义。其余周先占位。</span></span>
+<span class="tag">Contents →</span></a>
+</div></section>
+{FOOT_INDEX}"""
+
+
+def build_toc() -> str:
+    return f"""{HEAD.format(title="Contents · Agent Evaluation & Benchmark Engineering", css=CSS)}
+{masthead("toc")}
+<section class="hero"><div class="wrap">
+<span class="eyebrow">12 周 · 每周 5 天 · 每天约 1 小时</span>
+<h1>Contents</h1>
+<p class="subhead">点已写的课直接进讲义。其余周先占位 —— 名字已经是真问题,不是待填的标签。</p>
+</div></section>
+<section class="sec"><div class="wrap">
+{week_catalog()}
 </div></section>
 {FOOT_INDEX}"""
 
@@ -609,9 +637,9 @@ def build_lesson(idx: int) -> str:
 
     p, nx = neighbor(-1), neighbor(1)
     prev_l = (f'<a href="{p[0]}.html">← 第 {p[1]} 课 · {p[2]}</a>' if p
-              else '<a href="index.html">← 课程</a>')
+              else '<a href="toc.html">← Contents</a>')
     next_l = (f'<a href="{nx[0]}.html">第 {nx[1]} 课 · {nx[2]} →</a>' if nx
-              else '<a href="index.html">回课程 →</a>')
+              else '<a href="toc.html">Contents →</a>')
 
     return f"""{HEAD.format(title=f"第 {LESSONS[idx][1]} 课 · {LESSONS[idx][2]}", css=CSS)}
 {masthead(slug)}
@@ -662,17 +690,20 @@ def build_w2_lesson(idx: int) -> str:
 <div class="wrap"><div class="page">
 <aside class="rail"><div class="rt">本课目录</div>{rail_html}</aside>
 <article class="doc">{html}
-<div class="pager"><a href="index.html#w2">← Week 2</a><a href="index.html">回课程 →</a></div>
+<div class="pager"><a href="toc.html#w2">← Week 2</a><a href="toc.html">Contents →</a></div>
 </article></div></div>
 {foot}"""
 
 
 def main() -> None:
     OUT.mkdir(exist_ok=True)
-    idx = build_index()
+    idx = build_intro()
     (OUT / "index.html").write_text(idx)
-    print(f"  index.html      {len(idx):>8,} B")
-    live = {"index.html"}
+    print(f"  index.html      {len(idx):>8,} B   ← Introduction")
+    toc = build_toc()
+    (OUT / "toc.html").write_text(toc)
+    print(f"  toc.html        {len(toc):>8,} B   ← Contents")
+    live = {"index.html", "toc.html"}
     for i, (slug, *_rest, src) in enumerate(LESSONS):
         if src is None:
             print(f"  {slug}.html    {'—':>8}   (未写)")

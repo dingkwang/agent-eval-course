@@ -28,11 +28,12 @@ pre code{background:none;padding:0;color:inherit;font-size:inherit}
 /* ---- masthead ---- */
 .mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
 .mast .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;
-  padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+  padding-top:14px;padding-bottom:14px;flex-wrap:nowrap}
 .mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--soft);white-space:nowrap}
 .mast .id b{color:var(--signal);font-weight:500}
-.mast nav{display:flex;gap:4px;flex-wrap:wrap}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap;min-width:0;align-items:center;
+  justify-content:flex-end}
 .mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
   color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
 .mast nav a:hover{border-color:var(--rule);color:var(--ink)}
@@ -97,6 +98,7 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
 .soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
   padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+.lnav{display:flex;gap:4px;flex-wrap:wrap}
 
 /* ---- lab cards ---- */
 .labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
@@ -223,7 +225,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
 
 @media(max-width:900px){
+  .mast .wrap{display:block}
   .mast .id{letter-spacing:.08em;font-size:10.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .mast nav{width:100%;max-width:100%;margin-top:8px;justify-content:flex-start}
+  .lnav{display:none}
   .page{grid-template-columns:1fr;gap:20px}
   .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
   .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
@@ -247,7 +252,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 
 <header class="mast"><div class="wrap">
 <span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 02</b></span>
-<nav><a href="index.html">课程</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span><a href="w2-01.html" class="on">W2·1</a><span class="soonnav">W2·2</span><span class="soonnav">W2·3</span><span class="soonnav">W2·4</span><span class="soonnav">W2·5</span></nav></div></header>
+<nav><a href="index.html">Introduction</a><a href="toc.html">Contents</a><span class="lnav"><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><a href="w2-01.html" class="on">W2·1</a></span></nav></div></header>
 <div class="wrap"><div class="page">
 <aside class="rail"><div class="rt">本课目录</div><a href="#s0">Runtime 如何把一份 evaluation 声明,确定地编译成一组可审计的 Trial</a><a href="#s1"><i>00</i>十分钟前置:Agent ≠ Model</a><a href="#s2"><i>01</i>Harbor 先编译,再执行</a><a href="#s3"><i>02</i>展开公式(以源码为准,不要脑补第四轴)</a><a href="#s4"><i>03</i>身份字段进 lock,不进相等</a><a href="#s5"><i>04</i>SUT 的边界在编译期就定了</a><a href="#s6"><i>05</i>Hands-on:compile_eval(spec) → JobPlan</a><a href="#s7">本课自检</a><a href="#s8">本课一句话</a></aside>
 <article class="doc"><h1>第 1 课:从 Eval Spec 到可执行 Trial</h1>
@@ -387,7 +392,7 @@ verifier      判分器;install_only 时会被 copy 成 disable=True
 <p><strong>Runtime 的第一件事是编译:把声明展开成 Trial,把输入锁进 digest。
 还没 exec,实验语义已经定了。</strong></p>
 </blockquote>
-<div class="pager"><a href="index.html#w2">← Week 2</a><a href="index.html">回课程 →</a></div>
+<div class="pager"><a href="toc.html#w2">← Week 2</a><a href="toc.html">Contents →</a></div>
 </article></div></div>
 <footer><div class="wrap">
 <span>Week 02 · Eval Runtime & Trajectory Engineering</span>

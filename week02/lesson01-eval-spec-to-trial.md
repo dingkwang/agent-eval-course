@@ -6,7 +6,7 @@
 
 > ### 本课唯一命题
 > # Harbor 的执行单位是 **Trial**,不是 Task。
-> # Runtime 的第一件事是把 Job 声明 **展开并锁死**,不是开跑。
+> # Runtime 的第一件事是把 Job 声明 **展开并写成 JobLock**,不是开跑。
 
 > 📎 Harbor `b378332` · Inspect `499e615`
 > 💻 lab:`../labs/eval-runtime/compile.py`
@@ -53,7 +53,7 @@ task_configs[]     解析完的任务
 trial_configs[]    笛卡尔积之后、准备开跑的 Trial
 metrics
 task_download_results
-job_lock           锁死「这次到底跑了什么」
+job_lock           这次实验输入的结构化快照(不是 overall checksum)
 ```
 
 `from_config`(`job_plan.py:35-62`)在 **exec 之前**把声明物化完:
@@ -68,7 +68,8 @@ from_resolved → build_trial_configs
 ```
 
 空 dataset / 不可达的 package task 在这里就 `EmptyDatasetError` / `ValueError`(`job_plan.py:44-46,135`),进不了队列。
-默认值也在编译期定死:agent 名叫空 → oracle(`config.py:166-169`);`job_name` 空 → 墙钟时间戳(下面 §三)。
+默认值也在编译期物化:agent 名叫空 → oracle(`config.py:166-169`);`job_name` 空 → 墙钟时间戳(下面 §三)。
+`JobPlan` 是普通 dataclass,没有 `frozen=True`;`task_configs` / `trial_configs` 仍是可变 list。Harbor 做到的是 **resolved + recorded + comparable**,不是类型系统上的 immutable。生成 `JobLock` 只证明「输入被记录了」,不证明执行阶段没人改 `JobPlan`。
 
 **编译失败发生在执行之前。**
 
@@ -141,26 +142,29 @@ job_name: str = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d_
 > *If replay-affecting fields are added or changed here, update TrialLock
 > so lock.json records the same resolved run input.*
 
-**lock.json 才是「这次实验的 checksum」。** 墙钟 `job_name` 不是。
+`lock.json` 是实验输入的**结构化锁定记录**,本身没有 overall checksum 字段。内容型资源(task / skill / extra instruction)带 digest;`JobLock.__eq__` 比较 `schema_version`、`n_concurrent_trials`、`retry`、以及 **无序的** `TrialLock` 集合(`lock.py:277-292`)。墙钟 `job_name` / `created_at` 不进相等。
 
 ---
 
-## 四、SUT 的边界在编译期就定了
+## 四、SUT 是被测 Agent 系统,Trial 是一次实验实例
 
 一份 `TrialConfig` 里同时有:
 
 ```
-task          题目
-agent         被测程序(+可选 model_name)
-user_agent    可选,模拟用户(W1 的 τ³ 在这里入座)
-environment   从 Job 拷下来,本课不展开
-verifier      判分器;install_only 时会被 copy 成 disable=True
+task          题目(实验条件)
+agent         SUT:被测程序(+可选 model_name / prompt / tools)
+user_agent    测量系统里的模拟用户(W1 的 τ³ 在这里入座)
+environment   实验条件;从 Job 拷下来,本课不展开
+verifier      测量系统;install_only 时会被 copy 成 disable=True
 ```
 
-编译之后 SUT 定死了:这个 `agent`(可带 `model_name`) × 这个 `task` × 第几次 attempt。
-`user_agent` **不是** SUT —— 它是测量环境里的模拟用户(W1 τ³ 从这里进 Trial,协议边界是第 2 课)。
-`verifier` 也不是 SUT;`install_only` 时会被 copy 成 `disable=True`(`config.py:520-530`),避免共用一个 verifier 实例串改别的 Trial。
-**模型名字只是 agent 配置的一个字段。**
+**SUT 是被测的 Agent 系统**(implementation + model + prompt/tools/config)。
+Task、environment、user simulator、verifier 是实验条件或测量系统。
+Attempt 是重复观测,不属于 SUT。Harbor 的 `TrialConfig` **没有** `attempt_index` 字段:它只是把同一份内容再构造一遍,靠不同的 `trial_name` 区分。
+
+编译之后,**Trial 的实验条件被确定**:这个 SUT,在这个 task / environment / verifier 条件下,进行一次 attempt。
+`user_agent` 不是 SUT;`verifier` 也不是;`install_only` 时 verifier 会被 copy 成 `disable=True`(`config.py:520-530`),避免共用一个 verifier 实例串改别的 Trial。
+**模型名字只是 SUT(AgentConfig)上的一个字段。**
 
 ---
 
@@ -170,16 +174,23 @@ verifier      判分器;install_only 时会被 copy 成 disable=True
 python3 ../labs/eval-runtime/compile.py
 ```
 
-实现一个**教学用**编译器,行为对齐 Harbor 那三重循环,不是 Harbor 的绑定:
+实现一个**教学用**编译器,四段对齐 Harbor 的 resolve → validate → expand → record,不是 Harbor 的绑定:
 
 ```
-EvalSpec(tasks, agents, n_attempts)
-    →  attempts × tasks × agents
-    →  JobPlan.trials + checksum
+EvalSpec
+    → resolve   默认 agent 名 → oracle;instruction / prompt 做成 digest
+    → validate  空 tasks / agents / n_attempts<1 拒绝
+    → expand    n_attempts × tasks × agents(循环顺序对齐 Harbor)
+    → freeze    无序 Trial 多重集的 snapshot(对齐 JobLock.__eq__,不是有序 checksum)
 ```
 
-`checksum` 只 hash 展开后的 `(task, agent, attempt)` 列表,不 hash 墙钟。
-同一份 spec 编译两次,checksum 必须相同。这就是不变量 1 的种子,Day 5 会再验。
+展开列表保留 Harbor 的循环顺序,方便对照源码。**语义 snapshot 对 agents 顺序不敏感**,和 `JobLock` 的无序 `TrialLock` 集合一致。
+Lab 里的 `attempt` 次数只表示多重性;Harbor 真实 `TrialConfig` 没有 `attempt_index`。
+同一份 spec 编译两次,snapshot 必须相同。这就是不变量 1 的种子,Day 5 会再验。
+
+```bash
+python3 -m pytest labs/eval-runtime/tests/test_compile.py
+```
 
 ---
 
@@ -190,12 +201,12 @@ EvalSpec(tasks, agents, n_attempts)
 [ ] 能画出 from_config 在开跑之前做了哪几步
 [ ] 能写出 |trials| = n_attempts × |tasks| × |agents|,并说明模型为什么不是第四轴
 [ ] 能说出 Harbor Trial 乘积和 Inspect Task 配方的差别(一句话)
-[ ] 能说出 trial_name / job_name 为什么不能当 checksum,lock.json 才是
+[ ] 能说出 trial_name / job_name 为什么不能当实验输入;`lock.json` 是结构化快照,不是 overall checksum
 ```
 
 ---
 
 ## 本课一句话
 
-> **Runtime 的第一件事是编译:把声明展开成 Trial,把输入锁进 digest。
-> 还没 exec,实验语义已经定了。**
+> **Runtime 的第一件事是编译:把声明展开成 Trial,把输入记进 JobLock。
+> 还没 exec,这次 Trial 的实验条件已经定了。SUT 是 Agent 系统,不是整个 Trial。**

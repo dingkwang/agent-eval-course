@@ -249,14 +249,14 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 <span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 02</b></span>
 <nav><a href="index.html">课程</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span><a href="w2-01.html" class="on">W2·1</a><span class="soonnav">W2·2</span><span class="soonnav">W2·3</span><span class="soonnav">W2·4</span><span class="soonnav">W2·5</span></nav></div></header>
 <div class="wrap"><div class="page">
-<aside class="rail"><div class="rt">本课目录</div><a href="#s0">Runtime 如何把一份 evaluation 声明,确定地编译成一组可审计的 Trial</a><a href="#s1"><i>00</i>十分钟前置:Agent ≠ Model</a><a href="#s2"><i>01</i>Harbor 先编译,再执行</a><a href="#s3"><i>02</i>展开公式(以源码为准,不要脑补第四轴)</a><a href="#s4"><i>03</i>身份字段进 lock,不进相等</a><a href="#s5"><i>04</i>SUT 的边界在编译期就定了</a><a href="#s6"><i>05</i>Hands-on:compile_eval(spec) → JobPlan</a><a href="#s7">本课自检</a><a href="#s8">本课一句话</a></aside>
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">Runtime 如何把一份 evaluation 声明,确定地编译成一组可审计的 Trial</a><a href="#s1"><i>00</i>十分钟前置:Agent ≠ Model</a><a href="#s2"><i>01</i>Harbor 先编译,再执行</a><a href="#s3"><i>02</i>展开公式(以源码为准,不要脑补第四轴)</a><a href="#s4"><i>03</i>身份字段进 lock,不进相等</a><a href="#s5"><i>04</i>SUT 是被测 Agent 系统,Trial 是一次实验实例</a><a href="#s6"><i>05</i>Hands-on:compile_eval(spec) → JobPlan</a><a href="#s7">本课自检</a><a href="#s8">本课一句话</a></aside>
 <article class="doc"><h1>第 1 课:从 Eval Spec 到可执行 Trial</h1>
 <h2 id="s0" class="sub">Runtime 如何把一份 evaluation 声明,确定地编译成一组可审计的 Trial</h2>
 <p><strong>Week 2 Day 1</strong> · 源码课 · 建议 60 分钟 + 小 lab</p>
 <blockquote>
 <h3>本课唯一命题</h3>
 <h1>Harbor 的执行单位是 <strong>Trial</strong>,不是 Task。</h1>
-<h1>Runtime 的第一件事是把 Job 声明 <strong>展开并锁死</strong>,不是开跑。</h1>
+<h1>Runtime 的第一件事是把 Job 声明 <strong>展开并写成 JobLock</strong>,不是开跑。</h1>
 <p>📎 Harbor <code>b378332</code> · Inspect <code>499e615</code>
 💻 lab:<code>../labs/eval-runtime/compile.py</code></p>
 </blockquote>
@@ -288,7 +288,7 @@ task_configs[]     解析完的任务
 trial_configs[]    笛卡尔积之后、准备开跑的 Trial
 metrics
 task_download_results
-job_lock           锁死「这次到底跑了什么」
+job_lock           这次实验输入的结构化快照(不是 overall checksum)
 </code></pre>
 <p><code>from_config</code>(<code>job_plan.py:35-62</code>)在 <strong>exec 之前</strong>把声明物化完:</p>
 <pre><code>resolve_agent_skills          字符串技能源 → 本地路径(99-113)
@@ -299,7 +299,8 @@ cache_tasks                   远程 task 落到 cache,带 content hash
 from_resolved → build_trial_configs
 </code></pre>
 <p>空 dataset / 不可达的 package task 在这里就 <code>EmptyDatasetError</code> / <code>ValueError</code>(<code>job_plan.py:44-46,135</code>),进不了队列。
-默认值也在编译期定死:agent 名叫空 → oracle(<code>config.py:166-169</code>);<code>job_name</code> 空 → 墙钟时间戳(下面 §三)。</p>
+默认值也在编译期物化:agent 名叫空 → oracle(<code>config.py:166-169</code>);<code>job_name</code> 空 → 墙钟时间戳(下面 §三)。
+<code>JobPlan</code> 是普通 dataclass,没有 <code>frozen=True</code>;<code>task_configs</code> / <code>trial_configs</code> 仍是可变 list。Harbor 做到的是 <strong>resolved + recorded + comparable</strong>,不是类型系统上的 immutable。生成 <code>JobLock</code> 只证明「输入被记录了」,不证明执行阶段没人改 <code>JobPlan</code>。</p>
 <p><strong>编译失败发生在执行之前。</strong></p>
 <hr />
 <h2 id="s3"><span class="hn">§ 02</span>展开公式(以源码为准,不要脑补第四轴)</h2>
@@ -348,44 +349,51 @@ return self.model_dump(exclude=exclude) == other.model_dump(exclude=exclude)
 <p><em>If replay-affecting fields are added or changed here, update TrialLock
 so lock.json records the same resolved run input.</em></p>
 </blockquote>
-<p><strong>lock.json 才是「这次实验的 checksum」。</strong> 墙钟 <code>job_name</code> 不是。</p>
+<p><code>lock.json</code> 是实验输入的<strong>结构化锁定记录</strong>,本身没有 overall checksum 字段。内容型资源(task / skill / extra instruction)带 digest;<code>JobLock.__eq__</code> 比较 <code>schema_version</code>、<code>n_concurrent_trials</code>、<code>retry</code>、以及 <strong>无序的</strong> <code>TrialLock</code> 集合(<code>lock.py:277-292</code>)。墙钟 <code>job_name</code> / <code>created_at</code> 不进相等。</p>
 <hr />
-<h2 id="s5"><span class="hn">§ 04</span>SUT 的边界在编译期就定了</h2>
+<h2 id="s5"><span class="hn">§ 04</span>SUT 是被测 Agent 系统,Trial 是一次实验实例</h2>
 <p>一份 <code>TrialConfig</code> 里同时有:</p>
-<pre><code>task          题目
-agent         被测程序(+可选 model_name)
-user_agent    可选,模拟用户(W1 的 τ³ 在这里入座)
-environment   从 Job 拷下来,本课不展开
-verifier      判分器;install_only 时会被 copy 成 disable=True
+<pre><code>task          题目(实验条件)
+agent         SUT:被测程序(+可选 model_name / prompt / tools)
+user_agent    测量系统里的模拟用户(W1 的 τ³ 在这里入座)
+environment   实验条件;从 Job 拷下来,本课不展开
+verifier      测量系统;install_only 时会被 copy 成 disable=True
 </code></pre>
-<p>编译之后 SUT 定死了:这个 <code>agent</code>(可带 <code>model_name</code>) × 这个 <code>task</code> × 第几次 attempt。
-<code>user_agent</code> <strong>不是</strong> SUT —— 它是测量环境里的模拟用户(W1 τ³ 从这里进 Trial,协议边界是第 2 课)。
-<code>verifier</code> 也不是 SUT;<code>install_only</code> 时会被 copy 成 <code>disable=True</code>(<code>config.py:520-530</code>),避免共用一个 verifier 实例串改别的 Trial。
-<strong>模型名字只是 agent 配置的一个字段。</strong></p>
+<p><strong>SUT 是被测的 Agent 系统</strong>(implementation + model + prompt/tools/config)。
+Task、environment、user simulator、verifier 是实验条件或测量系统。
+Attempt 是重复观测,不属于 SUT。Harbor 的 <code>TrialConfig</code> <strong>没有</strong> <code>attempt_index</code> 字段:它只是把同一份内容再构造一遍,靠不同的 <code>trial_name</code> 区分。</p>
+<p>编译之后,<strong>Trial 的实验条件被确定</strong>:这个 SUT,在这个 task / environment / verifier 条件下,进行一次 attempt。
+<code>user_agent</code> 不是 SUT;<code>verifier</code> 也不是;<code>install_only</code> 时 verifier 会被 copy 成 <code>disable=True</code>(<code>config.py:520-530</code>),避免共用一个 verifier 实例串改别的 Trial。
+<strong>模型名字只是 SUT(AgentConfig)上的一个字段。</strong></p>
 <hr />
 <h2 id="s6"><span class="hn">§ 05</span>Hands-on:<code>compile_eval(spec) → JobPlan</code></h2>
 <pre><code class="language-bash">python3 ../labs/eval-runtime/compile.py
 </code></pre>
-<p>实现一个<strong>教学用</strong>编译器,行为对齐 Harbor 那三重循环,不是 Harbor 的绑定:</p>
-<pre><code>EvalSpec(tasks, agents, n_attempts)
-    →  attempts × tasks × agents
-    →  JobPlan.trials + checksum
+<p>实现一个<strong>教学用</strong>编译器,四段对齐 Harbor 的 resolve → validate → expand → record,不是 Harbor 的绑定:</p>
+<pre><code>EvalSpec
+    → resolve   默认 agent 名 → oracle;instruction / prompt 做成 digest
+    → validate  空 tasks / agents / n_attempts&lt;1 拒绝
+    → expand    n_attempts × tasks × agents(循环顺序对齐 Harbor)
+    → freeze    无序 Trial 多重集的 snapshot(对齐 JobLock.__eq__,不是有序 checksum)
 </code></pre>
-<p><code>checksum</code> 只 hash 展开后的 <code>(task, agent, attempt)</code> 列表,不 hash 墙钟。
-同一份 spec 编译两次,checksum 必须相同。这就是不变量 1 的种子,Day 5 会再验。</p>
+<p>展开列表保留 Harbor 的循环顺序,方便对照源码。<strong>语义 snapshot 对 agents 顺序不敏感</strong>,和 <code>JobLock</code> 的无序 <code>TrialLock</code> 集合一致。
+Lab 里的 <code>attempt</code> 次数只表示多重性;Harbor 真实 <code>TrialConfig</code> 没有 <code>attempt_index</code>。
+同一份 spec 编译两次,snapshot 必须相同。这就是不变量 1 的种子,Day 5 会再验。</p>
+<pre><code class="language-bash">python3 -m pytest labs/eval-runtime/tests/test_compile.py
+</code></pre>
 <hr />
 <h2 id="s7">本课自检</h2>
 <pre><code>[ ] 能说出 AgentConfig.name 和 model_name 各管什么,以及默认 agent 为什么是 oracle
 [ ] 能画出 from_config 在开跑之前做了哪几步
 [ ] 能写出 |trials| = n_attempts × |tasks| × |agents|,并说明模型为什么不是第四轴
 [ ] 能说出 Harbor Trial 乘积和 Inspect Task 配方的差别(一句话)
-[ ] 能说出 trial_name / job_name 为什么不能当 checksum,lock.json 才是
+[ ] 能说出 trial_name / job_name 为什么不能当实验输入;`lock.json` 是结构化快照,不是 overall checksum
 </code></pre>
 <hr />
 <h2 id="s8">本课一句话</h2>
 <blockquote>
-<p><strong>Runtime 的第一件事是编译:把声明展开成 Trial,把输入锁进 digest。
-还没 exec,实验语义已经定了。</strong></p>
+<p><strong>Runtime 的第一件事是编译:把声明展开成 Trial,把输入记进 JobLock。
+还没 exec,这次 Trial 的实验条件已经定了。SUT 是 Agent 系统,不是整个 Trial。</strong></p>
 </blockquote>
 <div class="pager"><a href="index.html#w2">← Week 2</a><a href="index.html">回课程 →</a></div>
 </article></div></div>

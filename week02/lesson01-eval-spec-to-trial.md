@@ -56,18 +56,21 @@ task_download_results
 job_lock           锁死「这次到底跑了什么」
 ```
 
-`from_config`(`job_plan.py:35-62`)的顺序是:
+`from_config`(`job_plan.py:35-62`)在 **exec 之前**把声明物化完:
 
 ```
-resolve_agent_skills
+resolve_agent_skills          字符串技能源 → 本地路径(99-113)
 resolve_task_configs          datasets ∪ tasks → TaskConfig[]
-validate_resource_policies    环境能力,跑之前就问,不是跑炸了再问
+validate_resource_policies    环境能力,跑之前就问,不是跑炸了再问(52)
 resolve_metrics
-cache_tasks
+cache_tasks                   远程 task 落到 cache,带 content hash
 from_resolved → build_trial_configs
 ```
 
-**编译失败发生在执行之前。** 空 dataset、不可达的 package task、环境要的资源 backend 不认 —— 这些都进不了 Trial 队列。
+空 dataset / 不可达的 package task 在这里就 `EmptyDatasetError` / `ValueError`(`job_plan.py:44-46,135`),进不了队列。
+默认值也在编译期定死:agent 名叫空 → oracle(`config.py:166-169`);`job_name` 空 → 墙钟时间戳(下面 §三)。
+
+**编译失败发生在执行之前。**
 
 ---
 
@@ -127,9 +130,10 @@ job_name: str = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d_
 所以 Job 声明本身也带一次「现在几点」。审计不能靠这个字符串。
 
 真正锁输入的是 `JobLock` / `TrialLock`(`models/job/lock.py`):
-- `TaskLock.digest`(64 hex,content identity)
+- `TaskLock.digest`(64 hex)。`TaskLock.__eq__` **只比 digest**(`lock.py:87-89`),`name` / `path` 是给人看的
 - agent / environment / verifier 的 frozen dump
 - extra instructions 的 digest
+- `JobConfig.__eq__` 丢掉 `job_name` 和 `debug`(`job/config.py:541-546`)
 - `JobLock.__eq__` 不看 `created_at`、不看 trial 名字,看 schema、并发上限、retry、**无序的** trial 集合
 
 注释写着(`TrialConfig` 440-441 行附近):
@@ -153,7 +157,9 @@ environment   从 Job 拷下来,本课不展开
 verifier      判分器;install_only 时会被 copy 成 disable=True
 ```
 
-编译之后,「被测的是谁」不再含糊:是这个 agent 配置,在这个 task 上,attempt 第几次。
+编译之后 SUT 定死了:这个 `agent`(可带 `model_name`) × 这个 `task` × 第几次 attempt。
+`user_agent` **不是** SUT —— 它是测量环境里的模拟用户(W1 τ³ 从这里进 Trial,协议边界是第 2 课)。
+`verifier` 也不是 SUT;`install_only` 时会被 copy 成 `disable=True`(`config.py:520-530`),避免共用一个 verifier 实例串改别的 Trial。
 **模型名字只是 agent 配置的一个字段。**
 
 ---

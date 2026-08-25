@@ -277,9 +277,18 @@ CI 的 n 应该是 40 | 错把 n 写成 400,误差棒过窄
 
 同一 task 下的 attempts 共享 $p_i$,因此相关。把 400 行送进普通 Bernoulli CI,是在虚构 task sample size。Lesson 3 会比较 naive CI 与 task-aware CI 的 coverage。
 
-### 5.2 只保存 summary,丢掉 task identity
+### 5.2 只留下两个平均分,丢掉每道题是谁过的
 
-`agent_A=58%`,`agent_B=61%` 不足以做 paired comparison。Lesson 4 需要知道 A、B 是否在**相同 task**上成功,因此必须保留 `task_id`。
+**Summary** 这里不是论文摘要。它指只留下跨 task 压出来的一个数字,例如 `agent_A=58%`、`agent_B=61%`,把每道题的成败扔掉。
+
+```diag
+compare | 平均分够排行,不够配对比较
+只留 summary | 留着 task_id
+A 58% · B 61% | 同一题上 A 过没过、B 过没过
+不知道 B 多的 3 个点来自哪些题 | Lesson 4 才能做 paired test
+```
+
+B 高 3 个点,可能是在 A 也会的题上更稳,也可能是 A 全军覆没的题上偶然过了。没有 `task_id`,这两种故事分不开。因此 canonical 表必须留下每道题的身份,不能只存两个百分比。
 
 ### 5.3 用运行次数给 task 偷偷加权
 

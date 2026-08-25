@@ -549,8 +549,11 @@ p_i=P(Y_{ij}=1\mid T_i, A, C)
 <figure class="diag"><figcaption><span>同样 400 行,抽样单位不同</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">N×K · 40 题 × 10 次</div><div class="dcell">40 个相关小组,每组 10 行</div><div class="dcell">CI 的 n 应该是 40</div></div><div class="dcol"><div class="dh">误当成 NK=400 道独立题</div><div class="dcell">假装 400 次互不相关</div><div class="dcell">错把 n 写成 400,误差棒过窄</div></div></div></figure>
 
 <p>同一 task 下的 attempts 共享 $p_i$,因此相关。把 400 行送进普通 Bernoulli CI,是在虚构 task sample size。Lesson 3 会比较 naive CI 与 task-aware CI 的 coverage。</p>
-<h3>5.2 只保存 summary,丢掉 task identity</h3>
-<p><code>agent_A=58%</code>,<code>agent_B=61%</code> 不足以做 paired comparison。Lesson 4 需要知道 A、B 是否在<strong>相同 task</strong>上成功,因此必须保留 <code>task_id</code>。</p>
+<h3>5.2 只留下两个平均分,丢掉每道题是谁过的</h3>
+<p><strong>Summary</strong> 这里不是论文摘要。它指只留下跨 task 压出来的一个数字,例如 <code>agent_A=58%</code>、<code>agent_B=61%</code>,把每道题的成败扔掉。</p>
+<figure class="diag"><figcaption><span>平均分够排行,不够配对比较</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">只留 summary</div><div class="dcell">A 58% · B 61%</div><div class="dcell">不知道 B 多的 3 个点来自哪些题</div></div><div class="dcol"><div class="dh">留着 task_id</div><div class="dcell">同一题上 A 过没过、B 过没过</div><div class="dcell">Lesson 4 才能做 paired test</div></div></div></figure>
+
+<p>B 高 3 个点,可能是在 A 也会的题上更稳,也可能是 A 全军覆没的题上偶然过了。没有 <code>task_id</code>,这两种故事分不开。因此 canonical 表必须留下每道题的身份,不能只存两个百分比。</p>
 <h3>5.3 用运行次数给 task 偷偷加权</h3>
 <p>若一个 task 有 20 次有效 attempt、另一个只有 2 次,pooled row mean 会让前者权重变成十倍。默认 task-macro estimand 应先算 $\bar Y_i$,再跨 task 平均。</p>
 <h3>5.4 从 outcome 反推 category 或删除「难看的」task</h3>

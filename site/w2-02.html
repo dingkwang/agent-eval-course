@@ -358,9 +358,17 @@ upload_file / upload_dir / download_file / download_dir
 capabilities  gpus · windows · mounted · docker_compose · disable_internet · …
 </code></pre>
 <p>Agent 只能走这些门。<code>user=None</code> 回落到 <code>default_user</code>。不支持的 requirement 必须 <strong>fail fast</strong>,不能静默降级。network allowlist 的细则 → W7。</p>
-<h3>4.3 不要把 Harbor 写成 Gymnasium</h3>
-<p>Harbor <strong>没有</strong> <code>step(action)</code>。外部 CLI Agent 一次 <code>run()</code> 里可能 <code>exec</code> 几十次,runtime 只看见粗边界。这就是第 3 课要单独讲 trajectory 的原因。</p>
-<figure class="diag"><figcaption><span>Harbor 看见的粒度</span></figcaption><div class="dpipe"><span class="dnode">start</span><span class="darr">→</span><span class="dnode">Agent.setup</span><span class="darr">→</span><span class="dnode">Agent.run(多次 exec)</span><span class="darr">→</span><span class="dnode">collect</span><span class="darr">→</span><span class="dnode">verify</span><span class="darr">→</span><span class="dnode">stop</span></div></figure>
+<h3>4.3 runtime 看见的粒度:一次 <code>run()</code>,不是每一步</h3>
+<p>§3.1 说 <code>BaseAgent</code> 不是 <code>act(obs) → action</code>。Environment 这一侧是同一件事。</p>
+<p>有一类环境(RL 里最常见的是 Gymnasium)把交互切成锁步:</p>
+<pre><code>obs = env.reset()
+obs, reward, done, info = env.step(action)  # 每一步,环境都回拍
+</code></pre>
+<p>Agent 每做一个 action,environment 走一拍,runtime 也记一拍。<code>step(action)</code> 就是这一拍。</p>
+<p>Harbor 不是这个模型。Claude Code / Codex 进容器之后自己敲命令。Trial 只调用一次 <code>agent.run(instruction, environment, context)</code>。<code>run()</code> 返回之前,Agent 可能已经 <code>env.exec</code> 了几十次。这些 exec 在 Agent 进程里发生,Trial <strong>没有</strong>对应的 <code>step()</code> 可钩。</p>
+<p>它只看见三个时刻:run 开始、run 返回(或超时/取消)、然后 verify / stop。这叫<strong>粗边界</strong>:runtime 的可观察单位是整段 session,不是每一个 shell 命令。</p>
+<p>本课 Environment 协议只保证:相同的 <code>exec</code> 语义(cwd / env / timeout / user)。命令序列、哪一次 exec 改了文件、Agent 有没有收到那次 stdout —— Trial API 看不见。那是第 3 课 trajectory 要补的日志。</p>
+<figure class="diag"><figcaption><span>谁看见每一步</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Gymnasium 锁步</div><div class="dcell">reset → step → step → …</div><div class="dcell">每拍都有 obs / reward</div><div class="dcell">runtime 单位 = 一步</div></div><div class="dcol"><div class="dh">Harbor Trial</div><div class="dcell">start → run(里面一串 exec) → stop</div><div class="dcell">run() 返回 None;副作用在环境里</div><div class="dcell">runtime 单位 = 一次 Agent session</div></div></div></figure>
 
 <hr />
 <h2 id="s6"><span class="hn">§ 05</span>Trial 才拥有生命周期</h2>
@@ -394,7 +402,7 @@ capabilities  gpus · windows · mounted · docker_compose · disable_internet �
 <figure class="diag"><figcaption><span>协议中心</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Harbor</div><div class="dcell">instruction + Environment + Context</div><div class="dcell">Agent 通常在环境里跑</div><div class="dcell">环境副作用 + AgentContext</div><div class="dcell">外部 CLI = 原生 BaseAgent 方向</div></div><div class="dcol"><div class="dh">Inspect</div><div class="dcell">AgentState → AgentState</div><div class="dcell">控制逻辑默认在 host</div><div class="dcell">messages / output</div><div class="dcell">外部 CLI 常走 Agent Bridge</div></div></div></figure>
 
 <p>课程目标不是做一个同时长得像两边的万能 API,而是定义<strong>换实现仍必须保持的 canonical semantics</strong>。</p>
-<p>Gymnasium / BrowserGym:<code>reset</code> / <code>step</code> vs Harbor <code>start</code> / <code>exec</code> / <code>stop</code>。本课不展开。</p>
+<p>Gymnasium <code>reset</code>/<code>step</code> 就是上面那种锁步。本课不把 Harbor 画成它。BrowserGym 同族,不展开。</p>
 <hr />
 <h2 id="s9"><span class="hn">§ 08</span>Lab:conformance harness</h2>
 <pre><code class="language-bash">python3 -m pytest labs/eval-runtime/tests/test_agent_contract.py \

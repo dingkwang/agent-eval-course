@@ -154,13 +154,31 @@ capabilities  gpus · windows · mounted · docker_compose · disable_internet �
 
 Agent 只能走这些门。`user=None` 回落到 `default_user`。不支持的 requirement 必须 **fail fast**,不能静默降级。network allowlist 的细则 → W7。
 
-### 4.3 不要把 Harbor 写成 Gymnasium
+### 4.3 runtime 看见的粒度:一次 `run()`,不是每一步
 
-Harbor **没有** `step(action)`。外部 CLI Agent 一次 `run()` 里可能 `exec` 几十次,runtime 只看见粗边界。这就是第 3 课要单独讲 trajectory 的原因。
+§3.1 说 `BaseAgent` 不是 `act(obs) → action`。Environment 这一侧是同一件事。
+
+有一类环境(RL 里最常见的是 Gymnasium)把交互切成锁步:
+
+```
+obs = env.reset()
+obs, reward, done, info = env.step(action)  # 每一步,环境都回拍
+```
+
+Agent 每做一个 action,environment 走一拍,runtime 也记一拍。`step(action)` 就是这一拍。
+
+Harbor 不是这个模型。Claude Code / Codex 进容器之后自己敲命令。Trial 只调用一次 `agent.run(instruction, environment, context)`。`run()` 返回之前,Agent 可能已经 `env.exec` 了几十次。这些 exec 在 Agent 进程里发生,Trial **没有**对应的 `step()` 可钩。
+
+它只看见三个时刻:run 开始、run 返回(或超时/取消)、然后 verify / stop。这叫**粗边界**:runtime 的可观察单位是整段 session,不是每一个 shell 命令。
+
+本课 Environment 协议只保证:相同的 `exec` 语义(cwd / env / timeout / user)。命令序列、哪一次 exec 改了文件、Agent 有没有收到那次 stdout —— Trial API 看不见。那是第 3 课 trajectory 要补的日志。
 
 ```diag
-pipe | Harbor 看见的粒度
-start → Agent.setup → Agent.run(多次 exec) → collect → verify → stop
+compare | 谁看见每一步
+Gymnasium 锁步 | Harbor Trial
+reset → step → step → … | start → run(里面一串 exec) → stop
+每拍都有 obs / reward | run() 返回 None;副作用在环境里
+runtime 单位 = 一步 | runtime 单位 = 一次 Agent session
 ```
 
 ---
@@ -243,7 +261,7 @@ Agent 通常在环境里跑 | 控制逻辑默认在 host
 
 课程目标不是做一个同时长得像两边的万能 API,而是定义**换实现仍必须保持的 canonical semantics**。
 
-Gymnasium / BrowserGym:`reset` / `step` vs Harbor `start` / `exec` / `stop`。本课不展开。
+Gymnasium `reset`/`step` 就是上面那种锁步。本课不把 Harbor 画成它。BrowserGym 同族,不展开。
 
 ---
 

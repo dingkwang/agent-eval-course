@@ -35,16 +35,13 @@ Week 2 证明一条 observation 是怎样被正确地产生和记录的。Week 3
 | `easy` | 10 / 10 | 100% |
 | `hard` | 0 / 1 | 0% |
 
-把 11 行直接 pooled:
+把 11 行直接 pooled,得到 10/11 = 90.9%。如果 estimand 是「从两个 task 中等概率抽一个,再运行一次」,正确的 task-macro estimate 是 (100% + 0%) / 2 = 50%。
 
-```math
-\frac{10}{11}=90.9\%
-```
-
-如果 estimand 是「从两个 task 中等概率抽一个,再运行一次」,正确的 task-macro estimate 是:
-
-```math
-\frac{100\%+0\%}{2}=50\%
+```diag
+compare | 同样 11 次运行,两个不同的问题
+按行 pooled | 按 task 再平均
+10/11 = 90.9% | (100% + 0%) / 2 = 50%
+抽一行 attempt | 先抽 task,再抽一次 attempt
 ```
 
 两个数都没有算术错误。`90.9%` 回答的是「从现有 11 次 attempt 中等概率抽一行」;`50%` 回答的是「先等概率抽 task,再抽一次 attempt」。
@@ -126,27 +123,27 @@ nest | 从 observation 到想推广的总体
 
 对 binary success:
 
-```math
+$$
 Y_{ij}\in\{0,1\},\qquad
 p_i=P(Y_{ij}=1\mid T_i, A, C)
-```
+$$
 
 $A$ 是完整 Agent 配置,$C$ 是固定的 evaluation condition:prompt、tools、budget、environment、verifier policy 等。于是:
 
-```math
+$$
 \bar Y_i=\frac{1}{K_i}\sum_{j=1}^{K_i}Y_{ij}
-```
+$$
 
-```math
+$$
 \hat\mu_{\mathrm{bench}}=\frac{1}{N}\sum_{i=1}^{N}\bar Y_i
-```
+$$
 
 若要推广到一个 task distribution $D$:
 
-```math
+$$
 \mu_D(A,C)=\mathbb E_{T\sim D}\left[P(Y=1\mid T,A,C)\right]
 =\mathbb E_{T\sim D}[p_T]
-```
+$$
 
 ### 2.1 Estimand、estimator、estimate 不要混
 
@@ -198,22 +195,22 @@ Var(p_T) | E[p_T(1-p_T)]
 
 对 Bernoulli score,全概率方差给出:
 
-```math
+$$
 \mathrm{Var}(Y)
 =\underbrace{\mathrm{Var}_T(p_T)}_{\text{between-task}}
 +\underbrace{\mathbb E_T[p_T(1-p_T)]}_{\text{within-task}}
-```
+$$
 
 若从 $D$ 独立抽 $N$ 个 task,每个 task 独立运行 $K$ 次,再先按 task 求均值:
 
-```math
+$$
 \mathrm{Var}(\hat\mu)
 =\frac{1}{N}
 \left(
 \mathrm{Var}_T(p_T)
 +\frac{\mathbb E_T[p_T(1-p_T)]}{K}
 \right)
-```
+$$
 
 这条式子给出 Day 1 最重要的设计直觉:
 

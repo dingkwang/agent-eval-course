@@ -281,12 +281,21 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .layer .bar{animation:none}
   a.card:hover{transform:none}
 }
+.math-display{margin:24px 0;overflow-x:auto;text-align:center}
+.math-display mjx-container[display="true"]{margin:.65em 0!important}
 </style>
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['$', '$']], processEscapes: true},
+  options: {skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 </head><body>
 
 <header class="mast"><div class="wrap">
 <span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 02</b></span>
-<nav><a href="index.html">课程</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span><a href="w2-01.html" class="on">W2·1</a><a href="w2-02.html">W2·2</a><span class="soonnav">W2·3</span><span class="soonnav">W2·4</span><span class="soonnav">W2·5</span></nav></div></header>
+<nav><a href="index.html">课程</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span><a href="w2-01.html" class="on">W2·1</a><a href="w2-02.html">W2·2</a><span class="soonnav">W2·3</span><span class="soonnav">W2·4</span><span class="soonnav">W2·5</span><a href="w3-01.html">W3·1</a><a href="w3-02.html">W3·2</a><span class="soonnav">W3·3</span><span class="soonnav">W3·4</span><span class="soonnav">W3·5</span></nav></div></header>
 <div class="wrap"><div class="page">
 <aside class="rail"><div class="rt">本课目录</div><a href="#s0">Runtime 如何把一份 evaluation 声明,确定地编译成一组可审计的 Trial</a><a href="#s1"><i>00</i>十分钟前置:Agent ≠ Model</a><a href="#s2"><i>01</i>Harbor 先编译,再执行</a><a href="#s3"><i>02</i>展开公式(以源码为准,不要脑补第四轴)</a><a href="#s4"><i>03</i>身份字段进 lock,不进相等</a><a href="#s5"><i>04</i>SUT 是被测 Agent 系统,Trial 是一次实验实例</a><a href="#s6"><i>05</i>Hands-on:compile_eval(spec) → JobPlan</a><a href="#s7">本课自检</a><a href="#s8">本课一句话</a></aside>
 <article class="doc"><h1>第 1 课:从 Eval Spec 到可执行 Trial</h1>

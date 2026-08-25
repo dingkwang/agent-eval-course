@@ -1,12 +1,14 @@
 """Render the course homepage and markdown lessons into site/.
 
-Lesson markdown may include ```diag blocks (pipe, flow, compare, nest, grid).
-Those become figures before markdown runs.
+Lesson markdown may include ```diag blocks (pipe, flow, compare, nest, grid)
+and `$$ ... $$` (or ```math) display equations. Diagrams and math are expanded
+before Markdown so `_` inside TeX is not eaten as emphasis.
 
 Run from the course root:  python3 build_site.py
 """
 
 import re
+from shutil import copyfile
 from pathlib import Path
 
 import markdown
@@ -51,7 +53,7 @@ WEEKS = [
      "2/5", False),
     ("3", "Statistical Inference for Stochastic Agent Evals",
      "从 Trial observations 到可信结论:估计什么、不确定性多大、A 是否真的优于 B?",
-     "1/5", True),
+     "2/5", True),
     ("4", "Scorers / Verifiers / LLM-as-Judge",
      "成功如何被判定?judge 准不准?", None, False),
     ("5", "Benchmark Design, Audit & Dataset Lifecycle",
@@ -88,7 +90,8 @@ W3_LESSONS = [
     ("w3-01", "1", "Observation、Experimental Unit 与 Estimand",
      "一行数据是什么,这个数字要推广到哪里", "统计",
      "lesson01-observation-estimand.md"),
-    ("w3-02", "2", "Repeated Trials", "Capability vs Reliability", "统计", None),
+    ("w3-02", "2", "Repeated Trials", "Capability vs Reliability", "统计",
+     "lesson02-capability-reliability.md"),
     ("w3-03", "3", "Error Bars", "CI 必须匹配数据结构", "统计", None),
     ("w3-04", "4", "Paired Comparison 与 Power", "A 是否真的优于 B", "统计", None),
     ("w3-05", "5", "Statistical Eval Report", "可审计的统计结论", "lab", None),
@@ -232,6 +235,24 @@ _DIAG = re.compile(r"```diag[ \t]*\n(.*?)```", re.S)
 _MATH_HTML = re.compile(
     r'<pre><code class="language-math">(.*?)</code></pre>', re.S
 )
+
+
+_MATH_FENCE = re.compile(r"```math[ \t]*\n(.*?)```", re.S)
+_MATH_DOLLARS = re.compile(r"(?<!\$)\$\$(.+?)\$\$(?!\$)", re.S)
+
+
+def expand_math(md_text: str) -> str:
+    """Turn ```math / $$ fences into MathJax display HTML before Markdown runs."""
+
+    def to_html(tex: str) -> str:
+        return (
+            '\n\n<div class="math-display">\\[\n'
+            + tex.strip()
+            + '\n\\]</div>\n\n'
+        )
+
+    md_text = _MATH_FENCE.sub(lambda m: to_html(m.group(1)), md_text)
+    return _MATH_DOLLARS.sub(lambda m: to_html(m.group(1)), md_text)
 
 
 def expand_diagrams(md_text: str) -> str:
@@ -785,7 +806,7 @@ W2 产生 observation · W5 是否测到目标能力 · W6 是否被运行噪声
 
 def build_lesson(idx: int) -> str:
     slug, _n, _t, _d, _tag, src = LESSONS[idx]
-    md_text = expand_diagrams((SRC / src).read_text())
+    md_text = expand_diagrams(expand_math((SRC / src).read_text()))
     md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
     html = render_math_blocks(md.convert(md_text))
 
@@ -872,7 +893,7 @@ def _anchor_h2(html: str) -> tuple[str, str]:
 
 def build_w2_lesson(idx: int) -> str:
     slug, n, title, _d, _tag, src = W2_LESSONS[idx]
-    md_text = expand_diagrams((SRC_W2 / src).read_text())
+    md_text = expand_diagrams(expand_math((SRC_W2 / src).read_text()))
     md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
     html, rail_html = _anchor_h2(render_math_blocks(md.convert(md_text)))
     foot = footer(
@@ -905,7 +926,7 @@ def build_w2_lesson(idx: int) -> str:
 
 def build_w3_lesson(idx: int) -> str:
     slug, n, title, _d, _tag, src = W3_LESSONS[idx]
-    md_text = expand_diagrams((SRC_W3 / src).read_text())
+    md_text = expand_diagrams(expand_math((SRC_W3 / src).read_text()))
     md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
     html, rail_html = _anchor_h2(render_math_blocks(md.convert(md_text)))
     foot = footer(
@@ -967,6 +988,13 @@ def main() -> None:
         (OUT / f"{slug}.html").write_text(page)
         live.add(f"{slug}.html")
         print(f"  {slug}.html   {len(page):>8,} B   ← {src}")
+    w3_assets = SRC_W3 / "assets"
+    if w3_assets.exists():
+        out_assets = OUT / "assets"
+        out_assets.mkdir(exist_ok=True)
+        for asset in sorted(p for p in w3_assets.iterdir() if p.is_file()):
+            copyfile(asset, out_assets / asset.name)
+            print(f"  assets/{asset.name}   ← week03/assets/{asset.name}")
     for stale in sorted(p for p in OUT.glob("*.html") if p.name not in live):
         stale.unlink()
         print(f"  removed stale   {stale.name}")

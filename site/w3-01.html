@@ -295,7 +295,7 @@ window.MathJax = {
 
 <header class="mast"><div class="wrap">
 <span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 03</b></span>
-<nav><a href="index.html">课程</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span><a href="w2-01.html">W2·1</a><a href="w2-02.html">W2·2</a><span class="soonnav">W2·3</span><span class="soonnav">W2·4</span><span class="soonnav">W2·5</span><a href="w3-01.html" class="on">W3·1</a><span class="soonnav">W3·2</span><span class="soonnav">W3·3</span><span class="soonnav">W3·4</span><span class="soonnav">W3·5</span></nav></div></header>
+<nav><a href="index.html">课程</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span><a href="w2-01.html">W2·1</a><a href="w2-02.html">W2·2</a><span class="soonnav">W2·3</span><span class="soonnav">W2·4</span><span class="soonnav">W2·5</span><a href="w3-01.html" class="on">W3·1</a><a href="w3-02.html">W3·2</a><span class="soonnav">W3·3</span><span class="soonnav">W3·4</span><span class="soonnav">W3·5</span></nav></div></header>
 <div class="wrap"><div class="page">
 <aside class="rail"><div class="rt">本课目录</div><a href="#s0">一行 TrialResult 到底能支持什么结论?</a><a href="#s1"><i>00</i>先看一个「平均分完全正确,结论仍然错误」的例子</a><a href="#s2"><i>01</i>Canonical TrialResult table:一行 = 一次执行</a><a href="#s3"><i>02</i>四层对象:row 不是结论</a><a href="#s4"><i>03</i>为什么同一个平均数有两类随机性</a><a href="#s5"><i>04</i>Agent eval 为什么即使 temperature=0 也需要这层模型</a><a href="#s6"><i>05</i>四个会让后续统计失效的 schema 错误</a><a href="#s7"><i>06</i>Lab:从 TrialResult rows 建立统计事实表</a><a href="#s8"><i>07</i>读论文时只回答四个问题</a><a href="#s9">本课自检</a><a href="#s10">本课一句话</a></aside>
 <article class="doc"><h1>第 1 课:Observation、Experimental Unit 与 Estimand</h1>
@@ -305,8 +305,6 @@ window.MathJax = {
 <h3>本课唯一命题</h3>
 <h1>在计算平均分之前,先说明一行数据代表什么,以及这个数字要推广到哪里。</h1>
 <h1><code>TrialResult</code> 是 observation;task 是主要独立采样单位;estimand 才是最终想知道的量。</h1>
-</blockquote>
-<blockquote>
 <p>📄 Evan Miller, <em>Adding Error Bars to Evals</em> §2、§3.1
 📄 Bjarnason et al., <em>On Randomness in Agentic Evals</em> §2.3–2.4
 💻 输入:Week 2 产生的 <code>TrialResult</code> rows</p>
@@ -315,37 +313,38 @@ window.MathJax = {
 
 <p>Week 2 证明一条 observation 是怎样被正确地产生和记录的。Week 3 不再问 adapter 有没有加料、verifier 对不对;先假定每次有效 Trial 已得到 score,问:</p>
 <p><strong>这些 score 的平均数在估计什么?不确定性来自 task 选择,还是同一 task 重跑时的随机性?</strong></p>
-<hr>
+<hr />
 <h2 id="s1"><span class="hn">§ 00</span>先看一个「平均分完全正确,结论仍然错误」的例子</h2>
 <p>同一个 Agent 在两个 task 上运行次数不相同:</p>
 <table>
 <thead>
 <tr>
 <th>task</th>
-<th align="right">successes / valid attempts</th>
-<th align="right">task-level success</th>
+<th style="text-align: right;">successes / valid attempts</th>
+<th style="text-align: right;">task-level success</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td><code>easy</code></td>
-<td align="right">10 / 10</td>
-<td align="right">100%</td>
+<td style="text-align: right;">10 / 10</td>
+<td style="text-align: right;">100%</td>
 </tr>
 <tr>
 <td><code>hard</code></td>
-<td align="right">0 / 1</td>
-<td align="right">0%</td>
+<td style="text-align: right;">0 / 1</td>
+<td style="text-align: right;">0%</td>
 </tr>
-</tbody></table>
-<p>把 11 行直接 pooled:</p>
-<div class="math-display">\[\frac{10}{11}=90.9\%\]</div>
-<p>如果 estimand 是「从两个 task 中等概率抽一个,再运行一次」,正确的 task-macro estimate 是:</p>
-<div class="math-display">\[\frac{100\%+0\%}{2}=50\%\]</div>
+</tbody>
+</table>
+<p>把 11 行直接 pooled,得到 10/11 = 90.9%。如果 estimand 是「从两个 task 中等概率抽一个,再运行一次」,正确的 task-macro estimate 是 (100% + 0%) / 2 = 50%。</p>
+<figure class="diag"><figcaption><span>同样 11 次运行,两个不同的问题</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">按行 pooled</div><div class="dcell">10/11 = 90.9%</div><div class="dcell">抽一行 attempt</div></div><div class="dcol"><div class="dh">按 task 再平均</div><div class="dcell">(100% + 0%) / 2 = 50%</div><div class="dcell">先抽 task,再抽一次 attempt</div></div></div></figure>
+
 <p>两个数都没有算术错误。<code>90.9%</code> 回答的是「从现有 11 次 attempt 中等概率抽一行」;<code>50%</code> 回答的是「先等概率抽 task,再抽一次 attempt」。</p>
 <blockquote>
 <p><strong>聚合顺序不是实现细节。它定义了你在估计哪个量。</strong></p>
 </blockquote>
-<hr>
+<hr />
 <h2 id="s2"><span class="hn">§ 01</span>Canonical TrialResult table:一行 = 一次执行</h2>
 <p>本周先把不同 runner 的原始输出转换成一张共同的事实表:</p>
 <figure class="diag"><figcaption><span>canonical 的含义</span></figcaption><div class="dpipe"><span class="dnode">Inspect / Harbor / 自研 runner 原始结果</span><span class="darr">→</span><span class="dnode">同一列名 + 同一类型 + 同一语义</span><span class="darr">→</span><span class="dnode">Week 3 唯一统计输入</span></div></figure>
@@ -363,7 +362,8 @@ window.MathJax = {
 <th>不变量</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td><code>task_id</code></td>
 <td>benchmark 中的 task 身份</td>
 <td>同版本中稳定</td>
@@ -403,7 +403,8 @@ window.MathJax = {
 <td>Trial 如何结束</td>
 <td>与 <code>score</code> 分列</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>推荐再保留 <code>trial_id</code>、<code>benchmark_version</code>、<code>task_digest</code>、<code>agent_config_digest</code>、<code>seed</code>、<code>started_at</code>。尤其 <code>agent_id</code> 应代表 <strong>model + harness + prompt/tools/config</strong>,而不只是 <code>gpt-x</code>。</p>
 <p>主键检查:</p>
 <pre><code class="language-python">assert not df.duplicated([&quot;task_id&quot;, &quot;agent_id&quot;, &quot;attempt_id&quot;]).any()
@@ -412,7 +413,7 @@ window.MathJax = {
 <figure class="diag"><figcaption><span>outcome 与 observation 缺失必须分开</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">terminal_status</div><div class="dcell">completed,verifier 判失败</div><div class="dcell">completed,verifier 判成功</div><div class="dcell">infra_error,没有有效评分</div><div class="dcell">verifier_error,没有有效评分</div><div class="dcell">timeout</div></div><div class="dcol"><div class="dh">score</div><div class="dcell">0</div><div class="dcell">1</div><div class="dcell">null</div><div class="dcell">null</div><div class="dcell">按预注册规则;不能分析时临时决定</div></div></div></figure>
 
 <p>timeout、retry、infra failure 最终是否进分母是 Week 6 的 failure-semantics 问题。本课只要求:<strong>原始表不丢行、不把缺失静默改成 0、也不把失败的 0 静默删掉。</strong></p>
-<hr>
+<hr />
 <h2 id="s3"><span class="hn">§ 02</span>四层对象:row 不是结论</h2>
 <figure class="diag"><figcaption><span>从 observation 到想推广的总体</span></figcaption><div class="dnest"><div class="dbox"><div class="dlab">目标 task population D</div><div class="dbox"><div class="dlab">当前 benchmark task set</div><div class="dbox"><div class="dlab">task i 的多次 attempts</div><div class="dbox"><div class="dlab">TrialResult Yᵢⱼ</div></div></div></div></div></div></figure>
 
@@ -424,7 +425,8 @@ window.MathJax = {
 <th>回答的问题</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>Trial observation</td>
 <td>$Y_{ij}$</td>
 <td>task $i$ 的第 $j$ 次运行发生了什么?</td>
@@ -444,16 +446,29 @@ window.MathJax = {
 <td>$\mu_D$</td>
 <td>从目标任务分布 $D$ 抽一个新 task,预期表现怎样?</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>对 binary success:</p>
-<div class="math-display">\[Y_{ij}\in\{0,1\},\qquad
-p_i=P(Y_{ij}=1\mid T_i, A, C)\]</div>
+<div class="math-display">\[
+Y_{ij}\in\{0,1\},\qquad
+p_i=P(Y_{ij}=1\mid T_i, A, C)
+\]</div>
+
 <p>$A$ 是完整 Agent 配置,$C$ 是固定的 evaluation condition:prompt、tools、budget、environment、verifier policy 等。于是:</p>
-<div class="math-display">\[\bar Y_i=\frac{1}{K_i}\sum_{j=1}^{K_i}Y_{ij}\]</div>
-<div class="math-display">\[\hat\mu_{\mathrm{bench}}=\frac{1}{N}\sum_{i=1}^{N}\bar Y_i\]</div>
+<div class="math-display">\[
+\bar Y_i=\frac{1}{K_i}\sum_{j=1}^{K_i}Y_{ij}
+\]</div>
+
+<div class="math-display">\[
+\hat\mu_{\mathrm{bench}}=\frac{1}{N}\sum_{i=1}^{N}\bar Y_i
+\]</div>
+
 <p>若要推广到一个 task distribution $D$:</p>
-<div class="math-display">\[\mu_D(A,C)=\mathbb E_{T\sim D}\left[P(Y=1\mid T,A,C)\right]
-=\mathbb E_{T\sim D}[p_T]\]</div>
+<div class="math-display">\[
+\mu_D(A,C)=\mathbb E_{T\sim D}\left[P(Y=1\mid T,A,C)\right]
+=\mathbb E_{T\sim D}[p_T]
+\]</div>
+
 <h3>2.1 Estimand、estimator、estimate 不要混</h3>
 <figure class="diag"><figcaption><span>三个长得相近的词</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Estimand</div><div class="dcell">Estimator</div><div class="dcell">Estimate</div></div><div class="dcol"><div class="dh">想知道的总体量 · 例如 μ_D</div><div class="dcell">从数据算它的规则 · 例如 task means 的平均</div><div class="dcell">把本次数据代入后得到的数字 · 例如 61.4%</div></div></div></figure>
 
@@ -465,7 +480,7 @@ p_i=P(Y_{ij}=1\mid T_i, A, C)\]</div>
 <figure class="diag"><figcaption><span>常见的不同目标</span></figcaption><div class="dgrid"><div class="gcell"><b>fixed task set</b><span>只描述当前 N 个 task</span></div><div class="gcell"><b>new task</b><span>推广到 D 中未见过的 task</span></div><div class="gcell"><b>one attempt</b><span>一次运行的预期成功率</span></div><div class="gcell"><b>up to k attempts</b><span>允许 retry 后至少成功一次</span></div><div class="gcell"><b>all k attempts</b><span>连续 k 次都成功的可靠性</span></div><div class="gcell"><b>production mix</b><span>按真实流量权重,不是 benchmark 等权</span></div></div></figure>
 
 <p>后两项是 Lesson 2;production weighting 是 Week 8/9。本课默认目标是:<strong>new task + one attempt + task-macro average</strong>。</p>
-<hr>
+<hr />
 <h2 id="s4"><span class="hn">§ 03</span>为什么同一个平均数有两类随机性</h2>
 <p>不同 task 难度不同;同一 task 重跑也可能一次成功、一次失败。</p>
 <figure class="diag"><figcaption><span>observed score 的两层随机性</span></figcaption><div class="dflow"><div class="dstep">从目标分布抽到 task Tᵢ</div><div class="darr">↓</div><div class="dstep">该 task 有条件成功率 pᵢ</div><div class="darr">↓</div><div class="dstep">在同一 task 上抽到 attempt outcome Yᵢⱼ</div></div></figure>
@@ -473,22 +488,28 @@ p_i=P(Y_{ij}=1\mid T_i, A, C)\]</div>
 <figure class="diag"><figcaption><span>不同来源,不同实验杠杆</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Between-task variance</div><div class="dcell">抽到了哪些 task</div><div class="dcell">Var(p_T)</div><div class="dcell">主要靠增加 tasks N 降低</div></div><div class="dcol"><div class="dh">Within-task randomness</div><div class="dcell">同一 task 的 trajectory 走向</div><div class="dcell">E[p_T(1-p_T)]</div><div class="dcell">可用 repeated attempts K 降低</div></div></div></figure>
 
 <p>对 Bernoulli score,全概率方差给出:</p>
-<div class="math-display">\[\mathrm{Var}(Y)
+<div class="math-display">\[
+\mathrm{Var}(Y)
 =\underbrace{\mathrm{Var}_T(p_T)}_{\text{between-task}}
-+\underbrace{\mathbb E_T[p_T(1-p_T)]}_{\text{within-task}}\]</div>
++\underbrace{\mathbb E_T[p_T(1-p_T)]}_{\text{within-task}}
+\]</div>
+
 <p>若从 $D$ 独立抽 $N$ 个 task,每个 task 独立运行 $K$ 次,再先按 task 求均值:</p>
-<div class="math-display">\[\mathrm{Var}(\hat\mu)
+<div class="math-display">\[
+\mathrm{Var}(\hat\mu)
 =\frac{1}{N}
 \left(
 \mathrm{Var}_T(p_T)
 +\frac{\mathbb E_T[p_T(1-p_T)]}{K}
-\right)\]</div>
+\right)
+\]</div>
+
 <p>这条式子给出 Day 1 最重要的设计直觉:</p>
 <figure class="diag"><figcaption><span>同样多买一次 Trial,作用不一样</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">增加一个新 task</div><div class="dcell">同时获得新的难度样本</div><div class="dcell">降低两项对均值的影响</div><div class="dcell">用于推广到更多 tasks</div></div><div class="dcol"><div class="dh">给旧 task 增加一个 attempt</div><div class="dcell">只减少该 task 的 sampling noise</div><div class="dcell">只缩小 within-task 项</div><div class="dcell">用于看清 pᵢ 与可靠性</div></div></div></figure>
 
 <p>当 between-task variance 占主导时,把 $K$ 从 5 加到 10 可能远不如增加 task 数。反过来,如果目标就是某个固定 task set 的可重复表现,重复 attempts 仍很重要。</p>
 <p>Miller 的论文把 evaluation question 视为来自一个未观察的 super-population,并用 total variance 区分 question selection 与 conditional sampling variance。本课把它映射到 agent task;这一步是课程的建模选择,不是论文声称所有 benchmark task 都真由随机抽样生成。</p>
-<hr>
+<hr />
 <h2 id="s5"><span class="hn">§ 04</span>Agent eval 为什么即使 temperature=0 也需要这层模型</h2>
 <p><em>On Randomness in Agentic Evals</em> 在 SWE-bench Verified 上收集 60,000 条 trajectories(3 个模型、2 个 scaffolds、两种 temperature 设置)。同一 Agent 配置只选一次 run 时,reported pass@1 的跨度为 <strong>2.2–6.0 percentage points</strong>;temperature 0 的 run-to-run standard deviation 仍可超过 <strong>1.5 pp</strong>。</p>
 <p>论文进一步发现 trajectory 往往在很早的 token 位置分叉,随后 tool calls、environment observations 与后续生成通过 autoregressive loop 放大差异。</p>
@@ -496,7 +517,7 @@ p_i=P(Y_{ij}=1\mid T_i, A, C)\]</div>
 
 <p>因此 $p_i$ 不是「temperature 大于 0 才存在」的概念。它是:<strong>在声明好的重复运行机制下,这个 Agent 对 task $i$ 成功的条件概率。</strong></p>
 <p>本课不把所有非确定性都叫 model randomness。<code>terminal_status=infra_error</code> 仍单独保留,到 Week 6 再决定其 failure semantics。</p>
-<hr>
+<hr />
 <h2 id="s6"><span class="hn">§ 05</span>四个会让后续统计失效的 schema 错误</h2>
 <h3>5.1 把 $N\times K$ 当作 $NK$ 个独立 task</h3>
 <pre><code class="language-text">40 tasks × 10 attempts = 400 TrialResult rows
@@ -509,7 +530,7 @@ p_i=P(Y_{ij}=1\mid T_i, A, C)\]</div>
 <p>若一个 task 有 20 次有效 attempt、另一个只有 2 次,pooled row mean 会让前者权重变成十倍。默认 task-macro estimand 应先算 $\bar Y_i$,再跨 task 平均。</p>
 <h3>5.4 从 outcome 反推 category 或删除「难看的」task</h3>
 <p>按结果创建 <code>hard_tasks</code> 再只报告其分数,改变了目标分布。category、过滤规则与 estimand 应在看结果前定义;探索性切片可以做,但必须标成 exploratory。</p>
-<hr>
+<hr />
 <h2 id="s7"><span class="hn">§ 06</span>Lab:从 TrialResult rows 建立统计事实表</h2>
 <h3>6.1 输入与输出</h3>
 <p>输入 Week 2 的 TrialResult。输出两张表:</p>
@@ -543,7 +564,7 @@ color   = pass / fail / missing
 <figure class="diag"><figcaption><span>heatmap 应让人一眼看见什么</span></figcaption><div class="dgrid"><div class="gcell"><b>全绿 task</b><span>稳定成功</span></div><div class="gcell"><b>全红 task</b><span>稳定失败</span></div><div class="gcell"><b>红绿相间</b><span>within-task randomness 大</span></div><div class="gcell"><b>灰色格子</b><span>missingness / terminal-status 问题</span></div><div class="gcell"><b>整列异常</b><span>某次 run 或 infra 可能有系统性问题</span></div></div></figure>
 
 <p>这张图不是装饰。它决定 Lesson 2 是否值得讨论 reliability,也决定 Lesson 3 为什么必须保留 task 层级。</p>
-<hr>
+<hr />
 <h2 id="s8"><span class="hn">§ 07</span>读论文时只回答四个问题</h2>
 <h3>Miller, <em>Adding Error Bars to Evals</em></h3>
 <ul>
@@ -564,7 +585,7 @@ color   = pass / fail / missing
 <li><a href="https://arxiv.org/abs/2411.00640">Adding Error Bars to Evals</a></li>
 <li><a href="https://arxiv.org/abs/2602.07150">On Randomness in Agentic Evals</a></li>
 </ul>
-<hr>
+<hr />
 <h2 id="s9">本课自检</h2>
 <pre><code class="language-text">[ ] 能说出 canonical table 的 grain:一行 = 一个 task × agent × attempt execution
 [ ] 能解释 score=0 与 score=null 为什么必须分开
@@ -576,15 +597,14 @@ color   = pass / fail / missing
 [ ] 能解释为什么 40 tasks × 10 attempts 不是 400 个独立 task draws
 [ ] 能从 canonical rows 生成 task_estimates 与 task-attempt heatmap
 </code></pre>
-<hr>
+<hr />
 <h2 id="s10">本课一句话</h2>
 <blockquote>
 <p><strong>平均分之前先定 grain,误差棒之前先定 estimand。</strong>
 <strong>一行 TrialResult 是一次 observation;先在 task 内汇总,再跨 task 推断,才能说清这个数字究竟代表当前题集、一次新运行,还是目标任务分布。</strong></p>
 </blockquote>
 <p>下一课:同一个 $p_i$,产品可能关心「多试几次能不能成功」,也可能关心「每次都能不能成功」——<code>pass@k</code> 与 <code>pass^k</code> 会把这两个问题分开。</p>
-
-<div class="pager"><a href="index.html#w3">← Week 3</a><a href="index.html#w3">Week 3 →</a></div>
+<div class="pager"><a href="index.html#w3">← Week 3</a><a href="w3-02.html">W3 第 2 课 · Repeated Trials →</a></div>
 </article></div></div>
 <footer><div class="wrap">
 <span>Week 03 · Statistical Inference for Stochastic Agent Evals</span>

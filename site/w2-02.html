@@ -281,12 +281,21 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .layer .bar{animation:none}
   a.card:hover{transform:none}
 }
+.math-display{margin:24px 0;overflow-x:auto;text-align:center}
+.math-display mjx-container[display="true"]{margin:.65em 0!important}
 </style>
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['$', '$']], processEscapes: true},
+  options: {skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 </head><body>
 
 <header class="mast"><div class="wrap">
 <span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 02</b></span>
-<nav><a href="index.html">课程</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span><a href="w2-01.html">W2·1</a><a href="w2-02.html" class="on">W2·2</a><span class="soonnav">W2·3</span><span class="soonnav">W2·4</span><span class="soonnav">W2·5</span></nav></div></header>
+<nav><a href="index.html">课程</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span><a href="w2-01.html">W2·1</a><a href="w2-02.html" class="on">W2·2</a><span class="soonnav">W2·3</span><span class="soonnav">W2·4</span><span class="soonnav">W2·5</span><a href="w3-01.html">W3·1</a><a href="w3-02.html">W3·2</a><span class="soonnav">W3·3</span><span class="soonnav">W3·4</span><span class="soonnav">W3·5</span></nav></div></header>
 <div class="wrap"><div class="page">
 <aside class="rail"><div class="rt">本课目录</div><a href="#s0">换实现之后,还是同一个实验吗?</a><a href="#s1"><i>00</i>从第 1 课接过来</a><a href="#s2"><i>01</i>两个 backend 都返回 1,实验就等价吗?</a><a href="#s3"><i>02</i>四个边界,不是两个 Python class</a><a href="#s4"><i>03</i>Harbor 的 Agent 协议</a><a href="#s5"><i>04</i>Harbor 的 Environment 协议</a><a href="#s6"><i>05</i>Trial 才拥有生命周期</a><a href="#s7"><i>06</i>怎样证明换实现后仍是同一道题</a><a href="#s8"><i>07</i>Inspect 对照:相同名词,不同协议中心</a><a href="#s9"><i>08</i>Lab:conformance harness</a><a href="#s10">源码阅读(只答问题,不通读 backend)</a><a href="#s11">本课自检</a><a href="#s12">本课一句话</a></aside>
 <article class="doc"><h1>第 2 课:Agent / Environment / Trial 协议</h1>

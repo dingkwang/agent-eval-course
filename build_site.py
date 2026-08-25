@@ -229,6 +229,9 @@ def render_diag(kind: str, caption: str, body: str) -> str:
 
 
 _DIAG = re.compile(r"```diag[ \t]*\n(.*?)```", re.S)
+_MATH_HTML = re.compile(
+    r'<pre><code class="language-math">(.*?)</code></pre>', re.S
+)
 
 
 def expand_diagrams(md_text: str) -> str:
@@ -243,6 +246,26 @@ def expand_diagrams(md_text: str) -> str:
         return render_diag(kind, caption, rest)
 
     return _DIAG.sub(one, md_text)
+
+
+def render_math_blocks(html: str) -> str:
+    """Turn fenced `math` code blocks into MathJax display equations.
+
+    Python-Markdown intentionally treats unknown fenced languages as code. A
+    post-processing step keeps the Markdown source portable while ensuring the
+    generated site exposes the formula as math rather than a code sample.
+    HTML entities stay escaped here; the browser decodes them before MathJax
+    reads the text node.
+    """
+
+    return _MATH_HTML.sub(
+        lambda match: (
+            '<div class="math-display">\\['
+            f'{match.group(1).strip()}'
+            '\\]</div>'
+        ),
+        html,
+    )
 
 
 def ladder_figure() -> str:
@@ -547,6 +570,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .layer .bar{animation:none}
   a.card:hover{transform:none}
 }
+.math-display{margin:24px 0;overflow-x:auto;text-align:center}
+.math-display mjx-container[display="true"]{margin:.65em 0!important}
 """
 
 HEAD = """<!DOCTYPE html>
@@ -557,6 +582,13 @@ HEAD = """<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>{css}</style>
+<script>
+window.MathJax = {{
+  tex: {{inlineMath: [['$', '$']], processEscapes: true}},
+  options: {{skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']}}
+}};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 </head><body>
 """
 
@@ -755,7 +787,7 @@ def build_lesson(idx: int) -> str:
     slug, _n, _t, _d, _tag, src = LESSONS[idx]
     md_text = expand_diagrams((SRC / src).read_text())
     md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
-    html = md.convert(md_text)
+    html = render_math_blocks(md.convert(md_text))
 
     # anchor every h2 and collect the rail. Headings numbered 一、二、… get a
     # loud "§ NN" eyebrow so sections read as sections; anything else (the
@@ -842,7 +874,7 @@ def build_w2_lesson(idx: int) -> str:
     slug, n, title, _d, _tag, src = W2_LESSONS[idx]
     md_text = expand_diagrams((SRC_W2 / src).read_text())
     md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
-    html, rail_html = _anchor_h2(md.convert(md_text))
+    html, rail_html = _anchor_h2(render_math_blocks(md.convert(md_text)))
     foot = footer(
         "Week 02 · Eval Runtime & Trajectory Engineering",
         "Harbor b378332 · Inspect 499e615",
@@ -875,7 +907,7 @@ def build_w3_lesson(idx: int) -> str:
     slug, n, title, _d, _tag, src = W3_LESSONS[idx]
     md_text = expand_diagrams((SRC_W3 / src).read_text())
     md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
-    html, rail_html = _anchor_h2(md.convert(md_text))
+    html, rail_html = _anchor_h2(render_math_blocks(md.convert(md_text)))
     foot = footer(
         "Week 03 · Statistical Inference for Stochastic Agent Evals",
         "Adding Error Bars to Evals · On Randomness in Agentic Evals",

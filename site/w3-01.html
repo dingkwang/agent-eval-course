@@ -281,7 +281,16 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .layer .bar{animation:none}
   a.card:hover{transform:none}
 }
+.math-display{margin:24px 0;overflow-x:auto;text-align:center}
+.math-display mjx-container[display="true"]{margin:.65em 0!important}
 </style>
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['$', '$']], processEscapes: true},
+  options: {skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 </head><body>
 
 <header class="mast"><div class="wrap">
@@ -329,11 +338,9 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 </tr>
 </tbody></table>
 <p>把 11 行直接 pooled:</p>
-<pre><code class="language-math">\frac{10}{11}=90.9\%
-</code></pre>
+<div class="math-display">\[\frac{10}{11}=90.9\%\]</div>
 <p>如果 estimand 是「从两个 task 中等概率抽一个,再运行一次」,正确的 task-macro estimate 是:</p>
-<pre><code class="language-math">\frac{100\%+0\%}{2}=50\%
-</code></pre>
+<div class="math-display">\[\frac{100\%+0\%}{2}=50\%\]</div>
 <p>两个数都没有算术错误。<code>90.9%</code> 回答的是「从现有 11 次 attempt 中等概率抽一行」;<code>50%</code> 回答的是「先等概率抽 task,再抽一次 attempt」。</p>
 <blockquote>
 <p><strong>聚合顺序不是实现细节。它定义了你在估计哪个量。</strong></p>
@@ -439,18 +446,14 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 </tr>
 </tbody></table>
 <p>对 binary success:</p>
-<pre><code class="language-math">Y_{ij}\in\{0,1\},\qquad
-p_i=P(Y_{ij}=1\mid T_i, A, C)
-</code></pre>
+<div class="math-display">\[Y_{ij}\in\{0,1\},\qquad
+p_i=P(Y_{ij}=1\mid T_i, A, C)\]</div>
 <p>$A$ 是完整 Agent 配置,$C$ 是固定的 evaluation condition:prompt、tools、budget、environment、verifier policy 等。于是:</p>
-<pre><code class="language-math">\bar Y_i=\frac{1}{K_i}\sum_{j=1}^{K_i}Y_{ij}
-</code></pre>
-<pre><code class="language-math">\hat\mu_{\mathrm{bench}}=\frac{1}{N}\sum_{i=1}^{N}\bar Y_i
-</code></pre>
+<div class="math-display">\[\bar Y_i=\frac{1}{K_i}\sum_{j=1}^{K_i}Y_{ij}\]</div>
+<div class="math-display">\[\hat\mu_{\mathrm{bench}}=\frac{1}{N}\sum_{i=1}^{N}\bar Y_i\]</div>
 <p>若要推广到一个 task distribution $D$:</p>
-<pre><code class="language-math">\mu_D(A,C)=\mathbb E_{T\sim D}\left[P(Y=1\mid T,A,C)\right]
-=\mathbb E_{T\sim D}[p_T]
-</code></pre>
+<div class="math-display">\[\mu_D(A,C)=\mathbb E_{T\sim D}\left[P(Y=1\mid T,A,C)\right]
+=\mathbb E_{T\sim D}[p_T]\]</div>
 <h3>2.1 Estimand、estimator、estimate 不要混</h3>
 <figure class="diag"><figcaption><span>三个长得相近的词</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Estimand</div><div class="dcell">Estimator</div><div class="dcell">Estimate</div></div><div class="dcol"><div class="dh">想知道的总体量 · 例如 μ_D</div><div class="dcell">从数据算它的规则 · 例如 task means 的平均</div><div class="dcell">把本次数据代入后得到的数字 · 例如 61.4%</div></div></div></figure>
 
@@ -470,18 +473,16 @@ p_i=P(Y_{ij}=1\mid T_i, A, C)
 <figure class="diag"><figcaption><span>不同来源,不同实验杠杆</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Between-task variance</div><div class="dcell">抽到了哪些 task</div><div class="dcell">Var(p_T)</div><div class="dcell">主要靠增加 tasks N 降低</div></div><div class="dcol"><div class="dh">Within-task randomness</div><div class="dcell">同一 task 的 trajectory 走向</div><div class="dcell">E[p_T(1-p_T)]</div><div class="dcell">可用 repeated attempts K 降低</div></div></div></figure>
 
 <p>对 Bernoulli score,全概率方差给出:</p>
-<pre><code class="language-math">\mathrm{Var}(Y)
+<div class="math-display">\[\mathrm{Var}(Y)
 =\underbrace{\mathrm{Var}_T(p_T)}_{\text{between-task}}
-+\underbrace{\mathbb E_T[p_T(1-p_T)]}_{\text{within-task}}
-</code></pre>
++\underbrace{\mathbb E_T[p_T(1-p_T)]}_{\text{within-task}}\]</div>
 <p>若从 $D$ 独立抽 $N$ 个 task,每个 task 独立运行 $K$ 次,再先按 task 求均值:</p>
-<pre><code class="language-math">\mathrm{Var}(\hat\mu)
+<div class="math-display">\[\mathrm{Var}(\hat\mu)
 =\frac{1}{N}
 \left(
 \mathrm{Var}_T(p_T)
 +\frac{\mathbb E_T[p_T(1-p_T)]}{K}
-\right)
-</code></pre>
+\right)\]</div>
 <p>这条式子给出 Day 1 最重要的设计直觉:</p>
 <figure class="diag"><figcaption><span>同样多买一次 Trial,作用不一样</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">增加一个新 task</div><div class="dcell">同时获得新的难度样本</div><div class="dcell">降低两项对均值的影响</div><div class="dcell">用于推广到更多 tasks</div></div><div class="dcol"><div class="dh">给旧 task 增加一个 attempt</div><div class="dcell">只减少该 task 的 sampling noise</div><div class="dcell">只缩小 within-task 项</div><div class="dcell">用于看清 pᵢ 与可靠性</div></div></div></figure>
 

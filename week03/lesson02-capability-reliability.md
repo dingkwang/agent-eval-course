@@ -55,39 +55,39 @@ Agent A 的能力**覆盖面**很大:多试几次几乎每题都可能撞对;但
 
 沿用 Lesson 1:
 
-```math
+$$
 p_i=P(Y_{ij}=1\mid T_i,A,C)
-```
+$$
 
 假设同一 task 的 $k$ 次 attempts 在条件 $A,C$ 下 i.i.d.。对 task $i$:
 
-```math
+$$
 \operatorname{pass@k}_i
 =P(\text{k 次中至少一次成功}\mid T_i)
 =1-(1-p_i)^k
-```
+$$
 
-```math
+$$
 \operatorname{pass^k}_i
 =P(\text{k 次全部成功}\mid T_i)
 =p_i^k
-```
+$$
 
 再对目标 task distribution 做 task-macro average:
 
-```math
+$$
 \operatorname{pass@k}=\mathbb E_T[1-(1-p_T)^k]
-```
+$$
 
-```math
+$$
 \operatorname{pass^k}=\mathbb E_T[p_T^k]
-```
+$$
 
 两条曲线在 $k=1$ 相交:
 
-```math
+$$
 \operatorname{pass@1}=\operatorname{pass^1}=\mathbb E_T[p_T]
-```
+$$
 
 ![单个 task 在不同 k 下的 capability 与 reliability 曲线](assets/lesson02-single-task-curves.svg)
 
@@ -141,13 +141,13 @@ Lesson 1 规定先按 task 建模。本课现在看到原因:两个指标都是 
 
 一般来说:
 
-```math
+$$
 \mathbb E[1-(1-p_T)^k]\ne 1-(1-\mathbb E[p_T])^k
-```
+$$
 
-```math
+$$
 \mathbb E[p_T^k]\ne (\mathbb E[p_T])^k
-```
+$$
 
 这正是开场两个 Agent 的差别。Jensen inequality 还能给出方向($k\ge2$):
 
@@ -176,17 +176,17 @@ n · observed attempts | k · metric / deployment budget
 
 HumanEval/Codex 给出的 per-task unbiased estimator 是:
 
-```math
+$$
 \widehat{\operatorname{pass@k}}_i
 =1-\frac{\binom{n-c}{k}}{\binom nk}
-```
+$$
 
 τ-bench 对称地给出:
 
-```math
+$$
 \widehat{\operatorname{pass^k}}_i
 =\frac{\binom c k}{\binom nk}
-```
+$$
 
 直觉不是「估一个 $p$ 再做幂」,而是:
 
@@ -194,23 +194,23 @@ HumanEval/Codex 给出的 per-task unbiased estimator 是:
 
 然后 task-macro average:
 
-```math
+$$
 \widehat{\operatorname{pass@k}}
 =\frac1N\sum_i\left(1-\frac{\binom{n_i-c_i}{k}}{\binom{n_i}{k}}\right)
-```
+$$
 
-```math
+$$
 \widehat{\operatorname{pass^k}}
 =\frac1N\sum_i\frac{\binom{c_i}{k}}{\binom{n_i}{k}}
-```
+$$
 
 ### 3.1 为什么直接代入 $\hat p_i=c_i/n_i$ 会偏
 
 常见 shortcut:
 
-```math
+$$
 1-(1-c/n)^k,\qquad(c/n)^k
-```
+$$
 
 因为非线性,有限样本中它们不是上面目标的 unbiased estimator。对 $k\ge2$:
 
@@ -275,9 +275,9 @@ Anthropic 的实践说明:残留文件、共享 cache、资源耗尽会让 trial
 
 定义同一个 $k$ 下的展示量:
 
-```math
+$$
 G_k=\operatorname{pass@k}-\operatorname{pass^k}
-```
+$$
 
 ```diag
 compare | gap 何时宽,何时窄

@@ -281,14 +281,23 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .layer .bar{animation:none}
   a.card:hover{transform:none}
 }
+.math-display{margin:24px 0;overflow-x:auto;text-align:center}
+.math-display mjx-container[display="true"]{margin:.65em 0!important}
 </style>
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['$', '$']], processEscapes: true},
+  options: {skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 </head><body>
 
 <header class="mast"><div class="wrap">
 <span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 03</b></span>
 <nav><a href="index.html">课程</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span><a href="w2-01.html">W2·1</a><a href="w2-02.html">W2·2</a><span class="soonnav">W2·3</span><span class="soonnav">W2·4</span><span class="soonnav">W2·5</span><a href="w3-01.html">W3·1</a><a href="w3-02.html" class="on">W3·2</a><span class="soonnav">W3·3</span><span class="soonnav">W3·4</span><span class="soonnav">W3·5</span></nav></div></header>
 <div class="wrap"><div class="page">
-<aside class="rail"><div class="rt">本课目录</div><a href="#s0">同一个 Agent「有时能做到」和「每次都能做到」是两件事</a><a href="#s1"><i>00</i>先看两个 pass@1=50% 的 Agent</a><a href="#s2"><i>01</i>先定义产品事件,再写公式</a><a href="#s3"><i>02</i>为什么不能把 pooled success rate 代进公式</a><a href="#s4"><i>03</i>总体定义不是有限样本 estimator</a><a href="#s5"><i>04</i>i.i.d. 不是一个无害的小字</a><a href="#s6"><i>05</i>Reliability gap 有用,但不是无条件的「随机性分数」</a><a href="#s7"><i>06</i>真实数据:随机性不是 temperature 开关</a><a href="#s8"><i>07</i>Don&#39;t Pass@k 到底反对什么?</a><a href="#s9"><i>08</i>Lab:从 canonical rows 生成四张图</a><a href="#s10"><i>09</i>读材料时只回答这些问题</a><a href="#s11">本课自检</a><a href="#s12">本课一句话</a></aside>
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">同一个 Agent「有时能做到」和「每次都能做到」是两件事</a><a href="#s1"><i>00</i>先看两个 pass@1=50% 的 Agent</a><a href="#s2"><i>01</i>先定义产品事件,再写公式</a><a href="#s3"><i>02</i>为什么不能把 pooled success rate 代进公式</a><a href="#s4"><i>03</i>总体定义不是有限样本 estimator</a><a href="#s5"><i>04</i>i.i.d. 不是一个无害的小字</a><a href="#s6"><i>05</i>Reliability gap 有用,但不是无条件的「随机性分数」</a><a href="#s7"><i>06</i>真实数据:随机性不是 temperature 开关</a><a href="#s8"><i>07</i>Don't Pass@k 到底反对什么?</a><a href="#s9"><i>08</i>Lab:从 canonical rows 生成四张图</a><a href="#s10"><i>09</i>读材料时只回答这些问题</a><a href="#s11">本课自检</a><a href="#s12">本课一句话</a></aside>
 <article class="doc"><h1>第 2 课:Repeated Trials——Capability 与 Reliability</h1>
 <h2 id="s0" class="sub">同一个 Agent「有时能做到」和「每次都能做到」是两件事</h2>
 <p><strong>Week 3 Day 2</strong> · 统计推断课 · 建议 70 分钟 + lab</p>
@@ -296,8 +305,6 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 <h3>本课唯一命题</h3>
 <h1><code>pass@k</code> 和 <code>pass^k</code> 不是同一个指标的两种写法。</h1>
 <h1>前者问 k 次里能否至少成功一次;后者问 k 次是否全部成功。选哪一个由产品使用方式决定。</h1>
-</blockquote>
-<blockquote>
 <p>📄 HumanEval/Codex §2.1、Appendix A · <code>pass@k</code> finite-sample estimator
 📄 τ-bench §3 · <code>pass^k</code> reliability metric
 📄 <em>On Randomness in Agentic Evals</em> §2.3–3
@@ -305,7 +312,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 </blockquote>
 <figure class="diag"><figcaption><span>相同的 repeated trials,两个相反的问题</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Capability coverage · pass@k</div><div class="dcell">k 次中至少一次成功</div><div class="dcell">retry / search / candidate generation</div><div class="dcell">随 k 单调上升</div><div class="dcell">需要能识别或选出成功结果</div></div><div class="dcol"><div class="dh">Reliability · pass^k</div><div class="dcell">k 次必须全部成功</div><div class="dcell">repeated customer-facing execution</div><div class="dcell">随 k 单调下降</div><div class="dcell">不允许一次坏结果混过去</div></div></div></figure>
 
-<hr>
+<hr />
 <h2 id="s1"><span class="hn">§ 00</span>先看两个 <code>pass@1=50%</code> 的 Agent</h2>
 <p>100 个 task,两种完全不同的 task-level success probability 分布:</p>
 <figure class="diag"><figcaption><span>平均分相同,行为结构不同</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Agent A · uniform stochastic</div><div class="dcell">每个 task 都有 pᵢ=0.5</div><div class="dcell">每道题都可能成也可能败</div><div class="dcell">pass@1 = 50%</div></div><div class="dcol"><div class="dh">Agent B · polarized specialist</div><div class="dcell">50 个 task pᵢ=1,另 50 个 pᵢ=0</div><div class="dcell">会的题永远会,不会的题永远不会</div><div class="dcell">pass@1 = 50%</div></div></div></figure>
@@ -315,52 +322,66 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 <thead>
 <tr>
 <th>Agent</th>
-<th align="right"><code>pass@1</code></th>
-<th align="right"><code>pass@5</code></th>
-<th align="right"><code>pass^5</code></th>
+<th style="text-align: right;"><code>pass@1</code></th>
+<th style="text-align: right;"><code>pass@5</code></th>
+<th style="text-align: right;"><code>pass^5</code></th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>A:每题 $p_i=0.5$</td>
-<td align="right">50.0%</td>
-<td align="right">96.875%</td>
-<td align="right">3.125%</td>
+<td style="text-align: right;">50.0%</td>
+<td style="text-align: right;">96.875%</td>
+<td style="text-align: right;">3.125%</td>
 </tr>
 <tr>
 <td>B:一半 $p_i=1$,一半 $p_i=0$</td>
-<td align="right">50.0%</td>
-<td align="right">50.0%</td>
-<td align="right">50.0%</td>
+<td style="text-align: right;">50.0%</td>
+<td style="text-align: right;">50.0%</td>
+<td style="text-align: right;">50.0%</td>
 </tr>
-</tbody></table>
-<p><img src="assets/lesson02-same-pass1.svg" alt="两个 pass@1 相同的 Agent 有完全不同的 pass 曲线"></p>
+</tbody>
+</table>
+<p><img alt="两个 pass@1 相同的 Agent 有完全不同的 pass 曲线" src="assets/lesson02-same-pass1.svg" /></p>
 <p>Agent A 的能力<strong>覆盖面</strong>很大:多试几次几乎每题都可能撞对;但一致性差。Agent B 的能力边界很硬:重试没有帮助,但它会做的题非常稳定。</p>
 <blockquote>
 <p><strong><code>pass@1</code> 只告诉你 $\mathbb E[p_i]$,没有告诉你 $p_i$ 在 tasks 之间怎样分布。</strong></p>
 </blockquote>
-<hr>
+<hr />
 <h2 id="s2"><span class="hn">§ 01</span>先定义产品事件,再写公式</h2>
 <p>沿用 Lesson 1:</p>
-<pre><code class="language-math">p_i=P(Y_{ij}=1\mid T_i,A,C)
-</code></pre>
+<div class="math-display">\[
+p_i=P(Y_{ij}=1\mid T_i,A,C)
+\]</div>
+
 <p>假设同一 task 的 $k$ 次 attempts 在条件 $A,C$ 下 i.i.d.。对 task $i$:</p>
-<pre><code class="language-math">\operatorname{pass@k}_i
+<div class="math-display">\[
+\operatorname{pass@k}_i
 =P(\text{k 次中至少一次成功}\mid T_i)
 =1-(1-p_i)^k
-</code></pre>
-<pre><code class="language-math">\operatorname{pass^k}_i
+\]</div>
+
+<div class="math-display">\[
+\operatorname{pass^k}_i
 =P(\text{k 次全部成功}\mid T_i)
 =p_i^k
-</code></pre>
+\]</div>
+
 <p>再对目标 task distribution 做 task-macro average:</p>
-<pre><code class="language-math">\operatorname{pass@k}=\mathbb E_T[1-(1-p_T)^k]
-</code></pre>
-<pre><code class="language-math">\operatorname{pass^k}=\mathbb E_T[p_T^k]
-</code></pre>
+<div class="math-display">\[
+\operatorname{pass@k}=\mathbb E_T[1-(1-p_T)^k]
+\]</div>
+
+<div class="math-display">\[
+\operatorname{pass^k}=\mathbb E_T[p_T^k]
+\]</div>
+
 <p>两条曲线在 $k=1$ 相交:</p>
-<pre><code class="language-math">\operatorname{pass@1}=\operatorname{pass^1}=\mathbb E_T[p_T]
-</code></pre>
-<p><img src="assets/lesson02-single-task-curves.svg" alt="单个 task 在不同 k 下的 capability 与 reliability 曲线"></p>
+<div class="math-display">\[
+\operatorname{pass@1}=\operatorname{pass^1}=\mathbb E_T[p_T]
+\]</div>
+
+<p><img alt="单个 task 在不同 k 下的 capability 与 reliability 曲线" src="assets/lesson02-single-task-curves.svg" /></p>
 <h3>1.1 <code>pass@k</code> 的「成功选择器」藏在哪里?</h3>
 <p>HumanEval 的定义是:为一道题生成 $k$ 个 samples,只要<strong>任意一个</strong>通过 unit tests 就算 solved。这里实际上有一个 oracle-quality selector——测试知道哪个 sample 是对的。</p>
 <figure class="diag"><figcaption><span>pass@k 什么时候是可部署指标</span></figcaption><div class="dflow"><div class="dstep">生成 k 个独立 candidates</div><div class="darr">↓</div><div class="dstep">有 verifier / tests 能识别成功</div><div class="darr">↓</div><div class="dstep">允许选择成功 candidate</div><div class="darr">↓</div><div class="dstep">部署成本包含 k 次 inference + verification</div></div></figure>
@@ -374,7 +395,7 @@ pass^10 = 59.9%
 pass^50 = 7.7%
 </code></pre>
 <p>低 <code>pass^50</code> 不等于单次成功率只有 7.7%;它表示连续 50 次全部无错是很高的门槛。报告时必须同时写 $k$。</p>
-<hr>
+<hr />
 <h2 id="s3"><span class="hn">§ 02</span>为什么不能把 pooled success rate 代进公式</h2>
 <p>Lesson 1 规定先按 task 建模。本课现在看到原因:两个指标都是 $p_i$ 的<strong>非线性函数</strong>。</p>
 <p>错误算法:</p>
@@ -386,42 +407,56 @@ pass^50 = 7.7%
 再跨 tasks 等权平均
 </code></pre>
 <p>一般来说:</p>
-<pre><code class="language-math">\mathbb E[1-(1-p_T)^k]\ne 1-(1-\mathbb E[p_T])^k
-</code></pre>
-<pre><code class="language-math">\mathbb E[p_T^k]\ne (\mathbb E[p_T])^k
-</code></pre>
+<div class="math-display">\[
+\mathbb E[1-(1-p_T)^k]\ne 1-(1-\mathbb E[p_T])^k
+\]</div>
+
+<div class="math-display">\[
+\mathbb E[p_T^k]\ne (\mathbb E[p_T])^k
+\]</div>
+
 <p>这正是开场两个 Agent 的差别。Jensen inequality 还能给出方向($k\ge2$):</p>
 <figure class="diag"><figcaption><span>先 pooled 再变换会向哪边错</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">pass@k · concave transform</div><div class="dcell">1-(1-E[p])^k 偏高</div><div class="dcell">把 capability coverage 说得太乐观</div></div><div class="dcol"><div class="dh">pass^k · convex transform</div><div class="dcell">E[p]^k 偏低</div><div class="dcell">把 deterministic specialists 说得太不可靠</div></div></div></figure>
 
 <p>注意:这是<strong>跨 task aggregation error</strong>。下一节还有另一种不同的错误:每个 task 只观察有限 attempts 时的 plug-in bias。</p>
-<hr>
+<hr />
 <h2 id="s4"><span class="hn">§ 03</span>总体定义不是有限样本 estimator</h2>
 <p>真实实验不知道 $p_i$。对 task $i$,我们只运行 $n$ 次,其中 $c$ 次成功。</p>
 <figure class="diag"><figcaption><span>n 和 k 不准混</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">n · observed attempts</div><div class="dcell">为了估计而实际收集多少次</div><div class="dcell">必须 n ≥ k</div><div class="dcell">例:n=10</div></div><div class="dcol"><div class="dh">k · metric / deployment budget</div><div class="dcell">问随机取多少次时的产品事件</div><div class="dcell">可以画 1…n 的曲线</div><div class="dcell">例:报告 pass@5 / pass^5</div></div></div></figure>
 
 <p>HumanEval/Codex 给出的 per-task unbiased estimator 是:</p>
-<pre><code class="language-math">\widehat{\operatorname{pass@k}}_i
+<div class="math-display">\[
+\widehat{\operatorname{pass@k}}_i
 =1-\frac{\binom{n-c}{k}}{\binom nk}
-</code></pre>
+\]</div>
+
 <p>τ-bench 对称地给出:</p>
-<pre><code class="language-math">\widehat{\operatorname{pass^k}}_i
+<div class="math-display">\[
+\widehat{\operatorname{pass^k}}_i
 =\frac{\binom c k}{\binom nk}
-</code></pre>
+\]</div>
+
 <p>直觉不是「估一个 $p$ 再做幂」,而是:</p>
 <blockquote>
 <p>从已经观察到的 $n$ 次 attempts 中,不放回地随机选 $k$ 次;有多少个组合满足至少一次成功 / 全部成功?</p>
 </blockquote>
 <p>然后 task-macro average:</p>
-<pre><code class="language-math">\widehat{\operatorname{pass@k}}
+<div class="math-display">\[
+\widehat{\operatorname{pass@k}}
 =\frac1N\sum_i\left(1-\frac{\binom{n_i-c_i}{k}}{\binom{n_i}{k}}\right)
-</code></pre>
-<pre><code class="language-math">\widehat{\operatorname{pass^k}}
+\]</div>
+
+<div class="math-display">\[
+\widehat{\operatorname{pass^k}}
 =\frac1N\sum_i\frac{\binom{c_i}{k}}{\binom{n_i}{k}}
-</code></pre>
+\]</div>
+
 <h3>3.1 为什么直接代入 $\hat p_i=c_i/n_i$ 会偏</h3>
 <p>常见 shortcut:</p>
-<pre><code class="language-math">1-(1-c/n)^k,\qquad(c/n)^k
-</code></pre>
+<div class="math-display">\[
+1-(1-c/n)^k,\qquad(c/n)^k
+\]</div>
+
 <p>因为非线性,有限样本中它们不是上面目标的 unbiased estimator。对 $k\ge2$:</p>
 <ul>
 <li>plug-in <code>pass@k</code> 通常向下偏;</li>
@@ -438,7 +473,7 @@ pass^k_hat ≤ pass@1_hat ≤ pass@k_hat
 pass@k 随 k 不下降;pass^k 随 k 不上升
 n&lt;k:  undefined,不能外推成一个数字
 </code></pre>
-<hr>
+<hr />
 <h2 id="s5"><span class="hn">§ 04</span>i.i.d. 不是一个无害的小字</h2>
 <p>公式把 attempts 看作在同一个 $(T_i,A,C)$ 下的独立同分布重复。</p>
 <figure class="diag"><figcaption><span>一次合法的 repeated-attempt protocol</span></figcaption><div class="dgrid"><div class="gcell"><b>same SUT</b><span>model · harness · prompt/tools/config 不变</span></div><div class="gcell"><b>same task semantics</b><span>instruction · initial state · verifier 不变</span></div><div class="gcell"><b>fresh environment</b><span>不继承文件、数据库、git history、cache 答案</span></div><div class="gcell"><b>independent randomness</b><span>不复用上一次 trajectory 或 feedback</span></div><div class="gcell"><b>recorded conditions</b><span>temperature · provider · budget · infra version 可审计</span></div></div></figure>
@@ -450,11 +485,13 @@ n&lt;k:  undefined,不能外推成一个数字
 <h3>4.2 共享故障会制造相关性</h3>
 <p>Anthropic 的实践说明:残留文件、共享 cache、资源耗尽会让 trials 不独立。同一个 provider incident 也可能让一整列 attempts 同时失败。</p>
 <p>这不会靠组合数公式自动消失。canonical table 应保留 run/batch/infra identity,Lesson 3 再决定 cluster-aware uncertainty;Week 6 决定 infra failure 的分母语义。</p>
-<hr>
+<hr />
 <h2 id="s6"><span class="hn">§ 05</span>Reliability gap 有用,但不是无条件的「随机性分数」</h2>
 <p>定义同一个 $k$ 下的展示量:</p>
-<pre><code class="language-math">G_k=\operatorname{pass@k}-\operatorname{pass^k}
-</code></pre>
+<div class="math-display">\[
+G_k=\operatorname{pass@k}-\operatorname{pass^k}
+\]</div>
+
 <figure class="diag"><figcaption><span>gap 何时宽,何时窄</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">pᵢ 接近 0 或 1</div><div class="dcell">重试很少改变 task outcome</div><div class="dcell">pass curves 靠近</div></div><div class="dcol"><div class="dh">pᵢ 在中间</div><div class="dcell">favorable / unfavorable path 都常见</div><div class="dcell">pass curves 分开</div></div></div></figure>
 
 <p>$G_k$ 的正确读法:</p>
@@ -465,7 +502,7 @@ n&lt;k:  undefined,不能外推成一个数字
 <li>换一套更难或更异质的 tasks,gap 也会变,所以它不是脱离 benchmark 的 Agent 常数。</li>
 </ul>
 <p>对于 deterministic task probabilities($p_i\in{0,1}$),三条曲线完全重合。开场的 Agent B 就是这个极端。</p>
-<hr>
+<hr />
 <h2 id="s7"><span class="hn">§ 06</span>真实数据:随机性不是 temperature 开关</h2>
 <p><em>On Randomness in Agentic Evals</em> 对 SWE-bench Verified 收集 60,000 条 trajectories。DeepSWE-preview + R2E-Gym 的例子:</p>
 <pre><code class="language-text">pass@1 = 34.4%
@@ -476,9 +513,9 @@ pass^5 = 15.5%   · all-five reliability
 <figure class="diag"><figcaption><span>长轨迹怎样把微小差异变成 outcome 差异</span></figcaption><div class="dflow"><div class="dstep">早期 token / tool call 分叉</div><div class="darr">↓</div><div class="dstep">不同 environment response</div><div class="darr">↓</div><div class="dstep">后续 context 改变</div><div class="darr">↓</div><div class="dstep">策略路径继续分离</div><div class="darr">↓</div><div class="dstep">最终一条 PASS · 一条 FAIL</div></div></figure>
 
 <p>这些数字是该论文六种 model–scaffold configurations 上的实证结果,不是所有 agent benchmark 的固定规律。课程引用它是为了证明 repeated trials 有现实必要,不是把 coding-agent 方差外推到所有领域。</p>
-<hr>
-<h2 id="s8"><span class="hn">§ 07</span><code>Don&#39;t Pass@k</code> 到底反对什么?</h2>
-<p>ICLR 2026 的 <em>Don&#39;t Pass@k</em> 关注的是:当 task 数和 trials 都少、$k$ 接近已收集的 $n$ 时,用 <code>pass@k</code> 给模型做 leaderboard ranking 可能不稳定,又缺少显式 uncertainty。论文提出 Bayesian posterior mean + credible interval 作为替代排名协议。</p>
+<hr />
+<h2 id="s8"><span class="hn">§ 07</span><code>Don't Pass@k</code> 到底反对什么?</h2>
+<p>ICLR 2026 的 <em>Don't Pass@k</em> 关注的是:当 task 数和 trials 都少、$k$ 接近已收集的 $n$ 时,用 <code>pass@k</code> 给模型做 leaderboard ranking 可能不稳定,又缺少显式 uncertainty。论文提出 Bayesian posterior mean + credible interval 作为替代排名协议。</p>
 <figure class="diag"><figcaption><span>不要把争论压成「pass@k 好 / 坏」</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">作为产品 estimand</div><div class="dcell">有 k 次预算且能选出成功结果时有意义</div><div class="dcell">回答 capability coverage</div><div class="dcell">保留,并报告 cost / k / protocol</div></div><div class="dcol"><div class="dh">作为默认 leaderboard estimator</div><div class="dcell">小 n、无 interval 时可能排名不稳</div><div class="dcell">不自动回答 A 是否显著优于 B</div><div class="dcell">配合 Lesson 3–4 的 uncertainty 与 comparison</div></div></div></figure>
 
 <p>所以本课不把论文读成「删除 <code>pass@k</code>」。讨论题是:</p>
@@ -486,7 +523,7 @@ pass^5 = 15.5%   · all-five reliability
 <p><code>pass@k</code> 在这份报告里究竟是部署事件、capability envelope,还是拿来强行排出一个赢家的 leaderboard statistic?</p>
 </blockquote>
 <p>三者需要的证据不同。</p>
-<hr>
+<hr />
 <h2 id="s9"><span class="hn">§ 08</span>Lab:从 canonical rows 生成四张图</h2>
 <h3>8.1 参考实现</h3>
 <pre><code class="language-python">from math import comb
@@ -503,8 +540,7 @@ def pass_hat_k(n: int, c: int, k: int) -&gt; float:
 </code></pre>
 <p><code>math.comb(a,k)</code> 在 $a&lt;k$ 时返回 0,正好覆盖「成功数不足 k」或「失败数不足 k」的边界。大 $n$ 时可改用 HumanEval 的 product-form 实现避免巨大组合数在其他语言中溢出。</p>
 <h3>8.2 四张图,每张只回答一个问题</h3>
-<figure class="diag"><figcaption><span>Lesson 2 plots</span></figcaption><div class="dgrid"><div class="gcell"><b>1 · task-attempt heatmap</b><span>哪些 task 稳定成功 / 失败 / 红绿相间?</span></div><div class="gcell"><b>2 · pass curves</b><span>pass@k 上升、pass^k 下降得多快?</span></div><div class="gcell"><b>3 · ordered task rates</b><span>cᵢ/nᵢ 是 polarized 还是集中在中间?</span></div><div class="gcell"><b>4 · reliability gap</b><span>同一 k 下两条曲线相距多少?</span></div></div></figure>
-
+<p><figure class="diag"><figcaption><span>Lesson 2 plots</span></figcaption><div class="dgrid"><div class="gcell"><b>1 · task-attempt heatmap</b><span>哪些 task 稳定成功 / 失败 / 红绿相间?</span></div><div class="gcell"><b>2 · pass curves</b><span>pass@k 上升、pass^k 下降得多快?</span></div><div class="gcell"><b>3 · ordered task rates</b><span>cᵢ/nᵢ 是 polarized 还是集中在中间?</span></div><div class="gcell"><b>4 · reliability gap</b><span>同一 k 下两条曲线相距多少?</span></div></div></figure></p>
 <p>Plot 2 必须同时显示:</p>
 <pre><code class="language-text">x = k
 y = benchmark task-macro estimate
@@ -522,7 +558,7 @@ caption = N tasks, n attempts/task, eligible tasks at each k
 [ ] Agent A/B toy example 复现开场表格
 [ ] null / infra rows 未被静默当作 failure 或删除
 </code></pre>
-<hr>
+<hr />
 <h2 id="s10"><span class="hn">§ 09</span>读材料时只回答这些问题</h2>
 <h3>HumanEval/Codex</h3>
 <ul>
@@ -541,7 +577,7 @@ caption = N tasks, n attempts/task, eligible tasks at each k
 <h3>2026 两篇讨论材料</h3>
 <ul>
 <li><em>On Randomness</em> 的 60,000 trajectories 证明了什么,没有证明什么?</li>
-<li><em>Don&#39;t Pass@k</em> 反对的是产品 estimand,还是用小样本 point estimate 排行?</li>
+<li><em>Don't Pass@k</em> 反对的是产品 estimand,还是用小样本 point estimate 排行?</li>
 <li>如果报告 credible interval,是否就解决了 task validity 和 verifier validity?为什么没有?</li>
 </ul>
 <p>来源:</p>
@@ -549,10 +585,10 @@ caption = N tasks, n attempts/task, eligible tasks at each k
 <li><a href="https://arxiv.org/abs/2107.03374">Evaluating Large Language Models Trained on Code</a></li>
 <li><a href="https://arxiv.org/abs/2406.12045">τ-bench</a></li>
 <li><a href="https://arxiv.org/abs/2602.07150">On Randomness in Agentic Evals</a></li>
-<li><a href="https://arxiv.org/abs/2510.04265">Don&#39;t Pass@k</a></li>
+<li><a href="https://arxiv.org/abs/2510.04265">Don't Pass@k</a></li>
 <li><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">Anthropic: Demystifying evals for AI agents</a></li>
 </ul>
-<hr>
+<hr />
 <h2 id="s11">本课自检</h2>
 <pre><code class="language-text">[ ] 能用产品语言区分 pass@k 与 pass^k
 [ ] 能从 pᵢ 推导 1-(1-pᵢ)^k 与 pᵢ^k
@@ -562,17 +598,16 @@ caption = N tasks, n attempts/task, eligible tasks at each k
 [ ] 能说明 pass@k 的 verifier / oracle-selection 假设
 [ ] 能识别 adaptive retry 已经改变了 SUT
 [ ] 能说出 reliability gap 的三个比较限制
-[ ] 能解释 Don&#39;t Pass@k 为什么不是简单地宣布 pass@k 无效
+[ ] 能解释 Don't Pass@k 为什么不是简单地宣布 pass@k 无效
 [ ] 能从 canonical rows 生成四张图并通过 monotonicity tests
 </code></pre>
-<hr>
+<hr />
 <h2 id="s12">本课一句话</h2>
 <blockquote>
 <p><strong><code>pass@k</code> 衡量「给足 k 次机会能不能找到成功路径」;<code>pass^k</code> 衡量「随机取 k 次能不能零失败」。</strong>
 <strong>先按 task 用有限样本 estimator,再跨 task 平均;指标回答哪个产品事件,必须和 $k$、选择器、成本与 independence protocol 一起报告。</strong></p>
 </blockquote>
 <p>下一课:两条曲线都是 point estimates。40 tasks × 10 attempts 为什么仍不是 400 个独立 observations,95% error bar 应怎样匹配 task 层级?</p>
-
 <div class="pager"><a href="w3-01.html">← W3 第 1 课 · Observation、Experimental Unit 与 Estimand</a><a href="index.html#w3">Week 3 →</a></div>
 </article></div></div>
 <footer><div class="wrap">

@@ -55,6 +55,14 @@ termination | stop 失败是否仍被记成成功
 
 本课的 conformance 查的是这六项,不是 `score_A == score_B`。
 
+```diag
+compare | 接得上 ≠ 实验还在
+API shape 对上 | 实验语义还在
+setup / run 都实现了 | instruction 一字不改
+start / exec / stop 都有 | 相同 action → 相同可见状态
+分数是 1 | 终态 digest + 终止原因相同
+```
+
 ---
 
 ## 二、四个边界,不是两个 Python class
@@ -109,7 +117,9 @@ Trial 在 `setup()` **之前**把 `environment.default_user` 设好(`trial/trial
 
 `NopAgent.setup/run` 都是 `pass`(`nop.py`)。负控:非平凡题若 Nop 也能过,初态或 verifier 漏了答案。
 
-`OracleAgent` 读 `Task(task_dir)` 的 reference solution,upload 再 `exec`(`oracle.py`)。正控:Oracle 不过,先查题/环境/尺子,再查模型。它**不是** leaderboard 上的 SUT,是 harness diagnostic。Oracle 额外握着 `task_dir`,这是特权,不是普通 Agent 协议。
+`OracleAgent.__init__` 拿 `task_dir`(`oracle.py`)。`run()` 把 solution dir **upload** 进环境,再 `exec` 那份脚本。正控:Oracle 不过,先查题/环境/尺子,再查模型。它**不是** leaderboard 上的 SUT,是 harness diagnostic。
+
+`task_dir` 在 sandbox 外面。普通 Agent 协议只有 `instruction` + `environment` + `context`;Oracle 多握一份宿主机题目目录,这是特权。Lab 里的 `OracleAgent(solution=hidden["expected"])` 是同一件事的缩写:答案从构造函数进,不从 `/workspace` 读。
 
 ```diag
 grid | 最小 sanity matrix
@@ -196,12 +206,20 @@ instruction / 可见文件 / limits | 初态 · 动作序列 · 终态 · 终止
 ```diag
 grid | conformance 最小阵
 Nop | 两 backend 都 FAIL
-Oracle | 两 backend 都 PASS
-Scripted valid | 终态 digest 相同
-Hint-injecting adapter | 即使 PASS 也必须被拒绝
+Oracle | 两 backend 都 PASS(特权:构造函数带 hidden payload)
+Scripted valid · 走 exec | 终态 digest 相同
+Hint-injecting adapter | reward 可以是 1,status 必须是 ADAPTER_VIOLATION
 ```
 
-Local backend 是教学实现,不是 Harbor 官方 backend:每 Trial 新临时目录,不准把宿主机任意路径暴露给 Agent。
+```diag
+compare | 两种 Agent 看见的信息
+协议内 Agent | 特权 Oracle
+instruction + /workspace 可见文件 | 另外拿到 task_dir / hidden solution
+只能走 exec / read / write | Harbor:upload solution 再 exec
+换 backend 必须仍能跑同一组 probe | 正控失败先查题,不查模型
+```
+
+Local backend 是教学实现,不是 Harbor 官方 backend:每 Trial 新临时目录,不准把宿主机任意路径暴露给 Agent。Docker lab 是 **host workspace bind-mount + `docker run --rm`**,因为这台机器上 `docker exec` 会丢 stdout;不要把它读成 Harbor 的 docker backend。
 
 ---
 
@@ -238,7 +256,19 @@ python3 -m pytest labs/eval-runtime/tests/test_agent_contract.py \
   labs/eval-runtime/tests/test_differential.py
 ```
 
-四个 Agent:Null / Oracle / ScriptedInvalid(写 41) / HintInjecting(给答案)。hidden verifier 输入不准进 Adapter。Local 必测;Docker 在有 daemon 时测,没有则 skip。
+四个 Agent:
+
+```
+Null              负控,终态不变,reward=0
+Oracle            正控,构造函数带 hidden payload(不是从 /workspace 算出来)
+ScriptedValid     用 exec 写 42 —— 这才走 backend 的命令通道
+ScriptedInvalid   用 exec 写 41
+HintInjecting     改 instruction 再跑 ScriptedValid:reward 仍是 1,status 必须 ADAPTER_VIOLATION
+```
+
+hidden verifier 字节不准出现在 workspace。不支持的 OS capability 必须 `UNSUPPORTED`,不能装成能跑。`CancelledError` 仍走 `finally` 停环境。
+
+Local 必测;Docker 在 `docker run --rm python:3.12-slim-bookworm` 能打印 `ok` 时测,否则 skip。
 
 这是第 5 天不变量 2 的种子,不是 EvalRT Core 全文。
 
@@ -265,6 +295,8 @@ Inspect:只看 `AgentState → AgentState` 和 `SandboxEnvironment.exec/read_fil
 [ ] 能从 Trial.run() 画出成功 / 异常 / 取消 / cleanup
 [ ] 能定义 input equivalence 与 execution equivalence
 [ ] 能解释为什么相同 final score 不能证明两个 backend 等价
+[ ] 能说出 HintInjecting 即使 reward=1 也必须是 ADAPTER_VIOLATION
+[ ] 能说出 Oracle 的特权从哪来(Harbor:task_dir;lab:构造函数 payload)
 ```
 
 ---

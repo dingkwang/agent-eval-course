@@ -1,8 +1,12 @@
-"""Positive control: compute the sum from the fixture. Not a leaderboard SUT."""
+"""Positive control: privileged payload, not a leaderboard SUT.
+
+Harbor OracleAgent.__init__ takes task_dir and uploads the reference
+solution. This lab constructor takes the hidden bytes instead — the
+answer does not come from /workspace.
+"""
 
 from protocol import AgentCapabilities, AgentRun, EnvironmentLease, Recorder
 
-INPUT = "/workspace/input.txt"
 ANSWER = "/workspace/answer.txt"
 
 
@@ -10,6 +14,9 @@ class OracleAgent:
     name = "oracle"
     version = "1.0.0"
     capabilities = AgentCapabilities(supports_os=frozenset({"linux"}))
+
+    def __init__(self, solution: bytes) -> None:
+        self._solution = solution
 
     async def setup(self, env: EnvironmentLease) -> None:
         return None
@@ -21,7 +28,5 @@ class OracleAgent:
         recorder: Recorder,
     ) -> AgentRun:
         recorder.delivered_instruction = instruction
-        raw = await env.read(INPUT)
-        a, b = raw.decode().split()
-        await env.write(ANSWER, f"{int(a) + int(b)}\n".encode())
+        await env.write(ANSWER, self._solution)
         return AgentRun(ok=True, delivered_instruction=instruction)

@@ -69,7 +69,7 @@ class DockerLease(LocalLease):
 
 
 class DockerEnvironment:
-    capabilities = EnvironmentCapabilities(isolation="bind-mount")
+    capabilities = EnvironmentCapabilities(isolation="bind-mount", os="linux")
 
     async def start(self, task: TaskBundle, owner_id: str) -> DockerLease:
         if not docker_available():

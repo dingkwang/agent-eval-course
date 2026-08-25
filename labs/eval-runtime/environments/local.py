@@ -103,7 +103,7 @@ class LocalLease:
 
 
 class LocalEnvironment:
-    capabilities = EnvironmentCapabilities(isolation="tempdir")
+    capabilities = EnvironmentCapabilities(isolation="tempdir", os="linux")
 
     async def start(self, task: TaskBundle, owner_id: str) -> LocalLease:
         root = Path(tempfile.mkdtemp(prefix=f"evalrt-{owner_id}-"))

@@ -96,3 +96,14 @@ def test_operations_after_stop_are_rejected() -> None:
             await lease.read("/workspace/input.txt")
 
     asyncio.run(probe())
+
+
+def test_exec_timeout_is_a_defined_result() -> None:
+    async def probe() -> None:
+        env = LocalEnvironment()
+        lease = await env.start(SUM_TASK, "t-to")
+        got = await lease.exec(["sleep", "2"], timeout=0.2)
+        assert got.return_code == 124
+        await lease.stop()
+
+    asyncio.run(probe())

@@ -1,3 +1,4 @@
+from adapters.oracle import OracleAgent
 from protocol import TaskBundle
 
 SUM_TASK = TaskBundle(
@@ -9,3 +10,7 @@ SUM_TASK = TaskBundle(
     fixtures={"/workspace/input.txt": b"19 23\n"},
     hidden={"expected": b"42\n"},
 )
+
+
+def oracle() -> OracleAgent:
+    return OracleAgent(SUM_TASK.hidden["expected"])

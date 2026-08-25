@@ -173,6 +173,10 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
   border-left:4px solid var(--signal);border-radius:0 8px 8px 0;color:var(--ink)}
 .doc blockquote p{margin:6px 0}
 .doc blockquote h3{margin-top:2px}
+.doc blockquote h1{font-family:"Archivo",sans-serif;font-weight:700;
+  font-size:clamp(18px,2.4vw,24px);line-height:1.35;letter-spacing:-.012em;
+  margin:8px 0 6px;color:var(--ink)}
+.doc blockquote h1 + h1{color:var(--signal);font-size:clamp(15px,2vw,18px);font-weight:600}
 .doc table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;
   background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
 .doc th,.doc td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
@@ -312,6 +316,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 <figure class="diag"><figcaption><span>final score 相同没有证明的东西</span></figcaption><div class="dgrid"><div class="gcell"><b>task information</b><span>有没有被 adapter 加料</span></div><div class="gcell"><b>initial state</b><span>有没有上次 Trial 的残留</span></div><div class="gcell"><b>action semantics</b><span>user / cwd / mkdir / timeout 是否一致</span></div><div class="gcell"><b>state transition</b><span>相同动作是否落到相同可见状态</span></div><div class="gcell"><b>verifier input</b><span>尺子读到的是不是同一份最终态</span></div><div class="gcell"><b>termination</b><span>stop 失败是否仍被记成成功</span></div></div></figure>
 
 <p>本课的 conformance 查的是这六项,不是 <code>score_A == score_B</code>。</p>
+<figure class="diag"><figcaption><span>接得上 ≠ 实验还在</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">API shape 对上</div><div class="dcell">setup / run 都实现了</div><div class="dcell">start / exec / stop 都有</div><div class="dcell">分数是 1</div></div><div class="dcol"><div class="dh">实验语义还在</div><div class="dcell">instruction 一字不改</div><div class="dcell">相同 action → 相同可见状态</div><div class="dcell">终态 digest + 终止原因相同</div></div></div></figure>
+
 <hr />
 <h2 id="s3"><span class="hn">§ 02</span>四个边界,不是两个 Python class</h2>
 <figure class="diag"><figcaption><span>谁拥有什么</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">组件</div><div class="dcell">Task</div><div class="dcell">Agent Adapter</div><div class="dcell">Environment Backend</div><div class="dcell">Trial Runtime</div></div><div class="dcol"><div class="dh">不准做什么</div><div class="dcell">不决定某个 Agent 的私有 prompt 格式</div><div class="dcell">不补充答案、不删限制、不重写任务语义</div><div class="dcell">不因 provider 不同而静默改变任务语义</div><div class="dcell">不替 Agent 做题,不替 verifier 猜结果</div></div></div></figure>
@@ -334,7 +340,8 @@ async def run(self, instruction: str, environment: BaseEnvironment, context: Age
 <p>Trial 在 <code>setup()</code> <strong>之前</strong>把 <code>environment.default_user</code> 设好(<code>trial/trial.py</code> <code>_prepare</code>)。</p>
 <h3>3.2 Null 和 Oracle 是实验对照,不是 SUT</h3>
 <p><code>NopAgent.setup/run</code> 都是 <code>pass</code>(<code>nop.py</code>)。负控:非平凡题若 Nop 也能过,初态或 verifier 漏了答案。</p>
-<p><code>OracleAgent</code> 读 <code>Task(task_dir)</code> 的 reference solution,upload 再 <code>exec</code>(<code>oracle.py</code>)。正控:Oracle 不过,先查题/环境/尺子,再查模型。它<strong>不是</strong> leaderboard 上的 SUT,是 harness diagnostic。Oracle 额外握着 <code>task_dir</code>,这是特权,不是普通 Agent 协议。</p>
+<p><code>OracleAgent.__init__</code> 拿 <code>task_dir</code>(<code>oracle.py</code>)。<code>run()</code> 把 solution dir <strong>upload</strong> 进环境,再 <code>exec</code> 那份脚本。正控:Oracle 不过,先查题/环境/尺子,再查模型。它<strong>不是</strong> leaderboard 上的 SUT,是 harness diagnostic。</p>
+<p><code>task_dir</code> 在 sandbox 外面。普通 Agent 协议只有 <code>instruction</code> + <code>environment</code> + <code>context</code>;Oracle 多握一份宿主机题目目录,这是特权。Lab 里的 <code>OracleAgent(solution=hidden["expected"])</code> 是同一件事的缩写:答案从构造函数进,不从 <code>/workspace</code> 读。</p>
 <figure class="diag"><figcaption><span>最小 sanity matrix</span></figcaption><div class="dgrid"><div class="gcell"><b>Nop</b><span>期望 FAIL · 若 PASS → 初态污染或尺子过弱</span></div><div class="gcell"><b>Oracle</b><span>期望 PASS · 若 FAIL → task/env/verifier 闭环坏了</span></div><div class="gcell"><b>被测 Agent</b><span>只有两个 control 正常,分数才可解释</span></div></div></figure>
 
 <hr />
@@ -370,9 +377,11 @@ capabilities  gpus · windows · mounted · docker_compose · disable_internet �
 <p>真实 LLM 有随机性,不能用「最终 patch 逐字相同」证明等价。用可控 probe:</p>
 <figure class="diag"><figcaption><span>两种等价,不要混</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Input equivalence</div><div class="dcell">Agent 看见的任务语义相同</div><div class="dcell">instruction / 可见文件 / limits</div></div><div class="dcol"><div class="dh">Execution equivalence</div><div class="dcell">相同 scripted actions → 等价状态</div><div class="dcell">初态 · 动作序列 · 终态 · 终止原因 · verifier 输入</div></div></div></figure>
 
-<figure class="diag"><figcaption><span>conformance 最小阵</span></figcaption><div class="dgrid"><div class="gcell"><b>Nop</b><span>两 backend 都 FAIL</span></div><div class="gcell"><b>Oracle</b><span>两 backend 都 PASS</span></div><div class="gcell"><b>Scripted valid</b><span>终态 digest 相同</span></div><div class="gcell"><b>Hint-injecting adapter</b><span>即使 PASS 也必须被拒绝</span></div></div></figure>
+<figure class="diag"><figcaption><span>conformance 最小阵</span></figcaption><div class="dgrid"><div class="gcell"><b>Nop</b><span>两 backend 都 FAIL</span></div><div class="gcell"><b>Oracle</b><span>两 backend 都 PASS(特权:构造函数带 hidden payload)</span></div><div class="gcell"><b>Scripted valid · 走 exec</b><span>终态 digest 相同</span></div><div class="gcell"><b>Hint-injecting adapter</b><span>reward 可以是 1,status 必须是 ADAPTER_VIOLATION</span></div></div></figure>
 
-<p>Local backend 是教学实现,不是 Harbor 官方 backend:每 Trial 新临时目录,不准把宿主机任意路径暴露给 Agent。</p>
+<figure class="diag"><figcaption><span>两种 Agent 看见的信息</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">协议内 Agent</div><div class="dcell">instruction + /workspace 可见文件</div><div class="dcell">只能走 exec / read / write</div><div class="dcell">换 backend 必须仍能跑同一组 probe</div></div><div class="dcol"><div class="dh">特权 Oracle</div><div class="dcell">另外拿到 task_dir / hidden solution</div><div class="dcell">Harbor:upload solution 再 exec</div><div class="dcell">正控失败先查题,不查模型</div></div></div></figure>
+
+<p>Local backend 是教学实现,不是 Harbor 官方 backend:每 Trial 新临时目录,不准把宿主机任意路径暴露给 Agent。Docker lab 是 <strong>host workspace bind-mount + <code>docker run --rm</code></strong>,因为这台机器上 <code>docker exec</code> 会丢 stdout;不要把它读成 Harbor 的 docker backend。</p>
 <hr />
 <h2 id="s8"><span class="hn">§ 07</span>Inspect 对照:相同名词,不同协议中心</h2>
 <p>Inspect <code>@499e615</code>:</p>
@@ -393,7 +402,15 @@ capabilities  gpus · windows · mounted · docker_compose · disable_internet �
   labs/eval-runtime/tests/test_lifecycle.py \
   labs/eval-runtime/tests/test_differential.py
 </code></pre>
-<p>四个 Agent:Null / Oracle / ScriptedInvalid(写 41) / HintInjecting(给答案)。hidden verifier 输入不准进 Adapter。Local 必测;Docker 在有 daemon 时测,没有则 skip。</p>
+<p>四个 Agent:</p>
+<pre><code>Null              负控,终态不变,reward=0
+Oracle            正控,构造函数带 hidden payload(不是从 /workspace 算出来)
+ScriptedValid     用 exec 写 42 —— 这才走 backend 的命令通道
+ScriptedInvalid   用 exec 写 41
+HintInjecting     改 instruction 再跑 ScriptedValid:reward 仍是 1,status 必须 ADAPTER_VIOLATION
+</code></pre>
+<p>hidden verifier 字节不准出现在 workspace。不支持的 OS capability 必须 <code>UNSUPPORTED</code>,不能装成能跑。<code>CancelledError</code> 仍走 <code>finally</code> 停环境。</p>
+<p>Local 必测;Docker 在 <code>docker run --rm python:3.12-slim-bookworm</code> 能打印 <code>ok</code> 时测,否则 skip。</p>
 <p>这是第 5 天不变量 2 的种子,不是 EvalRT Core 全文。</p>
 <hr />
 <h2 id="s10">源码阅读(只答问题,不通读 backend)</h2>
@@ -411,6 +428,8 @@ capabilities  gpus · windows · mounted · docker_compose · disable_internet �
 [ ] 能从 Trial.run() 画出成功 / 异常 / 取消 / cleanup
 [ ] 能定义 input equivalence 与 execution equivalence
 [ ] 能解释为什么相同 final score 不能证明两个 backend 等价
+[ ] 能说出 HintInjecting 即使 reward=1 也必须是 ADAPTER_VIOLATION
+[ ] 能说出 Oracle 的特权从哪来(Harbor:task_dir;lab:构造函数 payload)
 </code></pre>
 <hr />
 <h2 id="s12">本课一句话</h2>

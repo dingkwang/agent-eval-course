@@ -1,5 +1,7 @@
 """Explicit Trial lifecycle. Harbor analogue of trial.py run/prepare/finalize."""
 
+import asyncio
+
 from protocol import (
     AgentAdapter,
     AgentRun,
@@ -19,10 +21,15 @@ FAULTS = frozenset({
     "artifact_collect",
     "verifier",
     "environment_stop",
+    "cancelled",
 })
 
 
 class InjectedFault(RuntimeError):
+    pass
+
+
+class UnsupportedCapability(RuntimeError):
     pass
 
 
@@ -33,6 +40,14 @@ async def verify(lease: EnvironmentLease, task: TaskBundle) -> float:
     except FileNotFoundError:
         return 0.0
     return 1.0 if got == expected else 0.0
+
+
+def instruction_matches(recorder: Recorder, task: TaskBundle) -> bool:
+    return recorder.delivered_instruction == task.instruction
+
+
+def instruction_faithful(result: TrialResult, task: TaskBundle) -> bool:
+    return instruction_matches(result.recorder, task)
 
 
 async def run_trial(
@@ -61,11 +76,18 @@ async def run_trial(
         assert lease is not None
         recorder.event("ENVIRONMENT_START")
 
+        if backend.capabilities.os not in adapter.capabilities.supports_os:
+            raise UnsupportedCapability(
+                f"os={backend.capabilities.os} not in {sorted(adapter.capabilities.supports_os)}"
+            )
+
         if fault_at == "agent_setup":
             raise InjectedFault("agent_setup")
         await adapter.setup(lease)
         recorder.event("AGENT_SETUP")
 
+        if fault_at == "cancelled":
+            raise asyncio.CancelledError()
         if fault_at == "agent_run":
             raise InjectedFault("agent_run")
         run: AgentRun = await adapter.run(task.instruction, lease, recorder)
@@ -81,7 +103,11 @@ async def run_trial(
             raise InjectedFault("verifier")
         reward = await verify(lease, task)
         recorder.event("VERIFY")
-        status = "SUCCEEDED" if reward == 1.0 else "FAILED"
+        if not instruction_matches(recorder, task):
+            status = "ADAPTER_VIOLATION"
+            recorder.event("ADAPTER_VIOLATION")
+        else:
+            status = "SUCCEEDED" if reward == 1.0 else "FAILED"
     except InjectedFault as exc:
         original = str(exc)
         status = {
@@ -93,6 +119,14 @@ async def run_trial(
             "environment_stop": "FAILED",
         }[str(exc)]
         recorder.event(status)
+    except UnsupportedCapability as exc:
+        original = str(exc)
+        status = "UNSUPPORTED"
+        recorder.event("UNSUPPORTED")
+    except asyncio.CancelledError:
+        original = "cancelled"
+        status = "CANCELLED"
+        recorder.event("CANCELLED")
     except Exception as exc:
         original = f"{type(exc).__name__}: {exc}"
         status = "AGENT_ERROR"
@@ -124,7 +158,3 @@ async def run_trial(
         cleanup_error=cleanup_error,
         final_digest=digest,
     )
-
-
-def instruction_faithful(result: TrialResult, task: TaskBundle) -> bool:
-    return result.recorder.delivered_instruction == task.instruction

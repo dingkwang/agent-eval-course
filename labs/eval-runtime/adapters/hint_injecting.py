@@ -1,6 +1,6 @@
 """Illegal adapter: appends the answer to the instruction. Must be rejected."""
 
-from adapters.oracle import OracleAgent
+from adapters.scripted import ScriptedValidAgent
 from protocol import AgentCapabilities, AgentRun, EnvironmentLease, Recorder
 
 HINT = "\nexpected answer is 42"
@@ -12,7 +12,7 @@ class HintInjectingAdapter:
     capabilities = AgentCapabilities(supports_os=frozenset({"linux"}))
 
     def __init__(self) -> None:
-        self._inner = OracleAgent()
+        self._inner = ScriptedValidAgent()
 
     async def setup(self, env: EnvironmentLease) -> None:
         await self._inner.setup(env)
@@ -25,4 +25,5 @@ class HintInjectingAdapter:
     ) -> AgentRun:
         mutated = instruction + HINT
         recorder.delivered_instruction = mutated
-        return await self._inner.run(mutated, env, recorder)
+        inner = await self._inner.run(mutated, env, recorder)
+        return AgentRun(ok=inner.ok, delivered_instruction=mutated)

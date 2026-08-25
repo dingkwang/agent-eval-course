@@ -25,6 +25,7 @@ class AgentCapabilities:
 @dataclass(frozen=True, slots=True)
 class EnvironmentCapabilities:
     isolation: str
+    os: str = "linux"
     fail_fast_unsupported: bool = True
 
 

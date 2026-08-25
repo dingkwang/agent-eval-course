@@ -523,11 +523,32 @@ p_i=P(Y_{ij}=1\mid T_i, A, C)
 <p>本课不把所有非确定性都叫 model randomness。<code>terminal_status=infra_error</code> 仍单独保留,到 Week 6 再决定其 failure semantics。</p>
 <hr />
 <h2 id="s6"><span class="hn">§ 05</span>四个会让后续统计失效的 schema 错误</h2>
-<h3>5.1 把 $N\times K$ 当作 $NK$ 个独立 task</h3>
-<pre><code class="language-text">40 tasks × 10 attempts = 400 TrialResult rows
-                       ≠ 400 independent task draws
-</code></pre>
-<p>同一 task 下的 attempts 共享 task 难度 $p_i$,因此相关。把 400 行直接送进普通 Bernoulli CI,会虚构 task sample size。Lesson 3 会比较 naive CI 与 task-aware CI 的 coverage。</p>
+<h3>5.1 $N\times K$ 不是 $NK$ 个独立 task</h3>
+<p>乘法上 $40\times 10=400$。<strong>实验结构上不是一回事。</strong></p>
+<table>
+<thead>
+<tr>
+<th>写法</th>
+<th>是什么</th>
+<th>独立单位有几个</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$N\times K$</td>
+<td>$N$ 道题,每道重复 $K$ 次</td>
+<td><strong>$N$ 个 task</strong>;同一题的 $K$ 次共享难度 $p_i$</td>
+</tr>
+<tr>
+<td>$NK$ 个独立 task</td>
+<td>400 道不同的题,各跑 1 次</td>
+<td><strong>400 个 task</strong></td>
+</tr>
+</tbody>
+</table>
+<figure class="diag"><figcaption><span>同样 400 行,抽样单位不同</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">N×K · 40 题 × 10 次</div><div class="dcell">40 个相关小组,每组 10 行</div><div class="dcell">CI 的 n 应该是 40</div></div><div class="dcol"><div class="dh">误当成 NK=400 道独立题</div><div class="dcell">假装 400 次互不相关</div><div class="dcell">错把 n 写成 400,误差棒过窄</div></div></div></figure>
+
+<p>同一 task 下的 attempts 共享 $p_i$,因此相关。把 400 行送进普通 Bernoulli CI,是在虚构 task sample size。Lesson 3 会比较 naive CI 与 task-aware CI 的 coverage。</p>
 <h3>5.2 只保存 summary,丢掉 task identity</h3>
 <p><code>agent_A=58%</code>,<code>agent_B=61%</code> 不足以做 paired comparison。Lesson 4 需要知道 A、B 是否在<strong>相同 task</strong>上成功,因此必须保留 <code>task_id</code>。</p>
 <h3>5.3 用运行次数给 task 偷偷加权</h3>
@@ -598,7 +619,7 @@ color   = pass / fail / missing
 [ ] 能写出默认 estimand:在条件 C 下,从 D 抽新 task 并运行一次的预期成功率
 [ ] 能解释 Var(Y) 的 between-task 与 within-task 两项
 [ ] 能解释为什么增加 tasks 与增加 attempts 不是同一种预算
-[ ] 能解释为什么 40 tasks × 10 attempts 不是 400 个独立 task draws
+[ ] 能说出 N×K(N 题各 K 次)和 NK 个独立 task 的区别:400 行不等于 400 道题
 [ ] 能从 canonical rows 生成 task_estimates 与 task-attempt heatmap
 </code></pre>
 <hr />

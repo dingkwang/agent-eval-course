@@ -259,14 +259,23 @@ flow | temperature=0 不是「实验没有随机性」
 
 ## 五、四个会让后续统计失效的 schema 错误
 
-### 5.1 把 $N\times K$ 当作 $NK$ 个独立 task
+### 5.1 $N\times K$ 不是 $NK$ 个独立 task
 
-```text
-40 tasks × 10 attempts = 400 TrialResult rows
-                       ≠ 400 independent task draws
+乘法上 $40\times 10=400$。**实验结构上不是一回事。**
+
+| 写法 | 是什么 | 独立单位有几个 |
+|---|---|---|
+| $N\times K$ | $N$ 道题,每道重复 $K$ 次 | **$N$ 个 task**;同一题的 $K$ 次共享难度 $p_i$ |
+| $NK$ 个独立 task | 400 道不同的题,各跑 1 次 | **400 个 task** |
+
+```diag
+compare | 同样 400 行,抽样单位不同
+N×K · 40 题 × 10 次 | 误当成 NK=400 道独立题
+40 个相关小组,每组 10 行 | 假装 400 次互不相关
+CI 的 n 应该是 40 | 错把 n 写成 400,误差棒过窄
 ```
 
-同一 task 下的 attempts 共享 task 难度 $p_i$,因此相关。把 400 行直接送进普通 Bernoulli CI,会虚构 task sample size。Lesson 3 会比较 naive CI 与 task-aware CI 的 coverage。
+同一 task 下的 attempts 共享 $p_i$,因此相关。把 400 行送进普通 Bernoulli CI,是在虚构 task sample size。Lesson 3 会比较 naive CI 与 task-aware CI 的 coverage。
 
 ### 5.2 只保存 summary,丢掉 task identity
 
@@ -377,7 +386,7 @@ grid | heatmap 应让人一眼看见什么
 [ ] 能写出默认 estimand:在条件 C 下,从 D 抽新 task 并运行一次的预期成功率
 [ ] 能解释 Var(Y) 的 between-task 与 within-task 两项
 [ ] 能解释为什么增加 tasks 与增加 attempts 不是同一种预算
-[ ] 能解释为什么 40 tasks × 10 attempts 不是 400 个独立 task draws
+[ ] 能说出 N×K(N 题各 K 次)和 NK 个独立 task 的区别:400 行不等于 400 道题
 [ ] 能从 canonical rows 生成 task_estimates 与 task-attempt heatmap
 ```
 

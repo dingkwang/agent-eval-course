@@ -14,6 +14,7 @@ import markdown
 ROOT = Path(__file__).parent
 SRC = ROOT / "week01"
 SRC_W2 = ROOT / "week02"
+SRC_W3 = ROOT / "week03"
 OUT = ROOT / "site"
 
 # (slug, day, title, desc, tag, source .md — None = 尚未写)
@@ -48,8 +49,9 @@ WEEKS = [
     ("2", "Eval Runtime & Trajectory Engineering",
      "不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录",
      "2/5", False),
-    ("3", "Metrics & Statistics",
-     "一个 observation 是什么?误差棒怎么算?", None, False),
+    ("3", "Statistical Inference for Stochastic Agent Evals",
+     "从 Trial observations 到可信结论:估计什么、不确定性多大、A 是否真的优于 B?",
+     "1/5", True),
     ("4", "Scorers / Verifiers / LLM-as-Judge",
      "成功如何被判定?judge 准不准?", None, False),
     ("5", "Benchmark Design, Audit & Dataset Lifecycle",
@@ -79,6 +81,17 @@ W2_LESSONS = [
     ("w2-03", "3", "Trajectory / 因果 / 副作用", "没收到 response 时怎么记", "源码", None),
     ("w2-04", "4", "并发与 Runtime Correctness", "并发不改变实验语义", "源码", None),
     ("w2-05", "5", "EvalRT Core", "五个强不变量", "lab", None),
+]
+
+# Week 3: statistical inference for stochastic agent evals.
+W3_LESSONS = [
+    ("w3-01", "1", "Observation、Experimental Unit 与 Estimand",
+     "一行数据是什么,这个数字要推广到哪里", "统计",
+     "lesson01-observation-estimand.md"),
+    ("w3-02", "2", "Repeated Trials", "Capability vs Reliability", "统计", None),
+    ("w3-03", "3", "Error Bars", "CI 必须匹配数据结构", "统计", None),
+    ("w3-04", "4", "Paired Comparison 与 Power", "A 是否真的优于 B", "统计", None),
+    ("w3-05", "5", "Statistical Eval Report", "可审计的统计结论", "lab", None),
 ]
 
 # depth cross-section: the signature figure. depth = how much real environment.
@@ -563,10 +576,19 @@ def masthead(active: str) -> str:
             continue
         on = ' class="on"' if active == slug else ""
         items.append(f'<a href="{slug}.html"{on}>{label}</a>')
+    for slug, n, _t, _d, _tag, src in W3_LESSONS:
+        label = f"W3·{n}"
+        if src is None:
+            items.append(f'<span class="soonnav">{label}</span>')
+            continue
+        on = ' class="on"' if active == slug else ""
+        items.append(f'<a href="{slug}.html"{on}>{label}</a>')
     if active == "index":
         badge = "12 WEEKS"
     elif active.startswith("w2-"):
         badge = "WEEK 02"
+    elif active.startswith("w3-"):
+        badge = "WEEK 03"
     else:
         badge = "WEEK 01"
     return f"""<header class="mast"><div class="wrap">
@@ -649,6 +671,20 @@ def w2_body() -> str:
 <div class="cards">{''.join(cards)}</div>"""
 
 
+def w3_body() -> str:
+    cards = []
+    for slug, n, title, desc, tag, src in W3_LESSONS:
+        body = (f'<span class="num">{n}</span>'
+                f'<span><span class="t">{title}</span><span class="d">{desc}</span></span>'
+                f'<span class="tag">{tag}</span>')
+        cards.append(f'<a class="card" href="{slug}.html">{body}</a>' if src
+                     else f'<div class="card off">{body}</div>')
+    done = sum(1 for *_x, src in W3_LESSONS if src)
+    return f"""<p class="lede" style="margin-top:16px">4 节课 + Day 5 Statistical Eval Report lab。
+已完成 <b>{done}/5</b>。W3 假定 verifier 已给出 score,只研究估计、不确定性与比较。</p>
+<div class="cards">{''.join(cards)}</div>"""
+
+
 def build_index() -> str:
     week_html = []
     for n, title, q, status, expand in WEEKS:
@@ -658,6 +694,8 @@ def build_index() -> str:
             body = w1_body()
         elif n == "2":
             body = w2_body()
+        elif n == "3":
+            body = w3_body()
         else:
             body = ""
         inner = f'<div class="wbody">{body}</div>' if body else ""
@@ -833,6 +871,40 @@ def build_w2_lesson(idx: int) -> str:
 {foot}"""
 
 
+def build_w3_lesson(idx: int) -> str:
+    slug, n, title, _d, _tag, src = W3_LESSONS[idx]
+    md_text = expand_diagrams((SRC_W3 / src).read_text())
+    md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
+    html, rail_html = _anchor_h2(md.convert(md_text))
+    foot = footer(
+        "Week 03 · Statistical Inference for Stochastic Agent Evals",
+        "Adding Error Bars to Evals · On Randomness in Agentic Evals",
+        "由 week03/*.md 生成 · build_site.py",
+    )
+
+    def neighbor(step: int):
+        j = idx + step
+        while 0 <= j < len(W3_LESSONS):
+            if W3_LESSONS[j][5]:
+                return W3_LESSONS[j]
+            j += step
+        return None
+
+    p, nx = neighbor(-1), neighbor(1)
+    prev_l = (f'<a href="{p[0]}.html">← W3 第 {p[1]} 课 · {p[2]}</a>' if p
+              else '<a href="index.html#w3">← Week 3</a>')
+    next_l = (f'<a href="{nx[0]}.html">W3 第 {nx[1]} 课 · {nx[2]} →</a>' if nx
+              else '<a href="index.html#w3">Week 3 →</a>')
+    return f"""{HEAD.format(title=f"W3 第 {n} 课 · {title}", css=CSS)}
+{masthead(slug)}
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div>{rail_html}</aside>
+<article class="doc">{html}
+<div class="pager">{prev_l}{next_l}</div>
+</article></div></div>
+{foot}"""
+
+
 def main() -> None:
     OUT.mkdir(exist_ok=True)
     idx = build_index()
@@ -852,6 +924,14 @@ def main() -> None:
             print(f"  {slug}.html    {'—':>8}   (未写)")
             continue
         page = build_w2_lesson(i)
+        (OUT / f"{slug}.html").write_text(page)
+        live.add(f"{slug}.html")
+        print(f"  {slug}.html   {len(page):>8,} B   ← {src}")
+    for i, (slug, *_rest, src) in enumerate(W3_LESSONS):
+        if src is None:
+            print(f"  {slug}.html    {'—':>8}   (未写)")
+            continue
+        page = build_w3_lesson(i)
         (OUT / f"{slug}.html").write_text(page)
         live.add(f"{slug}.html")
         print(f"  {slug}.html   {len(page):>8,} B   ← {src}")

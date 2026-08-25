@@ -61,13 +61,17 @@ Inspect / Harbor / 自研 runner 原始结果 → 同一列名 + 同一类型 + 
 
 `canonical` 不是数据库产品名,也不是「唯一正确的 schema」。它表示课程约定的**标准化权威格式**:heatmap、pass curves、CI 和 A/B comparison 都从它派生,不各自读取一份口径不同的 summary。
 
-### 1.1 Grain
+### 1.1 Grain:一行代表什么
+
+**Grain** 是这张表的分辨率:每一行是哪一件最小事实。不是文件格式,也不是主键的别名。没定 grain,就无法判断两行算不算重复,平均值在平均什么。
+
+本课约定:
 
 ```text
 one row = one (task_id, agent_id, attempt_id) execution
 ```
 
-这就是表的 grain,也就是一行所代表的最小 observation。最小字段:
+这就是 canonical 表的 grain:一行 = 一次完整 Trial 执行,也就是最小 observation。最小字段:
 
 | column | 语义 | 不变量 |
 |---|---|---|

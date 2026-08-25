@@ -350,10 +350,12 @@ window.MathJax = {
 <figure class="diag"><figcaption><span>canonical 的含义</span></figcaption><div class="dpipe"><span class="dnode">Inspect / Harbor / 自研 runner 原始结果</span><span class="darr">→</span><span class="dnode">同一列名 + 同一类型 + 同一语义</span><span class="darr">→</span><span class="dnode">Week 3 唯一统计输入</span></div></figure>
 
 <p><code>canonical</code> 不是数据库产品名,也不是「唯一正确的 schema」。它表示课程约定的<strong>标准化权威格式</strong>:heatmap、pass curves、CI 和 A/B comparison 都从它派生,不各自读取一份口径不同的 summary。</p>
-<h3>1.1 Grain</h3>
+<h3>1.1 Grain:一行代表什么</h3>
+<p><strong>Grain</strong> 是这张表的分辨率:每一行是哪一件最小事实。不是文件格式,也不是主键的别名。没定 grain,就无法判断两行算不算重复,平均值在平均什么。</p>
+<p>本课约定:</p>
 <pre><code class="language-text">one row = one (task_id, agent_id, attempt_id) execution
 </code></pre>
-<p>这就是表的 grain,也就是一行所代表的最小 observation。最小字段:</p>
+<p>这就是 canonical 表的 grain:一行 = 一次完整 Trial 执行,也就是最小 observation。最小字段:</p>
 <table>
 <thead>
 <tr>

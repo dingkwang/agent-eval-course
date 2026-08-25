@@ -212,6 +212,39 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .lfoot b{color:var(--signal)}
 @media(max-width:640px){.rhead code{display:none}}
 
+/* ---- in-lesson diagrams (```diag) ---- */
+.diag{margin:22px 0 12px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  background:var(--panel);box-shadow:var(--shadow)}
+.diag figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
+.dpipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px 18px}
+.dnode{border:1.5px solid var(--ink);border-radius:8px;padding:8px 12px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:14px}
+.darr{color:var(--signal);font-weight:700;font-family:"JetBrains Mono",monospace}
+.dflow{padding:16px 18px;display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.dflow .darr{text-align:center;padding:2px 0}
+.dstep{border:1.5px solid var(--ink);border-radius:8px;padding:10px 14px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:15px}
+.dcmp{display:grid;grid-template-columns:1fr 1fr}
+.dcol{padding:14px 16px}
+.dcol + .dcol{border-left:1.5px solid var(--rule)}
+.dh{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;margin-bottom:8px;color:var(--signal)}
+.dcell{font-size:14px;padding:6px 0;border-top:1px solid var(--rule)}
+.dcol .dcell:first-of-type{border-top:none}
+.dnest{padding:16px}
+.dbox{border:1.5px solid var(--ink);border-radius:8px;padding:10px 12px;background:#fff}
+.dbox .dbox{margin-top:8px;background:var(--panel);border-color:var(--rule)}
+.dbox .dbox .dbox{background:var(--panel-2)}
+.dlab{font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+.gcell{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;background:#fff}
+.gcell b{display:block;font-family:"Archivo",sans-serif;font-size:15px;margin-bottom:4px;color:var(--signal)}
+.gcell span{font-size:13.5px;color:var(--soft)}
+@media(max-width:640px){
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+
 .pager{display:flex;justify-content:space-between;gap:14px;margin:52px 0 0;
   border-top:1.5px solid var(--ink);padding-top:18px;flex-wrap:wrap}
 .pager a{font-family:"JetBrains Mono",monospace;font-size:13px;text-decoration:none;color:var(--probe)}
@@ -236,6 +269,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .skills,.arcs{grid-template-columns:1fr}
   .week .wh{grid-template-columns:46px 1fr}
   .week .st{display:none}
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -259,6 +294,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
 <p>Day 3 的 SWE-bench:一个 patch → 跑单元测试 → <code>bool</code>。
 τ³:一段多轮对话 → <code>reward_basis</code> 选出 verifier → 相乘 → <code>[0, 1]</code>。</p>
 </blockquote>
+<figure class="diag"><figcaption><span>尺子怎么判</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">SWE-bench</div><div class="dcell">patch → 单元测试 → bool</div><div class="dcell">尺子里没有 LLM</div></div><div class="dcol"><div class="dh">τ³</div><div class="dcell">对话 → reward_basis 选出 → 相乘 → [0,1]</div><div class="dcell">User LLM 在尺子里</div></div></div></figure>
+
+<figure class="diag"><figcaption><span>一次 rollout 三个角色</span></figcaption><div class="dnest"><div class="dbox"><div class="dlab">τ³ Trial</div><div class="dbox"><div class="dlab">Agent · 被测 SUT</div></div><div class="dbox"><div class="dlab">User LLM · 测量仪器,会进分数</div></div><div class="dbox"><div class="dlab">Environment · 可变状态 + verifier</div></div></div></div></figure>
+
 <pre><code>核心 60  名字 · 阶梯 · 三方 · 测了谁 · 四种 verifier + reward_basis · 子串 · lab
 进阶 30  终止闸 · 整库 hash · pass^k
 W3 再处理  方差 · 置信区间 · User LLM confounding · judge reliability
@@ -370,6 +409,8 @@ Score = P(success | agent, user model, scenario, environment, verifier, run conf
 模拟用户失败可以记在 Agent 名下。这是 construct validity 的现场。</p>
 <hr />
 <h2 id="s5"><span class="hn">§ 04</span>四种 verifier;每道 task 由 <code>reward_basis</code> 选出再相乘</h2>
+<figure class="diag"><figcaption><span>先选,再乘</span></figcaption><div class="dpipe"><span class="dnode">四种 verifier</span><span class="darr">→</span><span class="dnode">reward_basis 选出子集</span><span class="darr">→</span><span class="dnode">相乘</span><span class="darr">→</span><span class="dnode">[0, 1]</span></div></figure>
+
 <pre><code>先由 reward_basis 选择适用的 verifier
                  ↓
 再把选中的 reward 相乘

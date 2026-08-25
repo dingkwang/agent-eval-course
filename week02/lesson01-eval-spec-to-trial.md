@@ -11,6 +11,30 @@
 > 📎 Harbor `b378332` · Inspect `499e615`
 > 💻 lab:`../labs/eval-runtime/compile.py`
 
+```diag
+flow | Harbor:声明变成 Trial
+JobConfig
+resolve → validate → expand
+JobPlan + JobLock 快照
+TrialConfig[]
+```
+
+```diag
+compare | 可跑单位不是同一个东西
+Harbor | Inspect
+Trial = Task × Agent × Attempt | Task = Dataset + Solver + Scorer
+n_attempts 是乘积的一轴 | epochs 留在 Task 内部
+JobLock 无序 Trial 集合 | EvalLog.eval_id 含 created 时间
+```
+
+```diag
+nest | Trial 不是 SUT
+一次 Trial
+  SUT · Agent + model + prompt/tools
+  实验条件 · task · environment · verifier
+  重复观测 · attempt(无 attempt_index 字段)
+```
+
 ---
 
 ## 零、十分钟前置:Agent ≠ Model

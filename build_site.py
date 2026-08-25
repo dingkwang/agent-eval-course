@@ -1,8 +1,7 @@
-"""Render the course homepage and week01 markdown lessons into site/.
+"""Render the course homepage and markdown lessons into site/.
 
-index.html is the 12-week introduction (not a Week 1 splash). Lesson pages
-are generated from week01/*.md. Design: "specimen teardown" — field-manual
-type, depth cross-section as the signature figure.
+Lesson markdown may include ```diag blocks (pipe, flow, compare, nest, grid).
+Those become figures before markdown runs.
 
 Run from the course root:  python3 build_site.py
 """
@@ -116,6 +115,120 @@ def cjk_section_number(text: str) -> int | None:
         return sum(_CJK.index(c) for c in head) if len(head) == 1 else None
     tens, _, ones = head.partition("十")
     return (_CJK.index(tens) if tens else 1) * 10 + (_CJK.index(ones) if ones else 0)
+
+
+def _esc(text: str) -> str:
+    return (text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
+def _figure(caption: str, inner: str) -> str:
+    cap = (
+        f'<figcaption><span>{_esc(caption)}</span></figcaption>'
+        if caption else ""
+    )
+    return f'<figure class="diag">{cap}{inner}</figure>'
+
+
+def render_diag(kind: str, caption: str, body: str) -> str:
+    """Render a ```diag block. Kinds: pipe, flow, compare, nest, grid."""
+    lines = [ln.rstrip() for ln in body.splitlines() if ln.strip()]
+    if not lines:
+        return ""
+    if kind == "pipe":
+        nodes = []
+        for raw in re.split(r"\s*→\s*", " ".join(lines)):
+            raw = raw.strip()
+            if raw:
+                nodes.append(f'<span class="dnode">{_esc(raw)}</span>')
+        inner = '<span class="darr">→</span>'.join(nodes)
+        return _figure(caption, f'<div class="dpipe">{inner}</div>')
+    if kind == "flow":
+        parts = []
+        for i, ln in enumerate(lines):
+            if i:
+                parts.append('<div class="darr">↓</div>')
+            if " → " in ln:
+                bits = [p.strip() for p in ln.split(" → ")]
+                inner = '<span class="darr">→</span>'.join(
+                    f'<span class="dnode">{_esc(p)}</span>' for p in bits
+                )
+                parts.append(f'<div class="dpipe">{inner}</div>')
+            else:
+                parts.append(f'<div class="dstep">{_esc(ln)}</div>')
+        return _figure(caption, f'<div class="dflow">{"".join(parts)}</div>')
+    if kind == "compare":
+        rows = [ln.split("|", 1) for ln in lines if "|" in ln]
+        if not rows:
+            return ""
+        head, rest = rows[0], rows[1:]
+        cols = []
+        for i, title in enumerate(head):
+            cells = "".join(
+                f'<div class="dcell">{_esc(r[i].strip() if i < len(r) else "")}</div>'
+                for r in rest
+            )
+            cols.append(
+                f'<div class="dcol"><div class="dh">{_esc(title.strip())}</div>{cells}</div>'
+            )
+        return _figure(caption, f'<div class="dcmp">{"".join(cols)}</div>')
+    if kind == "nest":
+        def tree(items: list[tuple[int, str]]) -> str:
+            if not items:
+                return ""
+            depth = items[0][0]
+            chunks = []
+            i = 0
+            while i < len(items):
+                d, label = items[i]
+                if d != depth:
+                    break
+                j = i + 1
+                while j < len(items) and items[j][0] > depth:
+                    j += 1
+                kids = tree(items[i + 1:j])
+                chunks.append(
+                    f'<div class="dbox"><div class="dlab">{_esc(label)}</div>{kids}</div>'
+                )
+                i = j
+            return "".join(chunks)
+
+        parsed = []
+        for ln in body.splitlines():
+            if not ln.strip():
+                continue
+            indent = len(ln) - len(ln.lstrip(" "))
+            parsed.append((indent // 2, ln.strip()))
+        return _figure(caption, f'<div class="dnest">{tree(parsed)}</div>')
+    if kind == "grid":
+        cells = []
+        for ln in lines:
+            if "|" in ln:
+                k, v = ln.split("|", 1)
+                cells.append(
+                    f'<div class="gcell"><b>{_esc(k.strip())}</b>'
+                    f'<span>{_esc(v.strip())}</span></div>'
+                )
+            else:
+                cells.append(f'<div class="gcell"><b>{_esc(ln)}</b></div>')
+        return _figure(caption, f'<div class="dgrid">{"".join(cells)}</div>')
+    return _figure(caption, f'<pre class="draw">{_esc(body)}</pre>')
+
+
+_DIAG = re.compile(r"```diag[ \t]*\n(.*?)```", re.S)
+
+
+def expand_diagrams(md_text: str) -> str:
+    """Turn ```diag blocks into figures before markdown runs."""
+
+    def one(m: re.Match) -> str:
+        raw = m.group(1)
+        first, _, rest = raw.strip("\n").partition("\n")
+        kind, _, cap = first.partition("|")
+        kind = kind.strip() or "flow"
+        caption = cap.strip()
+        return render_diag(kind, caption, rest)
+
+    return _DIAG.sub(one, md_text)
 
 
 def ladder_figure() -> str:
@@ -351,6 +464,39 @@ a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
 .lfoot b{color:var(--signal)}
 @media(max-width:640px){.rhead code{display:none}}
 
+/* ---- in-lesson diagrams (```diag) ---- */
+.diag{margin:22px 0 12px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  background:var(--panel);box-shadow:var(--shadow)}
+.diag figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
+.dpipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px 18px}
+.dnode{border:1.5px solid var(--ink);border-radius:8px;padding:8px 12px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:14px}
+.darr{color:var(--signal);font-weight:700;font-family:"JetBrains Mono",monospace}
+.dflow{padding:16px 18px;display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.dflow .darr{text-align:center;padding:2px 0}
+.dstep{border:1.5px solid var(--ink);border-radius:8px;padding:10px 14px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:15px}
+.dcmp{display:grid;grid-template-columns:1fr 1fr}
+.dcol{padding:14px 16px}
+.dcol + .dcol{border-left:1.5px solid var(--rule)}
+.dh{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;margin-bottom:8px;color:var(--signal)}
+.dcell{font-size:14px;padding:6px 0;border-top:1px solid var(--rule)}
+.dcol .dcell:first-of-type{border-top:none}
+.dnest{padding:16px}
+.dbox{border:1.5px solid var(--ink);border-radius:8px;padding:10px 12px;background:#fff}
+.dbox .dbox{margin-top:8px;background:var(--panel);border-color:var(--rule)}
+.dbox .dbox .dbox{background:var(--panel-2)}
+.dlab{font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+.gcell{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;background:#fff}
+.gcell b{display:block;font-family:"Archivo",sans-serif;font-size:15px;margin-bottom:4px;color:var(--signal)}
+.gcell span{font-size:13.5px;color:var(--soft)}
+@media(max-width:640px){
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+
 .pager{display:flex;justify-content:space-between;gap:14px;margin:52px 0 0;
   border-top:1.5px solid var(--ink);padding-top:18px;flex-wrap:wrap}
 .pager a{font-family:"JetBrains Mono",monospace;font-size:13px;text-decoration:none;color:var(--probe)}
@@ -375,6 +521,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .skills,.arcs{grid-template-columns:1fr}
   .week .wh{grid-template-columns:46px 1fr}
   .week .st{display:none}
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -562,7 +710,7 @@ W2 产生 observation · W5 是否测到目标能力 · W6 是否被运行噪声
 
 def build_lesson(idx: int) -> str:
     slug, _n, _t, _d, _tag, src = LESSONS[idx]
-    md_text = (SRC / src).read_text()
+    md_text = expand_diagrams((SRC / src).read_text())
     md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
     html = md.convert(md_text)
 
@@ -649,7 +797,7 @@ def _anchor_h2(html: str) -> tuple[str, str]:
 
 def build_w2_lesson(idx: int) -> str:
     slug, n, title, _d, _tag, src = W2_LESSONS[idx]
-    md_text = (SRC_W2 / src).read_text()
+    md_text = expand_diagrams((SRC_W2 / src).read_text())
     md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
     html, rail_html = _anchor_h2(md.convert(md_text))
     foot = footer(

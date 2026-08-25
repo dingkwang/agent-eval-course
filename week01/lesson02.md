@@ -12,6 +12,11 @@
 
 ---
 
+```diag
+pipe | 本课追的线
+task 目录 → environment → agent → rollout → verifier → True/False
+```
+
 ## 零、本课要追通的那条线:**从 task 目录一路到一个 True/False**
 
 ```

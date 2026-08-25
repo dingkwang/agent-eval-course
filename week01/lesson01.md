@@ -28,6 +28,11 @@
 6. 源代码分别在哪里?
 ```
 
+```diag
+pipe | 每个 benchmark 只答这一条链
+task → environment → agent → rollout → verifier → score
+```
+
 ---
 
 ## 一、前 10 分钟:用 Artificial Analysis 当地图(仅此而已)

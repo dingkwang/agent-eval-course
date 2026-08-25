@@ -8,6 +8,22 @@
 >
 > 这不是措辞讲究,是**信任边界**。搞混它,你会写出一个可以被作弊的 benchmark。
 
+```diag
+compare | 管判,不管做
+SWE-bench 给 | SWE-bench 不给
+dataset + evaluation harness | agent runtime
+全新容器 · apply patch · 跑官方测试 | 探索 repo、改代码、跑局部测试
+唯一契约:一个 patch 文件 |
+```
+
+```diag
+grid | 同一 harness,四种结局
+resolved | gold patch,测试过
+unresolved | 修了,测试不过
+empty | 没产出 patch
+error | runtime 崩了
+```
+
 > 📎 **本课所有输出都是真跑出来的**(2026-08,`SWE-bench_Verified` / `astropy__astropy-13398`)。
 > 💻 **先做 lab,再读讲义**:`../labs/swe-bench-teardown/`
 

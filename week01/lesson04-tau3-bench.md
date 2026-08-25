@@ -10,6 +10,21 @@
 > Day 3 的 SWE-bench:一个 patch → 跑单元测试 → `bool`。
 > τ³:一段多轮对话 → `reward_basis` 选出 verifier → 相乘 → `[0, 1]`。
 
+```diag
+compare | 尺子怎么判
+SWE-bench | τ³
+patch → 单元测试 → bool | 对话 → reward_basis 选出 → 相乘 → [0,1]
+尺子里没有 LLM | User LLM 在尺子里
+```
+
+```diag
+nest | 一次 rollout 三个角色
+τ³ Trial
+  Agent · 被测 SUT
+  User LLM · 测量仪器,会进分数
+  Environment · 可变状态 + verifier
+```
+
 ```
 核心 60  名字 · 阶梯 · 三方 · 测了谁 · 四种 verifier + reward_basis · 子串 · lab
 进阶 30  终止闸 · 整库 hash · pass^k
@@ -116,6 +131,11 @@ Score = P(success | agent, user model, scenario, environment, verifier, run conf
 ---
 
 ## 四、四种 verifier;每道 task 由 `reward_basis` 选出再相乘
+
+```diag
+pipe | 先选,再乘
+四种 verifier → reward_basis 选出子集 → 相乘 → [0, 1]
+```
 
 ```
 先由 reward_basis 选择适用的 verifier

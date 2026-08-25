@@ -31,7 +31,7 @@ BrowserGym ServiceNow/BrowserGym@9e779f087de9a65668b6974d11f9ce9816026e96
 | Day | 讲义 | 核心问题 | 当天 Lab |
 |---|---|---|---|
 | **1** | `lesson01-eval-spec-to-trial.md` | Runtime 如何把 evaluation 声明,确定地编译成一组可审计的 Trial? | `compile_eval(spec) -> JobPlan` |
-| **2** | `lesson02-protocol-boundary.md` | 换 Agent 或 backend 后,怎样证明仍在执行同一个任务? | Null / Oracle / LLM adapter + Local / Docker env + conformance + 生命周期注入异常 |
+| **2** | `lesson02-protocol-boundary.md` | 换 Agent 或 backend 后,怎样证明仍在执行同一个任务? | Null / Oracle / Scripted / HintInjecting + Local/Docker conformance |
 | **3** | `lesson03-trajectory-causality.md` | 工具已改环境、Agent 没收到 response 时,trajectory 怎么记?能不能安全重试? | canonical events + causal validation / tamper / replay |
 | **4** | `lesson04-concurrency.md` | 100 个 Trial 并发时,并发只提高吞吐、不改变实验语义? | hanging agent、rate limit、crash、Ctrl-C |
 | **5** | `lesson05-evalrt-lab.md` | 把前四节拼成 EvalRT Core | 五个强不变量 |

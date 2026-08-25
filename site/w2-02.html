@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>W2 第 2 课 · Agent / Environment / Trial 协议</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{
+  --paper:#EDEFF2; --panel:#F8FAFB; --panel-2:#E4E9ED; --rule:#C9D2D8;
+  --ink:#131A20; --soft:#5A6672; --faint:#8A95A0;
+  --deep:#0E1A22; --signal:#C8501C; --probe:#2B5F9E; --pass:#34734A;
+  --shadow:0 1px 0 rgba(19,26,32,.04), 0 16px 40px -24px rgba(19,26,32,.45);
+}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Instrument Sans",system-ui,sans-serif;font-size:16.5px;line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--probe)}
+code,kbd{font-family:"JetBrains Mono",monospace;font-size:.88em;
+  background:var(--panel-2);padding:.08em .38em;border-radius:3px}
+pre{background:var(--deep);color:#DCE3E8;border-radius:8px;padding:16px 18px;overflow-x:auto;
+  font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.72;box-shadow:var(--shadow)}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+/* ---- masthead ---- */
+.mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
+.mast .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;
+  padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--soft);white-space:nowrap}
+.mast .id b{color:var(--signal);font-weight:500}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap}
+.mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
+  color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
+.mast nav a:hover{border-color:var(--rule);color:var(--ink)}
+.mast nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* ---- hero ---- */
+.hero{padding:62px 0 8px}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--signal);display:inline-flex;align-items:center;gap:11px}
+.eyebrow::before{content:"";width:30px;height:2px;background:var(--signal)}
+h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,74px);
+  letter-spacing:-.025em;line-height:.97;margin:18px 0 12px}
+.thesis{font-size:18px;color:var(--ink);max-width:38em;margin:0}
+.thesis b{color:var(--signal)}
+.subhead{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(15px,2vw,19px);
+  color:var(--soft);margin:0 0 18px}
+
+/* ---- signature: depth cross-section ---- */
+.strata{margin:34px 0 6px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow)}
+.strata .cap{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.strata .cap span:last-child{color:#93A2AE}
+.layer{display:grid;grid-template-columns:132px 1fr 300px;gap:0;align-items:center;
+  border-top:1px solid var(--rule);background:var(--panel);
+  transition:background .18s}
+.layer:first-of-type{border-top:none}
+.layer:hover{background:#fff}
+.layer .nm{font-family:"Archivo",sans-serif;font-weight:600;font-size:15px;padding:13px 16px;
+  border-right:1px solid var(--rule)}
+.layer .flow{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);padding:13px 16px}
+.layer .note{font-size:13px;color:var(--soft);padding:13px 16px;border-left:1px solid var(--rule)}
+.layer .bar{display:block;height:3px;background:var(--probe);border-radius:2px;margin-top:7px;
+  transform-origin:left;animation:grow .7s cubic-bezier(.2,.7,.3,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.waterline{display:grid;grid-template-columns:132px 1fr;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.1em}
+.waterline span{padding:7px 16px}
+.waterline span:first-child{color:var(--signal);border-right:1px solid #24333D}
+.stratanote{font-size:13.5px;color:var(--soft);margin:11px 2px 0}
+
+/* ---- lesson cards ---- */
+.sec{padding:50px 0 0}
+.sec h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(21px,3.2vw,29px);
+  letter-spacing:-.015em;margin:0 0 4px}
+.sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
+.cards{display:grid;gap:12px}
+.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+  text-decoration:none;color:var(--ink);background:var(--panel);
+  border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
+  transition:transform .16s,box-shadow .16s,background .16s}
+a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
+.card .num{font-family:"Archivo",sans-serif;font-weight:700;font-size:30px;color:var(--signal);
+  line-height:1;letter-spacing:-.03em}
+.card .t{display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin-bottom:3px}
+.card .d{display:block;font-size:14px;color:var(--soft)}
+.card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+.card.off{border-style:dashed;border-color:var(--rule);background:transparent;cursor:default}
+.card.off .num,.card.off .t{color:var(--faint)}
+.card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
+.soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
+  padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+
+/* ---- lab cards ---- */
+.labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.lab{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);padding:16px 18px}
+.lab .lh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lab .lh b{font-family:"Archivo",sans-serif;font-weight:600;font-size:18px}
+.lab .lh span{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  color:var(--pass);white-space:nowrap}
+.lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
+.lab code{font-size:11.5px;color:var(--probe)}
+
+/* ---- course intro ---- */
+.formula{margin:28px 0 0;background:var(--deep);color:#DCE3E8;border-radius:10px;
+  padding:18px 22px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.7;
+  box-shadow:var(--shadow)}
+.formula .eq{color:#fff;font-size:14.5px;margin-bottom:8px;overflow-wrap:anywhere}
+.formula b{color:var(--signal);font-weight:500}
+.skills{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:8px 0 0}
+.skill{background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px}
+.skill i{font-family:"Archivo",sans-serif;font-style:normal;font-weight:700;font-size:22px;
+  color:var(--signal);display:block;line-height:1;margin-bottom:6px}
+.skill span{font-size:14.5px}
+.arcs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.arc{border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px;background:var(--panel)}
+.arc .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--signal)}
+.arc b{display:block;font-family:"Archivo",sans-serif;margin:6px 0 4px;font-size:16px}
+.arc span{font-size:13.5px;color:var(--soft)}
+.fails{margin:10px 0 0;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:12px 16px;
+  line-height:1.85}
+.fails b{color:var(--ink);font-weight:500}
+.week{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);margin:0 0 12px;
+  overflow:hidden}
+.week.soon{border-style:dashed;border-color:var(--rule);background:transparent}
+.week .wh{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:start;
+  padding:16px 18px}
+.week .wn{font-family:"Archivo",sans-serif;font-weight:700;font-size:26px;color:var(--signal);
+  line-height:1}
+.week.soon .wn,.week.soon .wt{color:var(--faint)}
+.week .wt{font-family:"Archivo",sans-serif;font-weight:600;font-size:17px}
+.week .wq{font-size:13.5px;color:var(--soft);margin-top:3px}
+.week .st{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--pass);white-space:nowrap}
+.week.soon .st{color:var(--faint)}
+.week .wbody{border-top:1px solid var(--rule);padding:16px 18px 18px}
+
+/* ---- lesson page ---- */
+.page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
+.rail{position:sticky;top:22px;font-size:13.5px}
+.rail .rt{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
+  border-left:2px solid var(--rule);line-height:1.4}
+.rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.rail a i{font-family:"JetBrains Mono",monospace;font-style:normal;font-size:10.5px;
+  color:var(--faint);margin-right:7px}
+.rail a:hover i{color:var(--signal)}
+.doc{min-width:0}
+.doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:31px;letter-spacing:-.02em;
+  line-height:1.22;margin:62px 0 14px;padding-top:22px;border-top:2.5px solid var(--ink)}
+.doc h2 .hn{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11.5px;
+  letter-spacing:.24em;color:var(--signal);margin-bottom:10px}
+.doc h2.sub{font-weight:600;font-size:23px;color:var(--soft);border-top:none;
+  margin:0 0 18px;padding-top:0}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19.5px;margin:30px 0 8px;
+  padding-left:12px;border-left:3px solid var(--rule)}
+.doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
+.doc p{margin:12px 0}
+.doc ul,.doc ol{padding-left:22px}
+.doc li{margin:5px 0}
+.doc blockquote{margin:16px 0;padding:13px 18px;background:var(--panel);
+  border-left:4px solid var(--signal);border-radius:0 8px 8px 0;color:var(--ink)}
+.doc blockquote p{margin:6px 0}
+.doc blockquote h3{margin-top:2px}
+.doc table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.doc th,.doc td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+.doc thead th{background:var(--ink);color:var(--paper);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.doc tbody tr:last-child td{border-bottom:none}
+.doc tbody tr:nth-child(even){background:#fff}
+.doc hr{border:none;border-top:1px solid var(--rule);margin:30px 0}
+.doc details{background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+  padding:11px 15px;margin:14px 0}
+.doc summary{cursor:pointer;font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px;color:var(--probe)}
+.doc img{max-width:100%}
+
+/* ---- in-lesson figure: accumulating complexity ladder ---- */
+.ladder{margin:22px 0 8px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow);background:var(--panel)}
+.ladder figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.ladder figcaption span:last-child{color:#93A2AE;text-transform:none;letter-spacing:.02em}
+.rung{display:grid;grid-template-columns:46px 1fr;border-top:1px solid var(--rule)}
+.rung:first-of-type{border-top:none}
+.rn{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;color:var(--faint);
+  padding:14px 0 0;text-align:center;border-right:1px solid var(--rule)}
+.rbody{padding:12px 16px 14px}
+.rhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:9px}
+.rhead b{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px}
+.rhead code{background:none;padding:0;color:var(--soft);font-size:12.5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:"JetBrains Mono",monospace;font-size:11.5px;padding:3px 9px;border-radius:20px;
+  border:1px solid var(--rule);color:var(--faint);background:var(--panel-2)}
+.chip.new{border-color:var(--signal);color:#fff;background:var(--signal);font-weight:500}
+.wline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.08em;padding:8px 16px}
+.wline span:first-child{color:var(--signal);white-space:nowrap;font-weight:500}
+.lfoot{border-top:1px solid var(--rule);padding:11px 16px;font-size:13px;color:var(--soft)}
+.lfoot b{color:var(--signal)}
+@media(max-width:640px){.rhead code{display:none}}
+
+/* ---- in-lesson diagrams (```diag) ---- */
+.diag{margin:22px 0 12px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  background:var(--panel);box-shadow:var(--shadow)}
+.diag figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
+.dpipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px 18px}
+.dnode{border:1.5px solid var(--ink);border-radius:8px;padding:8px 12px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:14px}
+.darr{color:var(--signal);font-weight:700;font-family:"JetBrains Mono",monospace}
+.dflow{padding:16px 18px;display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.dflow .darr{text-align:center;padding:2px 0}
+.dstep{border:1.5px solid var(--ink);border-radius:8px;padding:10px 14px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:15px}
+.dcmp{display:grid;grid-template-columns:1fr 1fr}
+.dcol{padding:14px 16px}
+.dcol + .dcol{border-left:1.5px solid var(--rule)}
+.dh{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;margin-bottom:8px;color:var(--signal)}
+.dcell{font-size:14px;padding:6px 0;border-top:1px solid var(--rule)}
+.dcol .dcell:first-of-type{border-top:none}
+.dnest{padding:16px}
+.dbox{border:1.5px solid var(--ink);border-radius:8px;padding:10px 12px;background:#fff}
+.dbox .dbox{margin-top:8px;background:var(--panel);border-color:var(--rule)}
+.dbox .dbox .dbox{background:var(--panel-2)}
+.dlab{font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+.gcell{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;background:#fff}
+.gcell b{display:block;font-family:"Archivo",sans-serif;font-size:15px;margin-bottom:4px;color:var(--signal)}
+.gcell span{font-size:13.5px;color:var(--soft)}
+@media(max-width:640px){
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+
+.pager{display:flex;justify-content:space-between;gap:14px;margin:52px 0 0;
+  border-top:1.5px solid var(--ink);padding-top:18px;flex-wrap:wrap}
+.pager a{font-family:"JetBrains Mono",monospace;font-size:13px;text-decoration:none;color:var(--probe)}
+.pager a:hover{color:var(--signal)}
+
+footer{margin-top:56px;border-top:1.5px solid var(--ink);background:var(--panel)}
+footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding-top:18px;padding-bottom:44px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+
+@media(max-width:900px){
+  .mast .id{letter-spacing:.08em;font-size:10.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .page{grid-template-columns:1fr;gap:20px}
+  .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
+  .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
+  .layer{grid-template-columns:1fr}
+  .layer .nm,.layer .note{border:none}
+  .layer .note{padding-top:0}
+  .waterline{grid-template-columns:1fr}
+  .card{grid-template-columns:46px 1fr}
+  .card .tag{display:none}
+  .skills,.arcs{grid-template-columns:1fr}
+  .week .wh{grid-template-columns:46px 1fr}
+  .week .st{display:none}
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .layer .bar{animation:none}
+  a.card:hover{transform:none}
+}
+</style>
+</head><body>
+
+<header class="mast"><div class="wrap">
+<span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 02</b></span>
+<nav><a href="index.html">课程</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span><a href="w2-01.html">W2·1</a><a href="w2-02.html" class="on">W2·2</a><span class="soonnav">W2·3</span><span class="soonnav">W2·4</span><span class="soonnav">W2·5</span></nav></div></header>
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">换实现之后,还是同一个实验吗?</a><a href="#s1"><i>00</i>从第 1 课接过来</a><a href="#s2"><i>01</i>两个 backend 都返回 1,实验就等价吗?</a><a href="#s3"><i>02</i>四个边界,不是两个 Python class</a><a href="#s4"><i>03</i>Harbor 的 Agent 协议</a><a href="#s5"><i>04</i>Harbor 的 Environment 协议</a><a href="#s6"><i>05</i>Trial 才拥有生命周期</a><a href="#s7"><i>06</i>怎样证明换实现后仍是同一道题</a><a href="#s8"><i>07</i>Inspect 对照:相同名词,不同协议中心</a><a href="#s9"><i>08</i>Lab:conformance harness</a><a href="#s10">源码阅读(只答问题,不通读 backend)</a><a href="#s11">本课自检</a><a href="#s12">本课一句话</a></aside>
+<article class="doc"><h1>第 2 课:Agent / Environment / Trial 协议</h1>
+<h2 id="s0" class="sub">换实现之后,还是同一个实验吗?</h2>
+<p><strong>Week 2 Day 2</strong> · 源码课 · 建议 75 分钟 + lab</p>
+<blockquote>
+<h3>本课唯一命题</h3>
+<h1>Adapter 和 backend 不是「接得上就算正确」。</h1>
+<h1>只有当它们不增加、不删除、不扭曲 task information,并且对相同 action 给出相同的可观察环境语义时,换实现才不会改 evaluation experiment。</h1>
+</blockquote>
+<figure class="diag"><figcaption><span>SUT 不是整个 Trial</span></figcaption><div class="dnest"><div class="dbox"><div class="dlab">一次 Trial</div><div class="dbox"><div class="dlab">SUT · Agent 实现 + model + prompt/tools/config</div></div><div class="dbox"><div class="dlab">实验条件 · instruction · 初始环境 · user simulator · limits · verifier</div></div><div class="dbox"><div class="dlab">一次观测 · attempt</div></div></div></div></figure>
+
+<blockquote>
+<p>📎 Harbor <code>b378332</code> · Inspect <code>499e615</code>
+💻 lab:<code>../labs/eval-runtime/</code>(<code>protocol.py</code> · <code>trial.py</code> · <code>adapters/</code> · <code>environments/</code>)</p>
+</blockquote>
+<hr />
+<h2 id="s1"><span class="hn">§ 00</span>从第 1 课接过来</h2>
+<p>第 1 课把声明展开成 resolved Trial。本课问的不是「怎么调用 <code>agent.run()</code>」,而是:</p>
+<p><strong>把 Claude Code 换成 Codex,或把 Docker 换成另一个 sandbox,怎么证明变的只是实现,不是题目?</strong></p>
+<figure class="diag"><figcaption><span>现在要执行的是已经展开的 Trial</span></figcaption><div class="dflow"><div class="dstep">JobConfig</div><div class="darr">↓</div><div class="dstep">resolve / validate / expand / record</div><div class="darr">↓</div><div class="dstep">TrialConfig(task, agent, environment, verifier)</div><div class="darr">↓</div><div class="dstep">本课:换 Agent 或 backend,实验还是不是同一个</div></div></figure>
+
+<p>Task、environment、attempt <strong>都不是 SUT</strong>。SUT 是被测 Agent 系统。其余是实验条件。</p>
+<hr />
+<h2 id="s2"><span class="hn">§ 01</span>两个 backend 都返回 1,实验就等价吗?</h2>
+<p>任务:<code>Create /workspace/answer.txt containing exactly: 42</code>。同一个 scripted agent 写 <code>"42\n"</code>。Local 和 Docker 的 verifier 都返回 1。这仍然不够。</p>
+<figure class="diag"><figcaption><span>final score 相同没有证明的东西</span></figcaption><div class="dgrid"><div class="gcell"><b>task information</b><span>有没有被 adapter 加料</span></div><div class="gcell"><b>initial state</b><span>有没有上次 Trial 的残留</span></div><div class="gcell"><b>action semantics</b><span>user / cwd / mkdir / timeout 是否一致</span></div><div class="gcell"><b>state transition</b><span>相同动作是否落到相同可见状态</span></div><div class="gcell"><b>verifier input</b><span>尺子读到的是不是同一份最终态</span></div><div class="gcell"><b>termination</b><span>stop 失败是否仍被记成成功</span></div></div></figure>
+
+<p>本课的 conformance 查的是这六项,不是 <code>score_A == score_B</code>。</p>
+<hr />
+<h2 id="s3"><span class="hn">§ 02</span>四个边界,不是两个 Python class</h2>
+<figure class="diag"><figcaption><span>谁拥有什么</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">组件</div><div class="dcell">Task</div><div class="dcell">Agent Adapter</div><div class="dcell">Environment Backend</div><div class="dcell">Trial Runtime</div></div><div class="dcol"><div class="dh">不准做什么</div><div class="dcell">不决定某个 Agent 的私有 prompt 格式</div><div class="dcell">不补充答案、不删限制、不重写任务语义</div><div class="dcell">不因 provider 不同而静默改变任务语义</div><div class="dcell">不替 Agent 做题,不替 verifier 猜结果</div></div></div></figure>
+
+<figure class="diag"><figcaption><span>Trial 里四件事的顺序</span></figcaption><div class="dflow"><div class="dstep">create / start Environment</div><div class="darr">↓</div><div class="dstep">Agent.setup(environment)</div><div class="darr">↓</div><div class="dstep">Agent.run(instruction, environment, context)</div><div class="darr">↓</div><div class="dpipe"><span class="dnode">Verifier.verify(final state)</span><span class="darr">→</span><span class="dnode">stop Environment</span></div></div></figure>
+
+<p>允许的转换:canonical instruction → CLI argv / stdin / ACP message。
+不允许:在 instruction 后面偷偷接上 oracle hint。后者即使分数提高,实验已经坏了。</p>
+<hr />
+<h2 id="s4"><span class="hn">§ 03</span>Harbor 的 Agent 协议</h2>
+<h3>3.1 <code>BaseAgent</code> 不是 <code>act(obs) → action</code></h3>
+<p><code>agents/base.py</code> 的核心是两个粗粒度方法:</p>
+<pre><code class="language-python">async def setup(self, environment: BaseEnvironment) -&gt; None: ...
+async def run(self, instruction: str, environment: BaseEnvironment, context: AgentContext) -&gt; None: ...
+</code></pre>
+<p><code>run()</code> 自己返回 <code>None</code>。Agent 有两路输出:</p>
+<figure class="diag"><figcaption><span>Agent.run 的两路输出</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">环境副作用</div><div class="dcell">写文件 · 起服务 · 改状态</div><div class="dcell">没有副作用 → 任务失败</div></div><div class="dcol"><div class="dh">AgentContext</div><div class="dcell">token · cost · metadata · trajectory 相关</div><div class="dcell">没有 context → 审计和成本残缺</div></div></div></figure>
+
+<p><code>SUPPORTS_WINDOWS</code> / <code>SUPPORTS_ATIF</code> / <code>SUPPORTS_RESUME</code> 是能力声明。不支持就必须拒绝,不能装成支持。<code>resume()</code> 存在,本课不展开(→ W6)。</p>
+<p>Trial 在 <code>setup()</code> <strong>之前</strong>把 <code>environment.default_user</code> 设好(<code>trial/trial.py</code> <code>_prepare</code>)。</p>
+<h3>3.2 Null 和 Oracle 是实验对照,不是 SUT</h3>
+<p><code>NopAgent.setup/run</code> 都是 <code>pass</code>(<code>nop.py</code>)。负控:非平凡题若 Nop 也能过,初态或 verifier 漏了答案。</p>
+<p><code>OracleAgent</code> 读 <code>Task(task_dir)</code> 的 reference solution,upload 再 <code>exec</code>(<code>oracle.py</code>)。正控:Oracle 不过,先查题/环境/尺子,再查模型。它<strong>不是</strong> leaderboard 上的 SUT,是 harness diagnostic。Oracle 额外握着 <code>task_dir</code>,这是特权,不是普通 Agent 协议。</p>
+<figure class="diag"><figcaption><span>最小 sanity matrix</span></figcaption><div class="dgrid"><div class="gcell"><b>Nop</b><span>期望 FAIL · 若 PASS → 初态污染或尺子过弱</span></div><div class="gcell"><b>Oracle</b><span>期望 PASS · 若 FAIL → task/env/verifier 闭环坏了</span></div><div class="gcell"><b>被测 Agent</b><span>只有两个 control 正常,分数才可解释</span></div></div></figure>
+
+<hr />
+<h2 id="s5"><span class="hn">§ 04</span>Harbor 的 Environment 协议</h2>
+<h3>4.1 task 环境定义 ≠ runtime backend</h3>
+<p>task 自带 environment definition(<code>task.toml</code>、Dockerfile)。<code>TrialConfig</code> 里的 EnvironmentConfig 选<strong>怎样实现</strong>它。换 backend 不是换题。</p>
+<figure class="diag"><figcaption><span>两层环境</span></figcaption><div class="dpipe"><span class="dnode">task 定义「应该得到什么环境」</span><span class="darr">→</span><span class="dnode">runtime backend「由谁实现」</span><span class="darr">→</span><span class="dnode">本 Trial 的实例</span></div></figure>
+
+<h3>4.2 <code>BaseEnvironment</code> 的门</h3>
+<p><code>environments/base.py</code>(只抽 API,不读 <code>docker.py</code>):</p>
+<pre><code>type / start / stop
+exec(command, cwd, env, timeout_sec, user) → ExecResult
+upload_file / upload_dir / download_file / download_dir
+capabilities  gpus · windows · mounted · docker_compose · disable_internet · …
+</code></pre>
+<p>Agent 只能走这些门。<code>user=None</code> 回落到 <code>default_user</code>。不支持的 requirement 必须 <strong>fail fast</strong>,不能静默降级。network allowlist 的细则 → W7。</p>
+<h3>4.3 不要把 Harbor 写成 Gymnasium</h3>
+<p>Harbor <strong>没有</strong> <code>step(action)</code>。外部 CLI Agent 一次 <code>run()</code> 里可能 <code>exec</code> 几十次,runtime 只看见粗边界。这就是第 3 课要单独讲 trajectory 的原因。</p>
+<figure class="diag"><figcaption><span>Harbor 看见的粒度</span></figcaption><div class="dpipe"><span class="dnode">start</span><span class="darr">→</span><span class="dnode">Agent.setup</span><span class="darr">→</span><span class="dnode">Agent.run(多次 exec)</span><span class="darr">→</span><span class="dnode">collect</span><span class="darr">→</span><span class="dnode">verify</span><span class="darr">→</span><span class="dnode">stop</span></div></figure>
+
+<hr />
+<h2 id="s6"><span class="hn">§ 05</span>Trial 才拥有生命周期</h2>
+<p><code>trial/trial.py</code> <code>run()</code> 可以收成:</p>
+<figure class="diag"><figcaption><span>Trial.run(b378332)</span></figcaption><div class="dflow"><div class="dstep">emit START</div><div class="darr">↓</div><div class="dpipe"><span class="dnode">prepare: start env</span><span class="darr">→</span><span class="dnode">healthcheck</span><span class="darr">→</span><span class="dnode">setup agent</span></div><div class="darr">↓</div><div class="dstep">run workload(除非 install_only)</div><div class="darr">↓</div><div class="dstep">except CancelledError: CANCEL + recover_outputs + raise</div><div class="darr">↓</div><div class="dstep">except Exception: record + recover_outputs</div><div class="darr">↓</div><div class="dpipe"><span class="dnode">finally: finalize</span><span class="darr">→</span><span class="dnode">stop env</span><span class="darr">→</span><span class="dnode">write result</span><span class="darr">→</span><span class="dnode">END</span></div></div></figure>
+
+<p>Cancellation 是一条退出路径,不是跳过 <code>finally</code> 的许可。Agent 不拥有 sandbox 的寿命;Trial 拥有。shared vs separate verifier → W7。并发池 → 第 4 课。</p>
+<p>教学用状态机(Harbor <strong>没有</strong>这个 enum,是从控制流抽的):</p>
+<figure class="diag"><figcaption><span>非法转换必须有答案</span></figcaption><div class="dpipe"><span class="dnode">CREATED</span><span class="darr">→</span><span class="dnode">PREPARING</span><span class="darr">→</span><span class="dnode">AGENT_RUNNING</span><span class="darr">→</span><span class="dnode">VERIFYING</span><span class="darr">→</span><span class="dnode">FINALIZING</span><span class="darr">→</span><span class="dnode">SUCCEEDED/FAILED/CANCELLED</span></div></figure>
+
+<p>CREATED → VERIFYING、SUCCEEDED → AGENT_RUNNING、CANCELLED → VERIFYING 都非法。setup 失败后 verifier 跑不跑、timeout 后是否收 partial logs,必须有确定答案。</p>
+<hr />
+<h2 id="s7"><span class="hn">§ 06</span>怎样证明换实现后仍是同一道题</h2>
+<p>真实 LLM 有随机性,不能用「最终 patch 逐字相同」证明等价。用可控 probe:</p>
+<figure class="diag"><figcaption><span>两种等价,不要混</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Input equivalence</div><div class="dcell">Agent 看见的任务语义相同</div><div class="dcell">instruction / 可见文件 / limits</div></div><div class="dcol"><div class="dh">Execution equivalence</div><div class="dcell">相同 scripted actions → 等价状态</div><div class="dcell">初态 · 动作序列 · 终态 · 终止原因 · verifier 输入</div></div></div></figure>
+
+<figure class="diag"><figcaption><span>conformance 最小阵</span></figcaption><div class="dgrid"><div class="gcell"><b>Nop</b><span>两 backend 都 FAIL</span></div><div class="gcell"><b>Oracle</b><span>两 backend 都 PASS</span></div><div class="gcell"><b>Scripted valid</b><span>终态 digest 相同</span></div><div class="gcell"><b>Hint-injecting adapter</b><span>即使 PASS 也必须被拒绝</span></div></div></figure>
+
+<p>Local backend 是教学实现,不是 Harbor 官方 backend:每 Trial 新临时目录,不准把宿主机任意路径暴露给 Agent。</p>
+<hr />
+<h2 id="s8"><span class="hn">§ 07</span>Inspect 对照:相同名词,不同协议中心</h2>
+<p>Inspect <code>@499e615</code>:</p>
+<ul>
+<li>原生 Agent:<code>async def __call__(self, state: AgentState) -&gt; AgentState</code>(核心是 <code>messages</code> / <code>output</code>)</li>
+<li><code>SandboxEnvironment</code> docstring:<em>Environment for executing arbitrary code from tools</em>(<code>util/_sandbox/environment.py:127</code>)。Solver/Agent 的 Python <strong>默认在 eval 主进程</strong>;进机器走 <code>exec</code> / <code>write_file</code> / <code>read_file</code></li>
+<li><code>sandbox="docker"</code> <strong>不等于</strong> Agent 进程在容器里</li>
+<li><code>sandbox_agent_bridge</code>(<code>agent/_bridge/sandbox/bridge.py:45</code>)才把外部 Agent 放进 sandbox,并代理模型 API —— 这是重叠区的源码位置,不是功能清单</li>
+</ul>
+<figure class="diag"><figcaption><span>协议中心</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Harbor</div><div class="dcell">instruction + Environment + Context</div><div class="dcell">Agent 通常在环境里跑</div><div class="dcell">环境副作用 + AgentContext</div><div class="dcell">外部 CLI = 原生 BaseAgent 方向</div></div><div class="dcol"><div class="dh">Inspect</div><div class="dcell">AgentState → AgentState</div><div class="dcell">控制逻辑默认在 host</div><div class="dcell">messages / output</div><div class="dcell">外部 CLI 常走 Agent Bridge</div></div></div></figure>
+
+<p>课程目标不是做一个同时长得像两边的万能 API,而是定义<strong>换实现仍必须保持的 canonical semantics</strong>。</p>
+<p>Gymnasium / BrowserGym:<code>reset</code> / <code>step</code> vs Harbor <code>start</code> / <code>exec</code> / <code>stop</code>。本课不展开。</p>
+<hr />
+<h2 id="s9"><span class="hn">§ 08</span>Lab:conformance harness</h2>
+<pre><code class="language-bash">python3 -m pytest labs/eval-runtime/tests/test_agent_contract.py \
+  labs/eval-runtime/tests/test_environment_contract.py \
+  labs/eval-runtime/tests/test_lifecycle.py \
+  labs/eval-runtime/tests/test_differential.py
+</code></pre>
+<p>四个 Agent:Null / Oracle / ScriptedInvalid(写 41) / HintInjecting(给答案)。hidden verifier 输入不准进 Adapter。Local 必测;Docker 在有 daemon 时测,没有则 skip。</p>
+<p>这是第 5 天不变量 2 的种子,不是 EvalRT Core 全文。</p>
+<hr />
+<h2 id="s10">源码阅读(只答问题,不通读 backend)</h2>
+<p>Harbor:<code>BaseAgent.run</code> 为什么同时拿 environment 和 context?Nop 与 Oracle 各是哪种 control?<code>exec</code> 的 cwd/env/timeout/user 为什么都是实验语义?不支持的 capability 为什么必须 reject?<code>Trial.run</code> 在普通异常与 cancellation 下有何不同?<code>_finalize</code> 为什么还要 stop environment?</p>
+<p>Inspect:只看 <code>AgentState → AgentState</code> 和 <code>SandboxEnvironment.exec/read_file/write_file</code>。外部 CLI 自己维护 session 时,怎样才能看到它真实的模型调用?</p>
+<hr />
+<h2 id="s11">本课自检</h2>
+<pre><code>[ ] 能区分 SUT、evaluation condition 与 Trial
+[ ] 能解释 Adapter 为什么可能在不改 API shape 的情况下改变 benchmark
+[ ] 能写出 Harbor BaseAgent 的 setup/run contract
+[ ] 能说出环境副作用与 AgentContext 是两条输出通道
+[ ] 能说出 Null 与 Oracle 分别检查什么
+[ ] 能写出 BaseEnvironment 的 start/stop/exec/file contract
+[ ] 能解释 capability 必须 fail fast
+[ ] 能从 Trial.run() 画出成功 / 异常 / 取消 / cleanup
+[ ] 能定义 input equivalence 与 execution equivalence
+[ ] 能解释为什么相同 final score 不能证明两个 backend 等价
+</code></pre>
+<hr />
+<h2 id="s12">本课一句话</h2>
+<blockquote>
+<p><strong>Runtime 正确不是所有 Adapter 都实现了同名方法,而是换 Agent 或 backend 之后,任务语义、动作语义、verifier 读到的终态、Trial 的退出语义都没有被悄悄改掉。</strong></p>
+</blockquote>
+<p>下一课:Harbor 的 <code>run()</code> 边界太粗。tool 已经改了环境、Agent 没收到 response 时,trajectory 怎么记因果?</p>
+<div class="pager"><a href="w2-01.html">← W2 第 1 课 · 从 Eval Spec 到可执行 Trial</a><a href="index.html#w2">Week 2 →</a></div>
+</article></div></div>
+<footer><div class="wrap">
+<span>Week 02 · Eval Runtime & Trajectory Engineering</span>
+<span>Harbor b378332 · Inspect 499e615</span>
+<span>由 week02/*.md 生成 · build_site.py</span>
+</div></footer></body></html>

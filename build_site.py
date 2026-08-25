@@ -47,7 +47,7 @@ WEEKS = [
      "4/6", True),
     ("2", "Eval Runtime & Trajectory Engineering",
      "不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录",
-     "1/5", False),
+     "2/5", False),
     ("3", "Metrics & Statistics",
      "一个 observation 是什么?误差棒怎么算?", None, False),
     ("4", "Scorers / Verifiers / LLM-as-Judge",
@@ -74,7 +74,8 @@ WEEKS = [
 W2_LESSONS = [
     ("w2-01", "1", "从 Eval Spec 到可执行 Trial", "JobPlan 编译,不是开跑", "源码",
      "lesson01-eval-spec-to-trial.md"),
-    ("w2-02", "2", "Agent / Environment / Trial 协议", "换 adapter 后仍是同一道题", "源码", None),
+    ("w2-02", "2", "Agent / Environment / Trial 协议", "换实现后仍是同一个实验", "源码",
+     "lesson02-protocol-boundary.md"),
     ("w2-03", "3", "Trajectory / 因果 / 副作用", "没收到 response 时怎么记", "源码", None),
     ("w2-04", "4", "并发与 Runtime Correctness", "并发不改变实验语义", "源码", None),
     ("w2-05", "5", "EvalRT Core", "五个强不变量", "lab", None),
@@ -805,12 +806,25 @@ def build_w2_lesson(idx: int) -> str:
         "Harbor b378332 · Inspect 499e615",
         "由 week02/*.md 生成 · build_site.py",
     )
+    def neighbor(step: int):
+        j = idx + step
+        while 0 <= j < len(W2_LESSONS):
+            if W2_LESSONS[j][5]:
+                return W2_LESSONS[j]
+            j += step
+        return None
+
+    p, nx = neighbor(-1), neighbor(1)
+    prev_l = (f'<a href="{p[0]}.html">← W2 第 {p[1]} 课 · {p[2]}</a>' if p
+              else '<a href="index.html#w2">← Week 2</a>')
+    next_l = (f'<a href="{nx[0]}.html">W2 第 {nx[1]} 课 · {nx[2]} →</a>' if nx
+              else '<a href="index.html#w2">Week 2 →</a>')
     return f"""{HEAD.format(title=f"W2 第 {n} 课 · {title}", css=CSS)}
 {masthead(slug)}
 <div class="wrap"><div class="page">
 <aside class="rail"><div class="rt">本课目录</div>{rail_html}</aside>
 <article class="doc">{html}
-<div class="pager"><a href="index.html#w2">← Week 2</a><a href="index.html">回课程 →</a></div>
+<div class="pager">{prev_l}{next_l}</div>
 </article></div></div>
 {foot}"""
 

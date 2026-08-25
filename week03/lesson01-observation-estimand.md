@@ -108,22 +108,26 @@ timeout、retry、infra failure 最终是否进分母是 Week 6 的 failure-sema
 
 ---
 
-## 二、四层对象:row 不是结论
+## 二、一次运行的分数,还不是「这个 Agent 有多强」
+
+上一节的 **row** = 一行 TrialResult = 一次 `(task, agent, attempt)` 执行。它只回答:这次跑发生了什么。
+
+**结论** 是另一句话,例如「这个 Agent 大约 61%」。那句话已经离开这一行,经过了 task 汇总、题集平均、或对目标任务分布的推广。中间有四层;不能把第一层直接当成第四层。
 
 ```diag
-nest | 从 observation 到想推广的总体
-目标 task population D
-  当前 benchmark task set
-    task i 的多次 attempts
-      TrialResult Yᵢⱼ
+nest | 从这一次运行,到「Agent 有多强」
+目标 task 分布 D · 没见过的新题预期怎样
+  当前 benchmark 的 N 道题 · 这套题上平均怎样
+    某一题的多次 attempts · 这道题上平均怎样
+      一行 TrialResult · 这一次跑发生了什么
 ```
 
-| 层 | 符号 | 回答的问题 |
+| 层 | 符号 | 这一层在说什么 |
 |---|---|---|
-| Trial observation | $Y_{ij}$ | task $i$ 的第 $j$ 次运行发生了什么? |
-| Task-level score | $\bar Y_i$ | 这个 task 上的平均表现怎样? |
-| Benchmark estimate | $\hat\mu_{\mathrm{bench}}$ | 当前 task set 上的平均表现怎样? |
-| Population estimand | $\mu_D$ | 从目标任务分布 $D$ 抽一个新 task,预期表现怎样? |
+| 一次运行 | $Y_{ij}$ | task $i$ 的第 $j$ 次执行:过了还是没过 |
+| 一道题 | $\bar Y_i$ | 这个 task 上重复跑的平均 |
+| 这套题 | $\hat\mu_{\mathrm{bench}}$ | 当前 N 个 task 的平均 |
+| 想推广的总体 | $\mu_D$ | 从目标分布 $D$ 抽一道新题,预期怎样 |
 
 对 binary success:
 
@@ -368,7 +372,7 @@ grid | heatmap 应让人一眼看见什么
 ```text
 [ ] 能说出 canonical table 的 grain:一行 = 一个 task × agent × attempt execution
 [ ] 能解释 score=0 与 score=null 为什么必须分开
-[ ] 能区分 TrialResult、task-level score、benchmark estimate、population estimand
+[ ] 能区分一次运行、一道题的平均、这套题的平均、和对新题的推广;不把第一层当成「Agent 有多强」
 [ ] 能区分 estimand、estimator、estimate
 [ ] 能写出默认 estimand:在条件 C 下,从 D 抽新 task 并运行一次的预期成功率
 [ ] 能解释 Var(Y) 的 between-task 与 within-task 两项

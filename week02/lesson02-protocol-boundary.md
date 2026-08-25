@@ -5,8 +5,8 @@
 **Week 2 Day 2** · 源码课 · 建议 75 分钟 + lab
 
 > ### 本课唯一命题
-> # Adapter 和 backend 不是「接得上就算正确」。
-> # 只有当它们不增加、不删除、不扭曲 task information,并且对相同 action 给出相同的可观察环境语义时,换实现才不会改 evaluation experiment。
+> # 不同 Agent CLI、不同 sandbox,不是接上接口就算正确。
+> # 换 Claude Code 成 Codex,题目不能被 adapter 加料;换 Docker 成另一个 sandbox,相同动作必须落到相同可见状态。
 
 ```diag
 nest | SUT 不是整个 Trial
@@ -303,6 +303,6 @@ Inspect:只看 `AgentState → AgentState` 和 `SandboxEnvironment.exec/read_fil
 
 ## 本课一句话
 
-> **Runtime 正确不是所有 Adapter 都实现了同名方法,而是换 Agent 或 backend 之后,任务语义、动作语义、verifier 读到的终态、Trial 的退出语义都没有被悄悄改掉。**
+> **换 Claude Code 或换 Docker,正确条件不是 setup/run/exec 都实现了,而是题目没被加料、相同动作可见状态相同、Trial 退出语义没被改掉。**
 
 下一课:Harbor 的 `run()` 边界太粗。tool 已经改了环境、Agent 没收到 response 时,trajectory 怎么记因果?

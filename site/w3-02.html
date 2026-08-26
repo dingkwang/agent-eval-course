@@ -302,17 +302,18 @@ window.MathJax = {
 <div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="lesson01.html">W1</a><a href="w2-01.html">W2</a><a href="w3-01.html" class="on">W3</a><a href="w4-01.html">W4</a><a href="w5-01.html">W5</a></nav><nav class="mast-lessons"><a href="w3-01.html">1</a><a href="w3-02.html" class="on">2</a><span class="soonnav">3</span><span class="soonnav">4</span><span class="soonnav">5</span></nav></div>
 </div></header>
 <div class="wrap"><div class="page">
-<aside class="rail"><div class="rt">本课目录</div><a href="#s0">同一个 Agent「有时能做到」和「每次都能做到」是两件事</a><a href="#s1"><i>00</i>先看两个 pass@1=50% 的 Agent</a><a href="#s2"><i>01</i>先定义产品事件,再写公式</a><a href="#s3"><i>02</i>为什么不能把 pooled success rate 代进公式</a><a href="#s4"><i>03</i>总体定义不是有限样本 estimator</a><a href="#s5"><i>04</i>i.i.d. 不是一个无害的小字</a><a href="#s6"><i>05</i>Reliability gap 有用,但不是无条件的「随机性分数」</a><a href="#s7"><i>06</i>真实数据:随机性不是 temperature 开关</a><a href="#s8"><i>07</i>Don't Pass@k 到底反对什么?</a><a href="#s9"><i>08</i>Lab:从 canonical rows 生成四张图</a><a href="#s10"><i>09</i>读材料时只回答这些问题</a><a href="#s11">本课自检</a><a href="#s12">本课一句话</a></aside>
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">同一个 Agent「有时能做到」和「每次都能做到」是两件事</a><a href="#s1"><i>00</i>先看两个 pass@1=50% 的 Agent</a><a href="#s2"><i>01</i>先定义产品事件,再写公式</a><a href="#s3"><i>02</i>为什么不能把 pooled success rate 代进公式</a><a href="#s4"><i>03</i>总体定义不是有限样本 estimator</a><a href="#s5"><i>04</i>i.i.d. 不是一个无害的小字</a><a href="#s6"><i>05</i>Reliability gap 有用,但不是无条件的「随机性分数」</a><a href="#s7"><i>06</i>真实数据:随机性不是 temperature 开关</a><a href="#s8"><i>07</i>Don't Pass@k 到底反对什么?</a><a href="#s9"><i>08</i>Lab:从 canonical rows 生成五张图</a><a href="#s10"><i>09</i>读材料时只回答这些问题</a><a href="#s11">本课自检</a><a href="#s12">本课一句话</a></aside>
 <article class="doc"><h1>第 2 课:Repeated Trials——Capability 与 Reliability</h1>
 <h2 id="s0" class="sub">同一个 Agent「有时能做到」和「每次都能做到」是两件事</h2>
 <p><strong>Week 3 Day 2</strong> · 统计推断课 · 建议 70 分钟 + lab</p>
 <blockquote>
 <h3>本课唯一命题</h3>
 <h1><code>pass@k</code> 和 <code>pass^k</code> 不是同一个指标的两种写法。</h1>
-<h1>前者问 k 次里能否至少成功一次;后者问 k 次是否全部成功。选哪一个由产品使用方式决定。</h1>
+<h1>前者问 k 次里能否至少成功一次;后者问 k 次是否全部成功。选哪一个由产品事件、选择器、依赖结构与预算共同决定。</h1>
 <p>📄 HumanEval/Codex §2.1、Appendix A · <code>pass@k</code> finite-sample estimator
 📄 τ-bench §3 · <code>pass^k</code> reliability metric
 📄 <em>On Randomness in Agentic Evals</em> §2.3–3
+📄 <em>Don't Pass@k</em> · Bayes@N + credible intervals 的批判性阅读
 💻 输入:Lesson 1 的 canonical <code>TrialResult</code> table</p>
 </blockquote>
 <figure class="diag"><figcaption><span>相同的 repeated trials,两个相反的问题</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Capability coverage · pass@k</div><div class="dcell">k 次中至少一次成功</div><div class="dcell">retry / search / candidate generation</div><div class="dcell">随 k 单调上升</div><div class="dcell">需要能识别或选出成功结果</div></div><div class="dcol"><div class="dh">Reliability · pass^k</div><div class="dcell">k 次必须全部成功</div><div class="dcell">repeated customer-facing execution</div><div class="dcell">随 k 单调下降</div><div class="dcell">不允许一次坏结果混过去</div></div></div></figure>
@@ -400,6 +401,13 @@ pass^10 = 59.9%
 pass^50 = 7.7%
 </code></pre>
 <p>低 <code>pass^50</code> 不等于单次成功率只有 7.7%;它表示连续 50 次全部无错是很高的门槛。报告时必须同时写 $k$。</p>
+<h3>1.3 先填 metric contract,再选择 <code>@</code> 还是 <code>^</code></h3>
+<figure class="diag"><figcaption><span>Repeated-trial metric contract</span></figcaption><div class="dgrid"><div class="gcell"><b>Product event</b><span>至少一次成功、全部成功、或 adaptive retry controller 成功</span></div><div class="gcell"><b>Attempt protocol</b><span>fresh reset、共享 state、还是看过上一次 feedback</span></div><div class="gcell"><b>Selector</b><span>谁识别成功 candidate;selector 自己会不会犯错</span></div><div class="gcell"><b>Budget</b><span>k 次 token / tool / wall-time / dollar cost</span></div><div class="gcell"><b>Task aggregation</b><span>task-macro、stratified 或 production-weighted</span></div><div class="gcell"><b>Failure rule</b><span>timeout、infra error、invalid output 怎样进入 block</span></div></div></figure>
+
+<p><code>pass@k</code> 的 verifier 只在离线评测时是 oracle。真实产品若用一个会犯错的 ranker 从 $k$ 个 candidates 中选择,部署 estimand 应包含 selector 的错误:</p>
+<figure class="diag"><figcaption><span>oracle coverage 不等于 delivered success</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Offline pass@k</div><div class="dcell">任一 candidate 通过 hidden tests 即成功</div><div class="dcell">衡量候选集合的 capability envelope</div><div class="dcell">可作为上界</div></div><div class="dcol"><div class="dh">Product success@k</div><div class="dcell">selector 实际返回的 candidate 通过才成功</div><div class="dcell">衡量 generator + selector 的端到端系统</div><div class="dcell">必须把 selection cost / error 算进去</div></div></div></figure>
+
+<p>因此报告至少同时给 <code>k</code>、candidate generation protocol、selector、平均/分位成本与 latency。只画一条随 $k$ 上升的曲线,可能只是把更多计算预算藏进指标。</p>
 <hr />
 <h2 id="s3"><span class="hn">§ 02</span>为什么不能把 pooled success rate 代进公式</h2>
 <p>Lesson 1 规定先按 task 建模。本课现在看到原因:两个指标都是 $p_i$ 的<strong>非线性函数</strong>。</p>
@@ -478,6 +486,41 @@ pass^k_hat ≤ pass@1_hat ≤ pass@k_hat
 pass@k 随 k 不下降;pass^k 随 k 不上升
 n&lt;k:  undefined,不能外推成一个数字
 </code></pre>
+<h3>3.3 经验 block curve 与 independence extrapolation 必须分开标</h3>
+<p>有三种常被画成同一条 <code>pass@k</code> 线的方法:</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>数据怎样来</th>
+<th>支持什么结论</th>
+<th>关键假设</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Direct block estimate</td>
+<td>按真实部署协议反复执行完整 k-attempt block</td>
+<td>这个 controller / selector / shared-state block 的成功率</td>
+<td>blocks 代表目标使用场景</td>
+</tr>
+<tr>
+<td>Combinatorial estimator</td>
+<td>每 task 收集 $n\ge k$ 个 fresh attempts,用组合数 estimator</td>
+<td>从相同 protocol 随机取 k 次的 event probability</td>
+<td>attempts exchangeable,通常设计为独立 reset</td>
+</tr>
+<tr>
+<td>Parametric extrapolation</td>
+<td>估 $p_i$ 后计算 $1-(1-p_i)^k$ 或 $p_i^k$</td>
+<td>i.i.d. 模型下未观察 k 的理论曲线</td>
+<td>stable $p_i$ + conditional independence</td>
+</tr>
+</tbody>
+</table>
+<figure class="diag"><figcaption><span>有 shared state 时,直接测产品 block</span></figcaption><div class="dflow"><div class="dstep">初始化一次 product block</div><div class="darr">↓</div><div class="dstep">按真实规则连续执行 k 次</div><div class="darr">↓</div><div class="dstep">保留 cache / memory / feedback 的真实变化</div><div class="darr">↓</div><div class="dstep">selector 或 all-k rule 产生一个 block outcome</div><div class="darr">↓</div><div class="dstep">跨独立 blocks 估计概率</div></div></figure>
+
+<p>这种 direct block estimate 不要求把 block 内 attempts 假装独立;代价是每个 $k$ 都要真正运行,而且 estimand 已经包含 controller、state evolution 与 selector。图例应明确写 <code>empirical block</code>、<code>combinatorial</code> 或 <code>i.i.d. extrapolation</code>,不能都叫 observed reliability。</p>
 <hr />
 <h2 id="s5"><span class="hn">§ 04</span>i.i.d. 不是一个无害的小字</h2>
 <p>公式把 attempts 看作在同一个 $(T_i,A,C)$ 下的独立同分布重复。</p>
@@ -490,6 +533,10 @@ n&lt;k:  undefined,不能外推成一个数字
 <h3>4.2 共享故障会制造相关性</h3>
 <p>Anthropic 的实践说明:残留文件、共享 cache、资源耗尽会让 trials 不独立。同一个 provider incident 也可能让一整列 attempts 同时失败。</p>
 <p>这不会靠组合数公式自动消失。canonical table 应保留 run/batch/infra identity,Lesson 3 再决定 cluster-aware uncertainty;Week 6 决定 infra failure 的分母语义。</p>
+<h3>4.3 Independence 先做 protocol audit,再看数据诊断</h3>
+<figure class="diag"><figcaption><span>依赖从哪里进入</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Protocol evidence</div><div class="dcell">是否每次 reset workspace / DB / cache</div><div class="dcell">是否共享 provider window / batch</div><div class="dcell">是否读到前次 trajectory / feedback</div><div class="dcell">是否跨运行更新 memory / policy</div></div><div class="dcol"><div class="dh">Outcome diagnostics</div><div class="dcell">attempt order 上 success rate 是否漂移</div><div class="dcell">同 batch 是否一起成功或失败</div><div class="dcell">conditional success 是否依赖前次 outcome</div><div class="dcell">early / late attempts 分布是否不同</div></div></div></figure>
+
+<p>数据诊断能发现明显的 dependence,不能证明 independence。若业务本来就共享 memory 或按失败原因重试,不要“清洗”掉依赖来满足公式;应回到 3.3,把真实 block 当作新的 experimental unit。</p>
 <hr />
 <h2 id="s6"><span class="hn">§ 05</span>Reliability gap 有用,但不是无条件的「随机性分数」</h2>
 <p>定义同一个 $k$ 下的展示量:</p>
@@ -521,6 +568,7 @@ pass^5 = 15.5%   · all-five reliability
 <hr />
 <h2 id="s8"><span class="hn">§ 07</span><code>Don't Pass@k</code> 到底反对什么?</h2>
 <p>ICLR 2026 的 <em>Don't Pass@k</em> 关注的是:当 task 数和 trials 都少、$k$ 接近已收集的 $n$ 时,用 <code>pass@k</code> 给模型做 leaderboard ranking 可能不稳定,又缺少显式 uncertainty。论文提出 Bayesian posterior mean + credible interval 作为替代排名协议。</p>
+<p>它的 Bayes@N 把 binary 或多档 rubric outcome 建模为 categorical data,用 Dirichlet prior 得到 weighted score 的 posterior mean 与 uncertainty。配套 <code>scorio</code> 仓库提供 Python、Julia 与 JS/TS 实现。这个方法补上了小样本 uncertainty,也允许在理由充分时编码 prior evidence。</p>
 <figure class="diag"><figcaption><span>不要把争论压成「pass@k 好 / 坏」</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">作为产品 estimand</div><div class="dcell">有 k 次预算且能选出成功结果时有意义</div><div class="dcell">回答 capability coverage</div><div class="dcell">保留,并报告 cost / k / protocol</div></div><div class="dcol"><div class="dh">作为默认 leaderboard estimator</div><div class="dcell">小 n、无 interval 时可能排名不稳</div><div class="dcell">不自动回答 A 是否显著优于 B</div><div class="dcell">配合 Lesson 3–4 的 uncertainty 与 comparison</div></div></div></figure>
 
 <p>所以本课不把论文读成「删除 <code>pass@k</code>」。讨论题是:</p>
@@ -528,8 +576,40 @@ pass^5 = 15.5%   · all-five reliability
 <p><code>pass@k</code> 在这份报告里究竟是部署事件、capability envelope,还是拿来强行排出一个赢家的 leaderboard statistic?</p>
 </blockquote>
 <p>三者需要的证据不同。</p>
+<p>课程还要加三条限制,避免把新方法变成新教条:</p>
+<figure class="diag"><figcaption><span>Bayesian posterior 能解决什么,不能解决什么</span></figcaption><div class="dgrid"><div class="gcell"><b>能</b><span>小样本 shrinkage、categorical rubric、posterior uncertainty</span></div><div class="gcell"><b>不能</b><span>错误 task population、错误 verifier、泄漏、shared-state dependence</span></div><div class="gcell"><b>仍需</b><span>prior sensitivity、posterior predictive checks、完整 protocol</span></div><div class="gcell"><b>A vs B</b><span>保留同 task 配对结构;不要只看两个 marginal intervals 是否重叠</span></div></div></figure>
+
+<p>论文用 non-overlapping credible intervals 给出透明 ranking rule;但在本课程中,两个系统跑相同 tasks 时应直接对 paired difference $\Delta$ 建模。两个 marginal intervals 是否重叠不是「A 是否优于 B」的通用检验;paired comparison 留到 Lesson 4。</p>
+<h3>7.1 最新 reliability 项目怎样放进课程</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>Lesson 2 用它看什么</th>
+<th>不应直接照搬什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HAL Reliability Dashboard</td>
+<td>repeated outcome consistency 会随系统与 benchmark 改变;实现错误也会改指标</td>
+<td>把某个 consistency score 当普适 reliability 定义</td>
+</tr>
+<tr>
+<td>ReasonBENCH + code</td>
+<td>同一 model-strategy-task 多次运行,同时保留 quality 与 cost 分布</td>
+<td>把 6 类 reasoning tasks 的 variance 常数外推到 agents</td>
+</tr>
+<tr>
+<td>ClawProBench</td>
+<td>同时报告 pass@k-any 与 strict multi-trial pass,且明确 model+runtime unit</td>
+<td>用两条 point estimates 代替 uncertainty</td>
+</tr>
+</tbody>
+</table>
+<p>这些材料共同支持的是<strong>分布化报告</strong>:task-level outcomes、重复运行、cost/latency 与 protocol 一起发布;不是再造一个脱离用途的单一 reliability leaderboard。</p>
 <hr />
-<h2 id="s9"><span class="hn">§ 08</span>Lab:从 canonical rows 生成四张图</h2>
+<h2 id="s9"><span class="hn">§ 08</span>Lab:从 canonical rows 生成五张图</h2>
 <h3>8.1 参考实现</h3>
 <pre><code class="language-python">from math import comb
 
@@ -544,14 +624,15 @@ def pass_hat_k(n: int, c: int, k: int) -&gt; float:
     return comb(c, k) / comb(n, k)
 </code></pre>
 <p><code>math.comb(a,k)</code> 在 $a&lt;k$ 时返回 0,正好覆盖「成功数不足 k」或「失败数不足 k」的边界。大 $n$ 时可改用 HumanEval 的 product-form 实现避免巨大组合数在其他语言中溢出。</p>
-<h3>8.2 四张图,每张只回答一个问题</h3>
-<p><figure class="diag"><figcaption><span>Lesson 2 plots</span></figcaption><div class="dgrid"><div class="gcell"><b>1 · task-attempt heatmap</b><span>哪些 task 稳定成功 / 失败 / 红绿相间?</span></div><div class="gcell"><b>2 · pass curves</b><span>pass@k 上升、pass^k 下降得多快?</span></div><div class="gcell"><b>3 · ordered task rates</b><span>cᵢ/nᵢ 是 polarized 还是集中在中间?</span></div><div class="gcell"><b>4 · reliability gap</b><span>同一 k 下两条曲线相距多少?</span></div></div></figure></p>
+<h3>8.2 五张图,每张只回答一个问题</h3>
+<p><figure class="diag"><figcaption><span>Lesson 2 plots</span></figcaption><div class="dgrid"><div class="gcell"><b>1 · task-attempt heatmap</b><span>哪些 task 稳定成功 / 失败 / 红绿相间?</span></div><div class="gcell"><b>2 · pass curves</b><span>pass@k 上升、pass^k 下降得多快?</span></div><div class="gcell"><b>3 · ordered task rates</b><span>cᵢ/nᵢ 是 polarized 还是集中在中间?</span></div><div class="gcell"><b>4 · reliability gap</b><span>同一 k 下两条曲线相距多少?</span></div><div class="gcell"><b>5 · outcome-resource curve</b><span>每增加一次机会,成功率、成本与 latency 怎样一起变?</span></div></div></figure></p>
 <p>Plot 2 必须同时显示:</p>
 <pre><code class="language-text">x = k
 y = benchmark task-macro estimate
 lines = pass@k, pass^k
 reference = pass@1
 caption = N tasks, n attempts/task, eligible tasks at each k
+method = empirical block / combinatorial / i.i.d. extrapolation
 </code></pre>
 <p>若各 task 的 $n_i$ 不同,不能让 $k$ 增大时悄悄换掉 task set。优先预先规划相同 $n$;否则固定 common eligible set,并显式报告每个 $k$ 的 support。missingness 的处理留给 Week 6,但不能隐藏。</p>
 <h3>8.3 Tests</h3>
@@ -562,6 +643,8 @@ caption = N tasks, n attempts/task, eligible tasks at each k
 [ ] macro 是 per-task estimator 的平均,不是 pooled c / pooled n
 [ ] Agent A/B toy example 复现开场表格
 [ ] null / infra rows 未被静默当作 failure 或删除
+[ ] 图例标明 empirical block / combinatorial / i.i.d. extrapolation,不混称 observed
+[ ] cost / token / latency 与同一个 k、selector 和 eligible task set 对齐
 </code></pre>
 <hr />
 <h2 id="s10"><span class="hn">§ 09</span>读材料时只回答这些问题</h2>
@@ -579,11 +662,16 @@ caption = N tasks, n attempts/task, eligible tasks at each k
 <li><code>pass^1=pass@1=E[c/n]</code> 为什么成立?</li>
 <li><code>pass^8&lt;25%</code> 是单次成功率,还是八次全过的概率?</li>
 </ul>
-<h3>2026 两篇讨论材料</h3>
+<h3>2026 frontier materials</h3>
 <ul>
 <li><em>On Randomness</em> 的 60,000 trajectories 证明了什么,没有证明什么?</li>
 <li><em>Don't Pass@k</em> 反对的是产品 estimand,还是用小样本 point estimate 排行?</li>
 <li>如果报告 credible interval,是否就解决了 task validity 和 verifier validity?为什么没有?</li>
+<li>Bayes@N 的 Dirichlet posterior 怎样容纳 partial-credit categories?prior sensitivity 应怎样报告?</li>
+<li>两个 marginal credible intervals 不重叠,为什么仍没有利用 A/B 在同一 task 上的 pairing?</li>
+<li>HAL 的 outcome-consistency metric 修正说明「描述已观察 runs」与「推断假想总体」有什么区别?</li>
+<li>ReasonBENCH 为什么同时保存 quality 与 cost distributions,而不是只报 mean score?</li>
+<li><em>Beyond Pass@k</em> 指出的 <code>n=unit tests</code> 错误为什么把 test-suite size 与 independent rollout count 混为一谈?</li>
 </ul>
 <p>来源:</p>
 <ul>
@@ -591,7 +679,12 @@ caption = N tasks, n attempts/task, eligible tasks at each k
 <li><a href="https://arxiv.org/abs/2406.12045">τ-bench</a></li>
 <li><a href="https://arxiv.org/abs/2602.07150">On Randomness in Agentic Evals</a></li>
 <li><a href="https://arxiv.org/abs/2510.04265">Don't Pass@k</a></li>
+<li><a href="https://github.com/mohsenhariri/scorio">Scorio / Bayes@N code</a></li>
 <li><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">Anthropic: Demystifying evals for AI agents</a></li>
+<li><a href="https://hal.cs.princeton.edu/reliability/">HAL Reliability Dashboard</a></li>
+<li><a href="https://arxiv.org/abs/2512.07795">ReasonBENCH</a> · <a href="https://github.com/au-clan/ReasonBench">code</a></li>
+<li><a href="https://arxiv.org/abs/2608.22510">ClawProBench</a> · <a href="https://github.com/suyoumo/ClawProBench">code</a></li>
+<li><a href="https://arxiv.org/abs/2608.14711">Beyond Pass@k: Measuring Reliability and Security of Agentic Code Generation</a></li>
 </ul>
 <hr />
 <h2 id="s11">本课自检</h2>
@@ -601,16 +694,19 @@ caption = N tasks, n attempts/task, eligible tasks at each k
 [ ] 能区分 aggregation error 与 finite-sample plug-in bias
 [ ] 能写出两个组合数 estimator,并解释 n 与 k
 [ ] 能说明 pass@k 的 verifier / oracle-selection 假设
+[ ] 能区分 oracle pass@k 与包含 imperfect selector 的端到端 product success@k
 [ ] 能识别 adaptive retry 已经改变了 SUT
+[ ] 能区分 empirical block、combinatorial estimator 与 i.i.d. extrapolation
+[ ] 能用 protocol audit 识别 cache / memory / provider batch / attempt order 引入的 dependence
 [ ] 能说出 reliability gap 的三个比较限制
-[ ] 能解释 Don't Pass@k 为什么不是简单地宣布 pass@k 无效
-[ ] 能从 canonical rows 生成四张图并通过 monotonicity tests
+[ ] 能解释 Don't Pass@k 为什么不是简单地宣布 pass@k 无效,以及 Bayesian interval 不能修复 validity
+[ ] 能从 canonical rows 生成五张图并通过 monotonicity 与 resource-alignment tests
 </code></pre>
 <hr />
 <h2 id="s12">本课一句话</h2>
 <blockquote>
 <p><strong><code>pass@k</code> 衡量「给足 k 次机会能不能找到成功路径」;<code>pass^k</code> 衡量「随机取 k 次能不能零失败」。</strong>
-<strong>先按 task 用有限样本 estimator,再跨 task 平均;指标回答哪个产品事件,必须和 $k$、选择器、成本与 independence protocol 一起报告。</strong></p>
+<strong>先按 task 用有限样本 estimator,再跨 task 平均;指标回答哪个产品事件,必须和 $k$、选择器、成本、依赖结构及 empirical / extrapolated 标签一起报告。</strong></p>
 </blockquote>
 <p>下一课:两条曲线都是 point estimates。40 tasks × 10 attempts 为什么仍不是 400 个独立 observations,95% error bar 应怎样匹配 task 层级?</p>
 <div class="pager"><a href="w3-01.html">← W3 第 1 课 · Observation、Experimental Unit 与 Estimand</a><a href="toc.html#w3">Week 3 →</a></div>

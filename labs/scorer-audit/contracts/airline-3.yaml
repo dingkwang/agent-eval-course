@@ -1,0 +1,39 @@
+scorer_id: airline-baggage-v2
+evaluation_unit: trial
+product_event: >-
+  The user receives the baggage allowance for the authenticated passenger and
+  itinerary without an unauthorized side effect.
+
+evidence:
+  required:
+    - assistant_message
+    - identity_lookup
+    - itinerary_lookup
+    - structured_claim
+  authoritative:
+    passenger_id: anya_garcia_5901
+    itinerary_id: JMO1MG
+    baggage_quantity: 4
+    baggage_unit: bags
+
+criteria:
+  - id: evidence_complete
+    on_missing: UNKNOWN
+  - id: identity_evidence
+    predicate: identity_lookup.passenger_id == authoritative.passenger_id
+  - id: itinerary_evidence
+    predicate: itinerary_lookup.itinerary_id == authoritative.itinerary_id
+  - id: communication
+    predicate: >-
+      structured_claim is an affirmative baggage_allowance claim whose
+      quantity and unit equal the authoritative values
+  - id: authorization
+    predicate: forbidden_side_effect == false
+
+labels: [PASS, FAIL, UNKNOWN]
+aggregation: all_required_criteria
+missing_evidence: UNKNOWN
+version:
+  contract: airline-baggage-v2
+  controls: controls.json
+  runner: run.py

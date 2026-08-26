@@ -8,13 +8,13 @@
 | 文件 | 论文(核验过的真实标题) | arXiv | 用在 |
 |---|---|---|---|
 | `survey_agent_eval_2025.pdf` | A Survey on Evaluation of LLM-based Agents | 2503.16416 | W1D2 · 全课地图 |
-| ⭐ `error_bars_in_evals.pdf` | **Adding Error Bars to Evals**: A Statistical Approach to LM Evaluation | 2411.00640 | **W4 统计I** · W1D4 |
-| `codex_passk.pdf` | Evaluating Large Language Models Trained on Code(pass@k 出处) | 2107.03374 | W4 |
-| `llm_as_judge_mtbench.pdf` | Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena | 2306.05685 | W5 judge |
-| `chatbot_arena.pdf` | Chatbot Arena: An Open Platform for Evaluating LLMs by Human Preference | 2403.04132 | W5 Elo/BT 排名 |
+| ⭐ `error_bars_in_evals.pdf` | **Adding Error Bars to Evals**: A Statistical Approach to LM Evaluation | 2411.00640 | **W3 L1/L3/L4** · W1D4 |
+| `codex_passk.pdf` | Evaluating Large Language Models Trained on Code(pass@k 出处) | 2107.03374 | **W3 L2** |
+| `llm_as_judge_mtbench.pdf` | Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena | 2306.05685 | **W4 L3** |
+| `chatbot_arena.pdf` | Chatbot Arena: An Open Platform for Evaluating LLMs by Human Preference | 2403.04132 | **W8 Elo/BT 排名** |
 | `gaia.pdf` | GAIA: A Benchmark for General AI Assistants | 2311.12983 | W8 |
-| `swebench.pdf` | SWE-bench: Can Language Models Resolve Real-World GitHub Issues?(ICLR'24) | 2310.06770 | W8 · W1D5 |
-| `tau_bench.pdf` | τ-bench: A Benchmark for Tool-Agent-User Interaction in Real-World Domains | 2406.12045 | W8 · W1D5 |
+| `swebench.pdf` | SWE-bench: Can Language Models Resolve Real-World GitHub Issues?(ICLR'24) | 2310.06770 | W1D3 · W4 L2 · W5 |
+| `tau_bench.pdf` | τ-bench: A Benchmark for Tool-Agent-User Interaction in Real-World Domains | 2406.12045 | W1D4 · W3 L2 · W4 L2 · W8 |
 | `webarena.pdf` | WebArena: A Realistic Web Environment for Building Autonomous Agents(ICLR'24) | 2307.13854 | W8 |
 | ⭐ `kimi_k3.pdf` | **Kimi K3: Open Frontier Intelligence**(47 页,2026-07-27) | **2607.24653** | **W11 case study** |
 
@@ -58,7 +58,7 @@ https://artificialanalysis.ai/agents/coding-agents
 | 资源 | 位置 | 用在 |
 |---|---|---|
 | **Harbor**(Terminal-Bench 团队 eval infra;`--n-concurrent`、Daytona/Modal、rewardkit、RL rollouts) | `../llm-rl-course/code/harbor` | W6 · W7 · W10 |
-| **Inspect AI**(task/solver/scorer + sandbox lifecycle) | `../agent-sandbox-course/code/inspect_ai` | W6 · W9 |
+| **Inspect AI**(task/solver/scorer + sandbox lifecycle) | `../agent-sandbox-course/code/inspect_ai` | W2 · W3 · **W4** · W6 · W9 |
 | **SWE-bench harness** | `../agent-sandbox-course/code/SWE-bench` | W7 · W8 |
 | **Anthropic *Demystifying evals for AI agents*** | `../agent-sandbox-course/docs/agentic/anthropic-demystifying-evals.md` | W1 · W9 |
 | **Anthropic *Quantifying infrastructure noise*** | `../agent-sandbox-course/docs/agentic/anthropic-infra-noise.md` | W9 · W12 |
@@ -67,6 +67,12 @@ https://artificialanalysis.ai/agents/coding-agents
 ## 🌐 在线(未下载)
 | 资源 | 原因 |
 |---|---|
+| [The Art of Building Verifiers for Computer Use Agents](https://arxiv.org/abs/2604.06240) | W4 L1/L2 核心;2026 preprint,引用时保留版本 |
+| [How Benchmarks Mis-Score Computer-Use Agents](https://arxiv.org/abs/2607.28367) | W4 L1;failure-only audit,不可把 15.3% 外推为全 benchmark error rate |
+| [Benchmarking the Benchmarks: A Validity Audit of Tool-Calling Evaluation](https://arxiv.org/abs/2607.02577) | W4 L2 的 BFCL / τ² / LiveMCPBench scorer audit |
+| [OpenAI: Why SWE-bench Verified no longer measures frontier coding capabilities](https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/) | W4 L2 test-verifier case;contamination 部分留给 W7 |
+| [OpenAI: Separating signal from noise in coding evaluations](https://openai.com/index/separating-signal-from-noise-coding-evaluations/) | W4 L2 QA pipeline;自动 triage 后仍需独立人工 review |
+| [Inspect Scorers](https://inspect.aisi.org.uk/scorers.html) | W4 scorer interface、multiple scorers 与 offline re-scoring |
 | DeepLearning.AI *Evaluating AI Agents* | 需注册的视频课(W1D2;可用 survey 论文替代) |
 | HuggingFace Agents Course · LangChain Academy · W&B 课程 | 在线课程,按需 |
 | AA 排行榜实时数据 | 持续更新,快照仅作教学口径参考 |

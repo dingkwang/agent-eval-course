@@ -17,6 +17,7 @@ ROOT = Path(__file__).parent
 SRC = ROOT / "week01"
 SRC_W2 = ROOT / "week02"
 SRC_W3 = ROOT / "week03"
+SRC_W4 = ROOT / "week04"
 OUT = ROOT / "site"
 
 # (slug, day, title, desc, tag, source .md — None = 尚未写)
@@ -54,8 +55,9 @@ WEEKS = [
     ("3", "Statistical Inference for Stochastic Agent Evals",
      "从 Trial observations 到可信结论:估计什么、不确定性多大、A 是否真的优于 B?",
      "2/5", True),
-    ("4", "Scorers / Verifiers / LLM-as-Judge",
-     "成功如何被判定?judge 准不准?", None, False),
+    ("4", "Scorer Validation for Agent Evals",
+     "从 trajectory / environment state 到可信 score:verifier 真的把成功判对了吗?",
+     "2/5", True),
     ("5", "Benchmark Design, Audit & Dataset Lifecycle",
      "成功/失败反映的是能力,还是题目和测试写坏了?", None, False),
     ("6", "Reproducibility, Failure Semantics & Experiment Operations",
@@ -95,6 +97,22 @@ W3_LESSONS = [
     ("w3-03", "3", "Error Bars", "CI 必须匹配数据结构", "统计", None),
     ("w3-04", "4", "Paired Comparison 与 Power", "A 是否真的优于 B", "统计", None),
     ("w3-05", "5", "Statistical Eval Report", "可审计的统计结论", "lab", None),
+]
+
+# Week 4: treat the scorer itself as a system under evaluation.
+W4_LESSONS = [
+    ("w4-01", "1", "Scorer Is a Measurement Instrument",
+     "score 不是 ground truth;先写 measurement contract", "方法",
+     "lesson01-scorer-measurement-instrument.md"),
+    ("w4-02", "2", "Deterministic Verifiers",
+     "确定性不等于判得正确", "源码 + 审计",
+     "lesson02-deterministic-verifiers.md"),
+    ("w4-03", "3", "LLM-as-a-Judge",
+     "position、verbosity、identity 与 repeat consistency", "方法", None),
+    ("w4-04", "4", "Gold Set 与 Calibration",
+     "用 reference labels 测量 scorer error", "统计", None),
+    ("w4-05", "5", "Scorer Audit Report",
+     "错误是否足以改变发布结论", "lab", None),
 ]
 
 # depth cross-section: the signature figure. depth = how much real environment.
@@ -630,6 +648,7 @@ def _week_nav() -> list[tuple[str, str, list, str]]:
         ("1", "W1", LESSONS, "#w1"),
         ("2", "W2", W2_LESSONS, "#w2"),
         ("3", "W3", W3_LESSONS, "#w3"),
+        ("4", "W4", W4_LESSONS, "#w4"),
     ]
 
 
@@ -638,6 +657,8 @@ def _active_week(active: str) -> str | None:
         return "2"
     if active.startswith("w3-"):
         return "3"
+    if active.startswith("w4-"):
+        return "4"
     if active.startswith("lesson"):
         return "1"
     return None
@@ -677,6 +698,8 @@ def masthead(active: str) -> str:
         badge = "WEEK 02"
     elif current == "3":
         badge = "WEEK 03"
+    elif current == "4":
+        badge = "WEEK 04"
     else:
         badge = "WEEK 01"
     return f"""<header class="mast"><div class="wrap">
@@ -774,6 +797,20 @@ def w3_body() -> str:
 <div class="cards">{''.join(cards)}</div>"""
 
 
+def w4_body() -> str:
+    cards = []
+    for slug, n, title, desc, tag, src in W4_LESSONS:
+        body = (f'<span class="num">{n}</span>'
+                f'<span><span class="t">{title}</span><span class="d">{desc}</span></span>'
+                f'<span class="tag">{tag}</span>')
+        cards.append(f'<a class="card" href="{slug}.html">{body}</a>' if src
+                     else f'<div class="card off">{body}</div>')
+    done = sum(1 for *_x, src in W4_LESSONS if src)
+    return f"""<p class="lede" style="margin-top:16px">4 节课 + Day 5 Scorer Audit Report lab。
+已完成 <b>{done}/5</b>。W4 固定 task 与 trial evidence,把 scorer 自己当作需要验证的测量系统。</p>
+<div class="cards">{''.join(cards)}</div>"""
+
+
 def build_intro() -> str:
     return f"""{HEAD.format(title="Agent Evaluation & Benchmark Engineering", css=CSS)}
 {masthead("index")}
@@ -832,6 +869,8 @@ def build_toc() -> str:
             body = w2_body()
         elif n == "3":
             body = w3_body()
+        elif n == "4":
+            body = w4_body()
         else:
             body = ""
         inner = f'<div class="wbody">{body}</div>' if body else ""
@@ -1008,6 +1047,40 @@ def build_w3_lesson(idx: int) -> str:
 {foot}"""
 
 
+def build_w4_lesson(idx: int) -> str:
+    slug, n, title, _d, _tag, src = W4_LESSONS[idx]
+    md_text = expand_diagrams(expand_math((SRC_W4 / src).read_text()))
+    md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
+    html, rail_html = _anchor_h2(render_math_blocks(md.convert(md_text)))
+    foot = footer(
+        "Week 04 · Scorer Validation for Agent Evals",
+        "CUAVerifierBench · tool-calling audits · Inspect scorers",
+        "由 week04/*.md 生成 · build_site.py",
+    )
+
+    def neighbor(step: int):
+        j = idx + step
+        while 0 <= j < len(W4_LESSONS):
+            if W4_LESSONS[j][5]:
+                return W4_LESSONS[j]
+            j += step
+        return None
+
+    p, nx = neighbor(-1), neighbor(1)
+    prev_l = (f'<a href="{p[0]}.html">← W4 第 {p[1]} 课 · {p[2]}</a>' if p
+              else '<a href="toc.html#w4">← Week 4</a>')
+    next_l = (f'<a href="{nx[0]}.html">W4 第 {nx[1]} 课 · {nx[2]} →</a>' if nx
+              else '<a href="toc.html#w4">Week 4 →</a>')
+    return f"""{HEAD.format(title=f"W4 第 {n} 课 · {title}", css=CSS)}
+{masthead(slug)}
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div>{rail_html}</aside>
+<article class="doc">{html}
+<div class="pager">{prev_l}{next_l}</div>
+</article></div></div>
+{foot}"""
+
+
 def main() -> None:
     OUT.mkdir(exist_ok=True)
     idx = build_intro()
@@ -1038,6 +1111,14 @@ def main() -> None:
             print(f"  {slug}.html    {'—':>8}   (未写)")
             continue
         page = build_w3_lesson(i)
+        (OUT / f"{slug}.html").write_text(page)
+        live.add(f"{slug}.html")
+        print(f"  {slug}.html   {len(page):>8,} B   ← {src}")
+    for i, (slug, *_rest, src) in enumerate(W4_LESSONS):
+        if src is None:
+            print(f"  {slug}.html    {'—':>8}   (未写)")
+            continue
+        page = build_w4_lesson(i)
         (OUT / f"{slug}.html").write_text(page)
         live.add(f"{slug}.html")
         print(f"  {slug}.html   {len(page):>8,} B   ← {src}")

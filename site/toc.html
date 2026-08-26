@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>W2 第 1 课 · 从 Eval Spec 到可执行 Trial</title>
+<title>目录 · Agent Evaluation & Benchmark Engineering</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -298,166 +298,33 @@ window.MathJax = {
 </head><body>
 
 <header class="mast"><div class="wrap">
-<span class="id"><span class="id-name">Agent Evaluation &amp; Benchmark Engineering</span><span class="id-dot"> · </span><b>WEEK 02</b></span>
-<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="lesson01.html">W1</a><a href="w2-01.html" class="on">W2</a><a href="w3-01.html">W3</a></nav><nav class="mast-lessons"><a href="w2-01.html" class="on">1</a><a href="w2-02.html">2</a><span class="soonnav">3</span><span class="soonnav">4</span><span class="soonnav">5</span></nav></div>
+<span class="id"><span class="id-name">Agent Evaluation &amp; Benchmark Engineering</span><span class="id-dot"> · </span><b>CONTENTS</b></span>
+<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html" class="on">目录</a><a href="toc.html#w1">W1</a><a href="toc.html#w2">W2</a><a href="toc.html#w3">W3</a></nav></div>
 </div></header>
-<div class="wrap"><div class="page">
-<aside class="rail"><div class="rt">本课目录</div><a href="#s0">Runtime 如何把一份 evaluation 声明,确定地编译成一组可审计的 Trial</a><a href="#s1"><i>00</i>十分钟前置:Agent ≠ Model</a><a href="#s2"><i>01</i>Harbor 先编译,再执行</a><a href="#s3"><i>02</i>展开公式(以源码为准,不要脑补第四轴)</a><a href="#s4"><i>03</i>身份字段进 lock,不进相等</a><a href="#s5"><i>04</i>SUT 是被测 Agent 系统,Trial 是一次实验实例</a><a href="#s6"><i>05</i>Hands-on:compile_eval(spec) → JobPlan</a><a href="#s7">本课自检</a><a href="#s8">本课一句话</a></aside>
-<article class="doc"><h1>第 1 课:从 Eval Spec 到可执行 Trial</h1>
-<h2 id="s0" class="sub">Runtime 如何把一份 evaluation 声明,确定地编译成一组可审计的 Trial</h2>
-<p><strong>Week 2 Day 1</strong> · 源码课 · 建议 60 分钟 + 小 lab</p>
-<blockquote>
-<h3>本课唯一命题</h3>
-<h1>Harbor 的执行单位是 <strong>Trial</strong>,不是 Task。</h1>
-<h1>Runtime 的第一件事是把 Job 声明 <strong>展开并写成 JobLock</strong>,不是开跑。</h1>
-<p>📎 Harbor <code>b378332</code> · Inspect <code>499e615</code>
-💻 lab:<code>../labs/eval-runtime/compile.py</code></p>
-</blockquote>
-<figure class="diag"><figcaption><span>Harbor:声明变成 Trial</span></figcaption><div class="dflow"><div class="dstep">JobConfig</div><div class="darr">↓</div><div class="dpipe"><span class="dnode">resolve</span><span class="darr">→</span><span class="dnode">validate</span><span class="darr">→</span><span class="dnode">expand</span></div><div class="darr">↓</div><div class="dstep">JobPlan + JobLock 快照</div><div class="darr">↓</div><div class="dstep">TrialConfig[]</div></div></figure>
-
-<figure class="diag"><figcaption><span>可跑单位不是同一个东西</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Harbor</div><div class="dcell">Trial = Task × Agent × Attempt</div><div class="dcell">n_attempts 是乘积的一轴</div><div class="dcell">JobLock 无序 Trial 集合</div></div><div class="dcol"><div class="dh">Inspect</div><div class="dcell">Task = Dataset + Solver + Scorer</div><div class="dcell">epochs 留在 Task 内部</div><div class="dcell">EvalLog.eval_id 含 created 时间</div></div></div></figure>
-
-<figure class="diag"><figcaption><span>Trial 不是 SUT</span></figcaption><div class="dnest"><div class="dbox"><div class="dlab">一次 Trial</div><div class="dbox"><div class="dlab">SUT · Agent + model + prompt/tools</div></div><div class="dbox"><div class="dlab">实验条件 · task · environment · verifier</div></div><div class="dbox"><div class="dlab">重复观测 · attempt(无 attempt_index 字段)</div></div></div></div></figure>
-
-<hr />
-<h2 id="s1"><span class="hn">§ 00</span>十分钟前置:Agent ≠ Model</h2>
-<p><code>AgentConfig</code> 里这两件事是分开的(<code>models/trial/config.py</code>):</p>
-<pre><code>name / import_path   跑哪一个 agent 程序(adapter)
-model_name           这个程序连哪一个模型
-</code></pre>
-<p><code>name</code> 和 <code>import_path</code> 都空时,默认不是「随便一个 LLM」,是 <strong>oracle</strong>:</p>
-<pre><code class="language-python"># config.py:166-169
-def set_default_name(self):
-    if self.name is None and self.import_path is None:
-        self.name = AgentName.ORACLE.value
-</code></pre>
-<p>换模型、不换 agent,SUT 变了一半。换 agent、模型写成同一个名字,SUT 整份都变了。
-<strong>leaderboard 上写模型名、实际跑的是某个 CLI agent,测的就不是那个模型。</strong></p>
-<p>本课剩下的时间不讨论 agent 怎么跑,只讨论:声明怎么变成一列 Trial。</p>
-<hr />
-<h2 id="s2"><span class="hn">§ 01</span>Harbor 先编译,再执行</h2>
-<p><code>JobPlan</code> 的 docstring 写得很直(<code>job_plan.py:23-26</code>):</p>
-<blockquote>
-<p><em>"Resolved plan for a Harbor job </em><em>before trials are executed</em><em>."</em></p>
-</blockquote>
-<p>它是一个 dataclass,里面已经是展开完的列表:</p>
-<pre><code>config
-id
-task_configs[]     解析完的任务
-trial_configs[]    笛卡尔积之后、准备开跑的 Trial
-metrics
-task_download_results
-job_lock           这次实验输入的结构化快照(不是 overall checksum)
-</code></pre>
-<p><code>from_config</code>(<code>job_plan.py:35-62</code>)在 <strong>exec 之前</strong>把声明物化完:</p>
-<pre><code>resolve_agent_skills          字符串技能源 → 本地路径(99-113)
-resolve_task_configs          datasets ∪ tasks → TaskConfig[]
-validate_resource_policies    环境能力,跑之前就问,不是跑炸了再问(52)
-resolve_metrics
-cache_tasks                   远程 task 落到 cache,带 content hash
-from_resolved → build_trial_configs
-</code></pre>
-<p>空 dataset / 不可达的 package task 在这里就 <code>EmptyDatasetError</code> / <code>ValueError</code>(<code>job_plan.py:44-46,135</code>),进不了队列。
-默认值也在编译期物化:agent 名叫空 → oracle(<code>config.py:166-169</code>);<code>job_name</code> 空 → 墙钟时间戳(下面 §三)。
-<code>JobPlan</code> 是普通 dataclass,没有 <code>frozen=True</code>;<code>task_configs</code> / <code>trial_configs</code> 仍是可变 list。Harbor 做到的是 <strong>resolved + recorded + comparable</strong>,不是类型系统上的 immutable。生成 <code>JobLock</code> 只证明「输入被记录了」,不证明执行阶段没人改 <code>JobPlan</code>。</p>
-<p><strong>编译失败发生在执行之前。</strong></p>
-<hr />
-<h2 id="s3"><span class="hn">§ 02</span>展开公式(以源码为准,不要脑补第四轴)</h2>
-<p><code>build_trial_configs</code>(<code>job_plan.py:140-168</code>)就是三重循环:</p>
-<pre><code class="language-python">return [
-    TrialConfig(task=..., agent=agent_config, environment=config.environment, ...)
-    for _ in range(config.n_attempts)
-    for task_config in task_configs
-    for agent_config in config.agents
-]
-</code></pre>
-<pre><code>|trials| = n_attempts × |tasks| × |agents|
-</code></pre>
-<p>模型<strong>不是</strong>第四重循环。<code>model_name</code> 住在 <code>AgentConfig</code> 里。
-两个模型 = 配两个 <code>AgentConfig</code>(可以 <code>name</code> 相同、<code>model_name</code> 不同)。</p>
-<p>Inspect 的配方不是这个乘积。<code>Task.__init__</code>(<code>task.py:76-88</code>)是:</p>
-<pre><code>Task(dataset, solver=generate(), scorer=None, model=None, ...)
-</code></pre>
-<p>Dataset + Solver + Scorer 绑在<strong>一个</strong> Task 上;model 也是 Task 的字段。
-换 solver 往往是 <code>task_with(...)</code> 替换,不是 Harbor 那种 agents 列表的笛卡尔积。</p>
-<blockquote>
-<p><strong>Harbor:<code>Trial = Task × Agent × Attempt</code>(环境从 Job 拷下来)。</strong>
-<strong>Inspect:<code>Task = Dataset + Solver + Scorer</code>(sample 在 Task 内部跑)。</strong>
-这就是「执行模型」的差别。本课只要能说出这一句;对照的细账在第 2 课。</p>
-</blockquote>
-<hr />
-<h2 id="s4"><span class="hn">§ 03</span>身份字段进 lock,不进相等</h2>
-<p><code>TrialConfig.__eq__</code>(<code>config.py:497-504</code>)故意丢掉身份:</p>
-<pre><code class="language-python">exclude = {&quot;trial_name&quot;, &quot;job_id&quot;}
-return self.model_dump(exclude=exclude) == other.model_dump(exclude=exclude)
-</code></pre>
-<p><code>trial_name</code> 是 <code>task名__</code> + 7 位 ShortUUID(<code>config.py:537-540</code>)。两次编译,内容相同,名字不同。
-<strong>相等比的是「跑什么」,不是「这次叫什么」。</strong></p>
-<p><code>job_name</code> 默认是墙钟时间戳(<code>JobConfig</code>,<code>config.py:357-359</code>):</p>
-<pre><code class="language-python">job_name: str = Field(default_factory=lambda: datetime.now().strftime(&quot;%Y-%m-%d__%H-%M-%S&quot;))
-</code></pre>
-<p>所以 Job 声明本身也带一次「现在几点」。审计不能靠这个字符串。</p>
-<p>真正锁输入的是 <code>JobLock</code> / <code>TrialLock</code>(<code>models/job/lock.py</code>):
-- <code>TaskLock.digest</code>(64 hex)。<code>TaskLock.__eq__</code> <strong>只比 digest</strong>(<code>lock.py:87-89</code>),<code>name</code> / <code>path</code> 是给人看的
-- agent / environment / verifier 的 frozen dump
-- extra instructions 的 digest
-- <code>JobConfig.__eq__</code> 丢掉 <code>job_name</code> 和 <code>debug</code>(<code>job/config.py:541-546</code>)
-- <code>JobLock.__eq__</code> 不看 <code>created_at</code>、不看 trial 名字,看 schema、并发上限、retry、<strong>无序的</strong> trial 集合</p>
-<p>注释写着(<code>TrialConfig</code> 440-441 行附近):</p>
-<blockquote>
-<p><em>If replay-affecting fields are added or changed here, update TrialLock
-so lock.json records the same resolved run input.</em></p>
-</blockquote>
-<p><code>lock.json</code> 是实验输入的<strong>结构化锁定记录</strong>,本身没有 overall checksum 字段。内容型资源(task / skill / extra instruction)带 digest;<code>JobLock.__eq__</code> 比较 <code>schema_version</code>、<code>n_concurrent_trials</code>、<code>retry</code>、以及 <strong>无序的</strong> <code>TrialLock</code> 集合(<code>lock.py:277-292</code>)。墙钟 <code>job_name</code> / <code>created_at</code> 不进相等。</p>
-<hr />
-<h2 id="s5"><span class="hn">§ 04</span>SUT 是被测 Agent 系统,Trial 是一次实验实例</h2>
-<p>一份 <code>TrialConfig</code> 里同时有:</p>
-<pre><code>task          题目(实验条件)
-agent         SUT:被测程序(+可选 model_name / prompt / tools)
-user_agent    测量系统里的模拟用户(W1 的 τ³ 在这里入座)
-environment   实验条件;从 Job 拷下来,本课不展开
-verifier      测量系统;install_only 时会被 copy 成 disable=True
-</code></pre>
-<p><strong>SUT 是被测的 Agent 系统</strong>(implementation + model + prompt/tools/config)。
-Task、environment、user simulator、verifier 是实验条件或测量系统。
-Attempt 是重复观测,不属于 SUT。Harbor 的 <code>TrialConfig</code> <strong>没有</strong> <code>attempt_index</code> 字段:它只是把同一份内容再构造一遍,靠不同的 <code>trial_name</code> 区分。</p>
-<p>编译之后,<strong>Trial 的实验条件被确定</strong>:这个 SUT,在这个 task / environment / verifier 条件下,进行一次 attempt。
-<code>user_agent</code> 不是 SUT;<code>verifier</code> 也不是;<code>install_only</code> 时 verifier 会被 copy 成 <code>disable=True</code>(<code>config.py:520-530</code>),避免共用一个 verifier 实例串改别的 Trial。
-<strong>模型名字只是 SUT(AgentConfig)上的一个字段。</strong></p>
-<hr />
-<h2 id="s6"><span class="hn">§ 05</span>Hands-on:<code>compile_eval(spec) → JobPlan</code></h2>
-<pre><code class="language-bash">python3 ../labs/eval-runtime/compile.py
-</code></pre>
-<p>实现一个<strong>教学用</strong>编译器,四段对齐 Harbor 的 resolve → validate → expand → record,不是 Harbor 的绑定:</p>
-<pre><code>EvalSpec
-    → resolve   默认 agent 名 → oracle;instruction / prompt 做成 digest
-    → validate  空 tasks / agents / n_attempts&lt;1 拒绝
-    → expand    n_attempts × tasks × agents(循环顺序对齐 Harbor)
-    → freeze    无序 Trial 多重集的 snapshot(对齐 JobLock.__eq__,不是有序 checksum)
-</code></pre>
-<p>展开列表保留 Harbor 的循环顺序,方便对照源码。<strong>语义 snapshot 对 agents 顺序不敏感</strong>,和 <code>JobLock</code> 的无序 <code>TrialLock</code> 集合一致。
-Lab 里的 <code>attempt</code> 次数只表示多重性;Harbor 真实 <code>TrialConfig</code> 没有 <code>attempt_index</code>。
-同一份 spec 编译两次,snapshot 必须相同。这就是不变量 1 的种子,Day 5 会再验。</p>
-<pre><code class="language-bash">python3 -m pytest labs/eval-runtime/tests/test_compile.py
-</code></pre>
-<hr />
-<h2 id="s7">本课自检</h2>
-<pre><code>[ ] 能说出 AgentConfig.name 和 model_name 各管什么,以及默认 agent 为什么是 oracle
-[ ] 能画出 from_config 在开跑之前做了哪几步
-[ ] 能写出 |trials| = n_attempts × |tasks| × |agents|,并说明模型为什么不是第四轴
-[ ] 能说出 Harbor Trial 乘积和 Inspect Task 配方的差别(一句话)
-[ ] 能说出 trial_name / job_name 为什么不能当实验输入;`lock.json` 是结构化快照,不是 overall checksum
-</code></pre>
-<hr />
-<h2 id="s8">本课一句话</h2>
-<blockquote>
-<p><strong>Runtime 的第一件事是编译:把声明展开成 Trial,把输入记进 JobLock。
-还没 exec,这次 Trial 的实验条件已经定了。SUT 是 Agent 系统,不是整个 Trial。</strong></p>
-</blockquote>
-<div class="pager"><a href="toc.html#w2">← Week 2</a><a href="w2-02.html">W2 第 2 课 · Agent / Environment / Trial 协议 →</a></div>
-</article></div></div>
+<section class="hero"><div class="wrap">
+<span class="eyebrow">12 周</span>
+<h1>目录</h1>
+<p class="subhead">点已写的课直接进讲义。其余周先占位 —— 名字已经是真问题,不是待填的标签。</p>
+</div></section>
+<section class="sec" style="padding-top:8px"><div class="wrap">
+<div class="week" id="w1"><div class="wh"><div class="wn">1</div><div><div class="wt">Popular Benchmark Anatomy</div><div class="wq">拿到 repo,源码追通 task → environment → agent → rollout → verifier → result</div></div><div class="st">4/6</div></div><div class="wbody"><p class="lede" style="margin-top:16px">Day 1 总览,Day 2–5 一天一个真 benchmark 读源码,Day 6 自己造一个。
+已完成 <b>4/6</b>。本周不讲统计(→ W3)、runtime 抽象(→ W2)、排行榜(→ W8)。</p>
+<div class="strata">
+<div class="cap"><span>Complexity ladder</span><span>Lesson 1 · 六个代表性 benchmark</span></div>
+<div class="layer"><div class="nm">GAIA</div><div class="flow">task → answer<span class="bar" style="width:12%;animation-delay:0.00s"></span></div><div class="note">无环境:只给题和答案</div></div><div class="layer"><div class="nm">BFCL</div><div class="flow">task → structured tool call<span class="bar" style="width:29%;animation-delay:0.07s"></span></div><div class="note">无环境:只判 call 结构</div></div><div class="layer"><div class="nm">SWE-bench</div><div class="flow">task → patch → executable test<span class="bar" style="width:46%;animation-delay:0.14s"></span></div><div class="note">容器化 evaluation;agent 自带</div></div><div class="waterline"><span>▼ 现实水线</span><span>以下:benchmark 自己启动并管理有状态环境 —— agent 真的在里面跑</span></div><div class="layer"><div class="nm">τ³-bench</div><div class="flow">task → interaction → mutable state<span class="bar" style="width:63%;animation-delay:0.21s"></span></div><div class="note">领域数据库 + 模拟用户</div></div><div class="layer"><div class="nm">Terminal-Bench</div><div class="flow">task → container → any command<span class="bar" style="width:80%;animation-delay:0.28s"></span></div><div class="note">完整容器 + rollout 循环</div></div><div class="layer"><div class="nm">OSWorld</div><div class="flow">task → whole computer<span class="bar" style="width:97%;animation-delay:0.35s"></span></div><div class="note">整台机器:VM 生命周期</div></div>
+</div>
+<p class="stratanote">水线以上是 <b>dataset benchmark</b>(只给题和答案,agent 与环境自带);
+以下是 <b>environment benchmark</b>。SWE-bench 卡在中间:它给容器化的 <i>evaluation</i> harness,但不给 agent harness。</p>
+<div class="cards" style="margin-top:18px"><a class="card" href="lesson01.html"><span class="num">1</span><span><span class="t">Benchmark Anatomy</span><span class="d">六个 benchmark 的复杂度阶梯</span></span><span class="tag">总览</span></a><a class="card" href="lesson02.html"><span class="num">2</span><span><span class="t">Terminal-Bench 深读</span><span class="d">从 task 定义一路追到 score</span></span><span class="tag">源码</span></a><a class="card" href="lesson03.html"><span class="num">3</span><span><span class="t">SWE-bench</span><span class="d">Dataset / Runtime / Harness 为什么必须分开</span></span><span class="tag">源码 + 实验</span></a><a class="card" href="lesson04.html"><span class="num">4</span><span><span class="t">τ³-bench</span><span class="d">reward_basis 选出 verifier 再相乘;User LLM 在尺子里</span></span><span class="tag">源码</span></a><div class="card off"><span class="num">5</span><span><span class="t">OSWorld · WebArena</span><span class="d">把整台机器当 environment</span></span><span class="tag">源码</span></div><div class="card off"><span class="num">6</span><span><span class="t">造一个自己的 benchmark</span><span class="d">五个抽象亲手写一遍</span></span><span class="tag">编码</span></div></div>
+<p class="lede" style="margin:22px 0 12px">讲义里的结论来自这些 lab 的真实输出,不是复述文档。</p>
+<div class="labs"><div class="lab"><div class="lh"><b>SWE-bench Teardown</b><span>Day 3 · 已跑通</span></div><p>同一个 harness,四种 prediction → resolved / unresolved / empty patch / error</p><code>labs/swe-bench-teardown/</code></div><div class="lab"><div class="lh"><b>τ³ verifier teardown</b><span>Day 4 · 已跑通</span></div><p>四条手写轨迹喂进官方 evaluator;cheat 在 airline id=3 上 reward=1.0</p><code>labs/tau3-verifier/</code></div><div class="lab"><div class="lh"><b>hello-bench</b><span>Day 6 · 已跑通</span></div><p>290 行写完 Task→Environment→Agent→Verifier→Result;cheat agent 在弱 verifier 下 PASS、强 verifier 下 fail</p><code>labs/hello-bench/</code></div></div></div></div><div class="week" id="w2"><div class="wh"><div class="wn">2</div><div><div class="wt">Eval Runtime & Trajectory Engineering</div><div class="wq">不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录</div></div><div class="st">2/5</div></div><div class="wbody"><p class="lede" style="margin-top:16px">4 节深课 + Day 5 EvalRT Core。Harbor 贯穿;Inspect 对照。
+已完成 <b>2/5</b>。Agent ≠ Model 是第 1 课开头 10 分钟,不是单独一课。</p>
+<div class="cards"><a class="card" href="w2-01.html"><span class="num">1</span><span><span class="t">从 Eval Spec 到可执行 Trial</span><span class="d">JobPlan 编译,不是开跑</span></span><span class="tag">源码</span></a><a class="card" href="w2-02.html"><span class="num">2</span><span><span class="t">Agent / Environment / Trial 协议</span><span class="d">换实现后仍是同一个实验</span></span><span class="tag">源码</span></a><div class="card off"><span class="num">3</span><span><span class="t">Trajectory / 因果 / 副作用</span><span class="d">没收到 response 时怎么记</span></span><span class="tag">源码</span></div><div class="card off"><span class="num">4</span><span><span class="t">并发与 Runtime Correctness</span><span class="d">并发不改变实验语义</span></span><span class="tag">源码</span></div><div class="card off"><span class="num">5</span><span><span class="t">EvalRT Core</span><span class="d">五个强不变量</span></span><span class="tag">lab</span></div></div></div></div><div class="week" id="w3"><div class="wh"><div class="wn">3</div><div><div class="wt">Statistical Inference for Stochastic Agent Evals</div><div class="wq">从 Trial observations 到可信结论:估计什么、不确定性多大、A 是否真的优于 B?</div></div><div class="st">2/5</div></div><div class="wbody"><p class="lede" style="margin-top:16px">4 节课 + Day 5 Statistical Eval Report lab。
+已完成 <b>2/5</b>。W3 假定 verifier 已给出 score,只研究估计、不确定性与比较。</p>
+<div class="cards"><a class="card" href="w3-01.html"><span class="num">1</span><span><span class="t">Observation、Experimental Unit 与 Estimand</span><span class="d">一行数据是什么,这个数字要推广到哪里</span></span><span class="tag">统计</span></a><a class="card" href="w3-02.html"><span class="num">2</span><span><span class="t">Repeated Trials</span><span class="d">Capability vs Reliability</span></span><span class="tag">统计</span></a><div class="card off"><span class="num">3</span><span><span class="t">Error Bars</span><span class="d">CI 必须匹配数据结构</span></span><span class="tag">统计</span></div><div class="card off"><span class="num">4</span><span><span class="t">Paired Comparison 与 Power</span><span class="d">A 是否真的优于 B</span></span><span class="tag">统计</span></div><div class="card off"><span class="num">5</span><span><span class="t">Statistical Eval Report</span><span class="d">可审计的统计结论</span></span><span class="tag">lab</span></div></div></div></div><div class="week soon" id="w4"><div class="wh"><div class="wn">4</div><div><div class="wt">Scorers / Verifiers / LLM-as-Judge</div><div class="wq">成功如何被判定?judge 准不准?</div></div><div class="st">未写</div></div></div><div class="week soon" id="w5"><div class="wh"><div class="wn">5</div><div><div class="wt">Benchmark Design, Audit & Dataset Lifecycle</div><div class="wq">成功/失败反映的是能力,还是题目和测试写坏了?</div></div><div class="st">未写</div></div></div><div class="week soon" id="w6"><div class="wh"><div class="wn">6</div><div><div class="wt">Reproducibility, Failure Semantics & Experiment Operations</div><div class="wq">同一 Agent、同一 benchmark,为什么改一点 infra 分数就变?哪些失败进分母?</div></div><div class="st">未写</div></div></div><div class="week soon" id="w7"><div class="wh"><div class="wn">7</div><div><div class="wt">Evaluation Integrity & Adversarial Validation</div><div class="wq">怎样防止 Agent、数据和基础设施破坏测量本身?(不讲 cgroups / seccomp)</div></div><div class="st">未写</div></div></div><div class="week" id="w8"><div class="wh"><div class="wn">8</div><div><div class="wt">Leaderboard / Aggregation / Artificial Analysis</div><div class="wq">成千上万个 task result 怎么压成一个数字?</div></div><div class="st">plan exists</div></div></div><div class="week soon" id="w9"><div class="wh"><div class="wn">9</div><div><div class="wt">Production / Online Evaluation</div><div class="wq">这个数字跟真实产品表现有什么关系?</div></div><div class="st">未写</div></div></div><div class="week soon" id="w10"><div class="wh"><div class="wn">10</div><div><div class="wt">Evaluation ↔ On-policy RL</div><div class="wq">同一套 environment 怎么同时服务 eval 与训练?</div></div><div class="st">未写</div></div></div><div class="week soon" id="w11"><div class="wh"><div class="wn">11</div><div><div class="wt">Kimi K3 / AgentENV / Harbor RL Case Study</div><div class="wq">前沿是怎么把这些拼在一起的?</div></div><div class="st">未写</div></div></div><div class="week soon" id="w12"><div class="wh"><div class="wn">12</div><div><div class="wt">Capstone Benchmark</div><div class="wq">自己从零做一个可运行、可复现、可评分的 benchmark</div></div><div class="st">未写</div></div></div>
+</div></section>
 <footer><div class="wrap">
-<span>Week 02 · Eval Runtime & Trajectory Engineering</span>
-<span>Harbor b378332 · Inspect 499e615</span>
-<span>由 week02/*.md 生成 · build_site.py</span>
+<span>Agent Evaluation &amp; Benchmark Engineering</span>
+<span>12 weeks · source-first · 30% papers / 70% RFC · docs · source</span>
+<span>PLAN.md</span>
 </div></footer></body></html>

@@ -27,16 +27,19 @@ pre code{background:none;padding:0;color:inherit;font-size:inherit}
 
 /* ---- masthead ---- */
 .mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
-.mast .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;
+.mast .wrap{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
   padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
 .mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--soft);white-space:nowrap}
+  text-transform:uppercase;color:var(--soft);white-space:nowrap;padding-top:6px}
 .mast .id b{color:var(--signal);font-weight:500}
-.mast nav{display:flex;gap:4px;flex-wrap:wrap}
+.mast .id-dot{color:var(--soft)}
+.mast-nav{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
 .mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
   color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
 .mast nav a:hover{border-color:var(--rule);color:var(--ink)}
 .mast nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mast-lessons a,.mast-lessons .soonnav{font-size:11.5px}
 
 /* ---- hero ---- */
 .hero{padding:62px 0 8px}
@@ -260,7 +263,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
 
 @media(max-width:900px){
-  .mast .id{letter-spacing:.08em;font-size:10.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .mast .id{letter-spacing:.08em;font-size:10.5px;overflow:visible;text-overflow:unset;max-width:none}
+  .mast .id-name,.mast .id-dot{display:none}
   .page{grid-template-columns:1fr;gap:20px}
   .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
   .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
@@ -294,8 +298,9 @@ window.MathJax = {
 </head><body>
 
 <header class="mast"><div class="wrap">
-<span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 01</b></span>
-<nav><a href="index.html">课程</a><a href="lesson01.html">1</a><a href="lesson02.html" class="on">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span><a href="w2-01.html">W2·1</a><a href="w2-02.html">W2·2</a><span class="soonnav">W2·3</span><span class="soonnav">W2·4</span><span class="soonnav">W2·5</span><a href="w3-01.html">W3·1</a><a href="w3-02.html">W3·2</a><span class="soonnav">W3·3</span><span class="soonnav">W3·4</span><span class="soonnav">W3·5</span></nav></div></header>
+<span class="id"><span class="id-name">Agent Evaluation &amp; Benchmark Engineering</span><span class="id-dot"> · </span><b>WEEK 01</b></span>
+<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="lesson01.html" class="on">W1</a><a href="w2-01.html">W2</a><a href="w3-01.html">W3</a></nav><nav class="mast-lessons"><a href="lesson01.html">1</a><a href="lesson02.html" class="on">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span></nav></div>
+</div></header>
 <div class="wrap"><div class="page">
 <aside class="rail"><div class="rt">本课目录</div><a href="#s0">一个 benchmark 的完整实现,从 task 定义追到 score</a><a href="#s1"><i>00</i>本课要追通的那条线:从 task 目录一路到一个 True/False</a><a href="#s2"><i>01</i>一个 task = 6 个文件</a><a href="#s3"><i>02</i>canary GUID —— 一串写在文件头的魔法字符串,用来发现题目泄漏进了训练集</a><a href="#s4"><i>03</i>Oracle agent —— 先跑一遍标准答案,证明尺子本身是准的</a><a href="#s5"><i>04</i>Verifier 到底在查什么(纠正一个常见误解)</a><a href="#s6"><i>05</i>Agent 接口 —— 只给一个终端,任何 black-box agent 都能接进来</a><a href="#s7"><i>06</i>Runner —— rollout 主循环在哪、一次 rollout 到底做了什么</a><a href="#s8"><i>07</i>⚠️ 它不隔离网络</a><a href="#s9"><i>08</i>Hands-on:自己跑一遍 oracle,看它全绿</a><a href="#s10"><i>09</i>本课自检:这几件事你能不能说清</a><a href="#s11">本课一句话总结</a></aside>
 <article class="doc"><h1>第 2 课:Terminal-Bench 深读</h1>

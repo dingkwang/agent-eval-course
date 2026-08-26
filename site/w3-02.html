@@ -27,16 +27,19 @@ pre code{background:none;padding:0;color:inherit;font-size:inherit}
 
 /* ---- masthead ---- */
 .mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
-.mast .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;
+.mast .wrap{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
   padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
 .mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--soft);white-space:nowrap}
+  text-transform:uppercase;color:var(--soft);white-space:nowrap;padding-top:6px}
 .mast .id b{color:var(--signal);font-weight:500}
-.mast nav{display:flex;gap:4px;flex-wrap:wrap}
+.mast .id-dot{color:var(--soft)}
+.mast-nav{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
 .mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
   color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
 .mast nav a:hover{border-color:var(--rule);color:var(--ink)}
 .mast nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mast-lessons a,.mast-lessons .soonnav{font-size:11.5px}
 
 /* ---- hero ---- */
 .hero{padding:62px 0 8px}
@@ -260,7 +263,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
 
 @media(max-width:900px){
-  .mast .id{letter-spacing:.08em;font-size:10.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .mast .id{letter-spacing:.08em;font-size:10.5px;overflow:visible;text-overflow:unset;max-width:none}
+  .mast .id-name,.mast .id-dot{display:none}
   .page{grid-template-columns:1fr;gap:20px}
   .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
   .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
@@ -294,8 +298,9 @@ window.MathJax = {
 </head><body>
 
 <header class="mast"><div class="wrap">
-<span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>WEEK 03</b></span>
-<nav><a href="index.html">课程</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span><a href="w2-01.html">W2·1</a><a href="w2-02.html">W2·2</a><span class="soonnav">W2·3</span><span class="soonnav">W2·4</span><span class="soonnav">W2·5</span><a href="w3-01.html">W3·1</a><a href="w3-02.html" class="on">W3·2</a><span class="soonnav">W3·3</span><span class="soonnav">W3·4</span><span class="soonnav">W3·5</span></nav></div></header>
+<span class="id"><span class="id-name">Agent Evaluation &amp; Benchmark Engineering</span><span class="id-dot"> · </span><b>WEEK 03</b></span>
+<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="lesson01.html">W1</a><a href="w2-01.html">W2</a><a href="w3-01.html" class="on">W3</a></nav><nav class="mast-lessons"><a href="w3-01.html">1</a><a href="w3-02.html" class="on">2</a><span class="soonnav">3</span><span class="soonnav">4</span><span class="soonnav">5</span></nav></div>
+</div></header>
 <div class="wrap"><div class="page">
 <aside class="rail"><div class="rt">本课目录</div><a href="#s0">同一个 Agent「有时能做到」和「每次都能做到」是两件事</a><a href="#s1"><i>00</i>先看两个 pass@1=50% 的 Agent</a><a href="#s2"><i>01</i>先定义产品事件,再写公式</a><a href="#s3"><i>02</i>为什么不能把 pooled success rate 代进公式</a><a href="#s4"><i>03</i>总体定义不是有限样本 estimator</a><a href="#s5"><i>04</i>i.i.d. 不是一个无害的小字</a><a href="#s6"><i>05</i>Reliability gap 有用,但不是无条件的「随机性分数」</a><a href="#s7"><i>06</i>真实数据:随机性不是 temperature 开关</a><a href="#s8"><i>07</i>Don't Pass@k 到底反对什么?</a><a href="#s9"><i>08</i>Lab:从 canonical rows 生成四张图</a><a href="#s10"><i>09</i>读材料时只回答这些问题</a><a href="#s11">本课自检</a><a href="#s12">本课一句话</a></aside>
 <article class="doc"><h1>第 2 课:Repeated Trials——Capability 与 Reliability</h1>
@@ -608,7 +613,7 @@ caption = N tasks, n attempts/task, eligible tasks at each k
 <strong>先按 task 用有限样本 estimator,再跨 task 平均;指标回答哪个产品事件,必须和 $k$、选择器、成本与 independence protocol 一起报告。</strong></p>
 </blockquote>
 <p>下一课:两条曲线都是 point estimates。40 tasks × 10 attempts 为什么仍不是 400 个独立 observations,95% error bar 应怎样匹配 task 层级?</p>
-<div class="pager"><a href="w3-01.html">← W3 第 1 课 · Observation、Experimental Unit 与 Estimand</a><a href="index.html#w3">Week 3 →</a></div>
+<div class="pager"><a href="w3-01.html">← W3 第 1 课 · Observation、Experimental Unit 与 Estimand</a><a href="toc.html#w3">Week 3 →</a></div>
 </article></div></div>
 <footer><div class="wrap">
 <span>Week 03 · Statistical Inference for Stochastic Agent Evals</span>

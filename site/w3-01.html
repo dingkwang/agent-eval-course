@@ -358,9 +358,14 @@ window.MathJax = {
 <h3>1.1 Grain:一行代表什么</h3>
 <p><strong>Grain</strong> 是这张表的分辨率:每一行是哪一件最小事实。不是文件格式,也不是主键的别名。没定 grain,就无法判断两行算不算重复,平均值在平均什么。</p>
 <p>本课约定:</p>
-<pre><code class="language-text">one row = one (task_id, agent_id, attempt_id) execution
+<pre><code class="language-text">one row = one Trial execution, identified by trial_id
+
+semantic coordinates =
+  benchmark_id × benchmark_version × experiment_id
+  × task_id × agent_id × attempt_id
 </code></pre>
-<p>这就是 canonical 表的 grain:一行 = 一次完整 Trial 执行,也就是最小 observation。最小字段:</p>
+<p>这就是 canonical 表的 grain:一行 = 一次完整 Trial 执行,也就是最小 observation。<code>trial_id</code> 是这次执行的稳定身份;semantic coordinates 说明它属于哪一次实验、哪版 benchmark、哪个 task 与第几次 attempt。不能只靠 <code>(task_id, agent_id, attempt_id)</code>:换一个 benchmark version 或重跑一个 batch 时,这些编号可能合法地再次出现。</p>
+<p>最小字段:</p>
 <table>
 <thead>
 <tr>
@@ -370,6 +375,26 @@ window.MathJax = {
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>trial_id</code></td>
+<td>一次 Trial execution 的全局稳定身份</td>
+<td>全表唯一,重试写新 row</td>
+</tr>
+<tr>
+<td><code>benchmark_id</code></td>
+<td>benchmark 身份</td>
+<td>不用目录名或 runner 名代替</td>
+</tr>
+<tr>
+<td><code>benchmark_version</code></td>
+<td>task set / data release 身份</td>
+<td>能解析到冻结版本</td>
+</tr>
+<tr>
+<td><code>experiment_id</code></td>
+<td>一次预注册 eval campaign</td>
+<td>同一设计与分析口径共享</td>
+</tr>
 <tr>
 <td><code>task_id</code></td>
 <td>benchmark 中的 task 身份</td>
@@ -382,8 +407,8 @@ window.MathJax = {
 </tr>
 <tr>
 <td><code>attempt_id</code></td>
-<td>该 Agent 在该 task 上的重复编号</td>
-<td>在 <code>(task_id, agent_id)</code> 内唯一</td>
+<td>该实验内该 Agent 在该 task 上的重复编号</td>
+<td>在 semantic coordinates 内唯一</td>
 </tr>
 <tr>
 <td><code>score</code></td>
@@ -412,9 +437,16 @@ window.MathJax = {
 </tr>
 </tbody>
 </table>
-<p>推荐再保留 <code>trial_id</code>、<code>benchmark_version</code>、<code>task_digest</code>、<code>agent_config_digest</code>、<code>seed</code>、<code>started_at</code>。尤其 <code>agent_id</code> 应代表 <strong>model + harness + prompt/tools/config</strong>,而不只是 <code>gpt-x</code>。</p>
-<p>主键检查:</p>
-<pre><code class="language-python">assert not df.duplicated([&quot;task_id&quot;, &quot;agent_id&quot;, &quot;attempt_id&quot;]).any()
+<p>为发现共享故障与做 cluster-aware uncertainty,还应保留 <code>batch_id</code>、<code>infra_version</code>、<code>provider_request_id</code>。推荐再保留 <code>task_digest</code>、<code>agent_config_digest</code>、<code>seed</code>、<code>started_at</code>;尤其 <code>agent_id</code> 应代表 <strong>model + harness + prompt/tools/config</strong>,而不只是 <code>gpt-x</code>。</p>
+<p>身份与 semantic uniqueness 分开检查:</p>
+<pre><code class="language-python">assert df[&quot;trial_id&quot;].notna().all()
+assert not df[&quot;trial_id&quot;].duplicated().any()
+
+coords = [
+    &quot;benchmark_id&quot;, &quot;benchmark_version&quot;, &quot;experiment_id&quot;,
+    &quot;task_id&quot;, &quot;agent_id&quot;, &quot;attempt_id&quot;,
+]
+assert not df.duplicated(coords).any()
 </code></pre>
 <h3>1.2 <code>score=0</code> 不等于 <code>score=null</code></h3>
 <figure class="diag"><figcaption><span>outcome 与 observation 缺失必须分开</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">terminal_status</div><div class="dcell">completed,verifier 判失败</div><div class="dcell">completed,verifier 判成功</div><div class="dcell">infra_error,没有有效评分</div><div class="dcell">verifier_error,没有有效评分</div><div class="dcell">timeout</div></div><div class="dcol"><div class="dh">score</div><div class="dcell">0</div><div class="dcell">1</div><div class="dcell">null</div><div class="dcell">null</div><div class="dcell">按预注册规则;不能分析时临时决定</div></div></div></figure>
@@ -580,13 +612,16 @@ category
 </code></pre>
 <p>不要覆盖 raw rows;派生表可以重建。</p>
 <h3>6.2 Validation gates</h3>
-<pre><code class="language-text">[ ] (task_id, agent_id, attempt_id) 唯一
+<pre><code class="language-text">[ ] trial_id 非空且全表唯一
+[ ] benchmark_id / version 与 experiment_id 均可解析到冻结定义
+[ ] semantic coordinates 在同一次 experiment 内唯一
 [ ] score 只在声明的范围内;binary eval 为 0 / 1 / null
 [ ] terminal_status 使用枚举,不是自由文本
 [ ] score=null 的行没有被静默删除
 [ ] 每个 agent 的 task set 差异被显式报告
 [ ] agent_id 能解析到完整 config 或 config digest
 [ ] category 不随 attempt 改变
+[ ] batch_id / infra_version 足以定位共享故障
 </code></pre>
 <h3>6.3 第一张图:task × attempt heatmap</h3>
 <p>每个 Agent 单独画一张或 facet:</p>
@@ -620,7 +655,8 @@ color   = pass / fail / missing
 </ul>
 <hr />
 <h2 id="s9">本课自检</h2>
-<pre><code class="language-text">[ ] 能说出 canonical table 的 grain:一行 = 一个 task × agent × attempt execution
+<pre><code class="language-text">[ ] 能说出 canonical table 的 grain:一行 = 一个 Trial execution,由 trial_id 标识
+[ ] 能解释为什么 benchmark_version / experiment_id 必须进入 semantic uniqueness
 [ ] 能解释 score=0 与 score=null 为什么必须分开
 [ ] 能区分一次运行、一道题的平均、这套题的平均、和对新题的推广;不把第一层当成「Agent 有多强」
 [ ] 能区分 estimand、estimator、estimate

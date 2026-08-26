@@ -68,28 +68,45 @@ Inspect / Harbor / 自研 runner 原始结果 → 同一列名 + 同一类型 + 
 本课约定:
 
 ```text
-one row = one (task_id, agent_id, attempt_id) execution
+one row = one Trial execution, identified by trial_id
+
+semantic coordinates =
+  benchmark_id × benchmark_version × experiment_id
+  × task_id × agent_id × attempt_id
 ```
 
-这就是 canonical 表的 grain:一行 = 一次完整 Trial 执行,也就是最小 observation。最小字段:
+这就是 canonical 表的 grain:一行 = 一次完整 Trial 执行,也就是最小 observation。`trial_id` 是这次执行的稳定身份;semantic coordinates 说明它属于哪一次实验、哪版 benchmark、哪个 task 与第几次 attempt。不能只靠 `(task_id, agent_id, attempt_id)`:换一个 benchmark version 或重跑一个 batch 时,这些编号可能合法地再次出现。
+
+最小字段:
 
 | column | 语义 | 不变量 |
 |---|---|---|
+| `trial_id` | 一次 Trial execution 的全局稳定身份 | 全表唯一,重试写新 row |
+| `benchmark_id` | benchmark 身份 | 不用目录名或 runner 名代替 |
+| `benchmark_version` | task set / data release 身份 | 能解析到冻结版本 |
+| `experiment_id` | 一次预注册 eval campaign | 同一设计与分析口径共享 |
 | `task_id` | benchmark 中的 task 身份 | 同版本中稳定 |
 | `agent_id` | 完整 Agent 配置身份 | 不能只写 model 名 |
-| `attempt_id` | 该 Agent 在该 task 上的重复编号 | 在 `(task_id, agent_id)` 内唯一 |
+| `attempt_id` | 该实验内该 Agent 在该 task 上的重复编号 | 在 semantic coordinates 内唯一 |
 | `score` | verifier 输出 | 无有效评分时为 null |
 | `category` | 预先定义的 task 分组 | 不从本次结果反推 |
 | `tokens` | 本次 token 用量 | 非负或 null |
 | `latency` | 本次 wall-clock latency | 非负或 null |
 | `terminal_status` | Trial 如何结束 | 与 `score` 分列 |
 
-推荐再保留 `trial_id`、`benchmark_version`、`task_digest`、`agent_config_digest`、`seed`、`started_at`。尤其 `agent_id` 应代表 **model + harness + prompt/tools/config**,而不只是 `gpt-x`。
+为发现共享故障与做 cluster-aware uncertainty,还应保留 `batch_id`、`infra_version`、`provider_request_id`。推荐再保留 `task_digest`、`agent_config_digest`、`seed`、`started_at`;尤其 `agent_id` 应代表 **model + harness + prompt/tools/config**,而不只是 `gpt-x`。
 
-主键检查:
+身份与 semantic uniqueness 分开检查:
 
 ```python
-assert not df.duplicated(["task_id", "agent_id", "attempt_id"]).any()
+assert df["trial_id"].notna().all()
+assert not df["trial_id"].duplicated().any()
+
+coords = [
+    "benchmark_id", "benchmark_version", "experiment_id",
+    "task_id", "agent_id", "attempt_id",
+]
+assert not df.duplicated(coords).any()
 ```
 
 ### 1.2 `score=0` 不等于 `score=null`
@@ -330,13 +347,16 @@ category
 ### 6.2 Validation gates
 
 ```text
-[ ] (task_id, agent_id, attempt_id) 唯一
+[ ] trial_id 非空且全表唯一
+[ ] benchmark_id / version 与 experiment_id 均可解析到冻结定义
+[ ] semantic coordinates 在同一次 experiment 内唯一
 [ ] score 只在声明的范围内;binary eval 为 0 / 1 / null
 [ ] terminal_status 使用枚举,不是自由文本
 [ ] score=null 的行没有被静默删除
 [ ] 每个 agent 的 task set 差异被显式报告
 [ ] agent_id 能解析到完整 config 或 config digest
 [ ] category 不随 attempt 改变
+[ ] batch_id / infra_version 足以定位共享故障
 ```
 
 ### 6.3 第一张图:task × attempt heatmap
@@ -388,7 +408,8 @@ grid | heatmap 应让人一眼看见什么
 ## 本课自检
 
 ```text
-[ ] 能说出 canonical table 的 grain:一行 = 一个 task × agent × attempt execution
+[ ] 能说出 canonical table 的 grain:一行 = 一个 Trial execution,由 trial_id 标识
+[ ] 能解释为什么 benchmark_version / experiment_id 必须进入 semantic uniqueness
 [ ] 能解释 score=0 与 score=null 为什么必须分开
 [ ] 能区分一次运行、一道题的平均、这套题的平均、和对新题的推广;不把第一层当成「Agent 有多强」
 [ ] 能区分 estimand、estimator、estimate

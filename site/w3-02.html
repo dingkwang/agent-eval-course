@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>W3 第 2 课 · Repeated Trials</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{
+  --paper:#EDEFF2; --panel:#F8FAFB; --panel-2:#E4E9ED; --rule:#C9D2D8;
+  --ink:#131A20; --soft:#5A6672; --faint:#8A95A0;
+  --deep:#0E1A22; --signal:#C8501C; --probe:#2B5F9E; --pass:#34734A;
+  --shadow:0 1px 0 rgba(19,26,32,.04), 0 16px 40px -24px rgba(19,26,32,.45);
+}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Instrument Sans",system-ui,sans-serif;font-size:16.5px;line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--probe)}
+code,kbd{font-family:"JetBrains Mono",monospace;font-size:.88em;
+  background:var(--panel-2);padding:.08em .38em;border-radius:3px}
+pre{background:var(--deep);color:#DCE3E8;border-radius:8px;padding:16px 18px;overflow-x:auto;
+  font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.72;box-shadow:var(--shadow)}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+/* ---- masthead ---- */
+.mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
+.mast .wrap{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--soft);white-space:nowrap;padding-top:6px}
+.mast .id b{color:var(--signal);font-weight:500}
+.mast .id-dot{color:var(--soft)}
+.mast-nav{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
+  color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
+.mast nav a:hover{border-color:var(--rule);color:var(--ink)}
+.mast nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mast-lessons a,.mast-lessons .soonnav{font-size:11.5px}
+
+/* ---- hero ---- */
+.hero{padding:62px 0 8px}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--signal);display:inline-flex;align-items:center;gap:11px}
+.eyebrow::before{content:"";width:30px;height:2px;background:var(--signal)}
+h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,74px);
+  letter-spacing:-.025em;line-height:.97;margin:18px 0 12px}
+.thesis{font-size:18px;color:var(--ink);max-width:38em;margin:0}
+.thesis b{color:var(--signal)}
+.subhead{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(15px,2vw,19px);
+  color:var(--soft);margin:0 0 18px}
+
+/* ---- signature: depth cross-section ---- */
+.strata{margin:34px 0 6px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow)}
+.strata .cap{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.strata .cap span:last-child{color:#93A2AE}
+.layer{display:grid;grid-template-columns:132px 1fr 300px;gap:0;align-items:center;
+  border-top:1px solid var(--rule);background:var(--panel);
+  transition:background .18s}
+.layer:first-of-type{border-top:none}
+.layer:hover{background:#fff}
+.layer .nm{font-family:"Archivo",sans-serif;font-weight:600;font-size:15px;padding:13px 16px;
+  border-right:1px solid var(--rule)}
+.layer .flow{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);padding:13px 16px}
+.layer .note{font-size:13px;color:var(--soft);padding:13px 16px;border-left:1px solid var(--rule)}
+.layer .bar{display:block;height:3px;background:var(--probe);border-radius:2px;margin-top:7px;
+  transform-origin:left;animation:grow .7s cubic-bezier(.2,.7,.3,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.waterline{display:grid;grid-template-columns:132px 1fr;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.1em}
+.waterline span{padding:7px 16px}
+.waterline span:first-child{color:var(--signal);border-right:1px solid #24333D}
+.stratanote{font-size:13.5px;color:var(--soft);margin:11px 2px 0}
+
+/* ---- lesson cards ---- */
+.sec{padding:50px 0 0}
+.sec h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(21px,3.2vw,29px);
+  letter-spacing:-.015em;margin:0 0 4px}
+.sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
+.cards{display:grid;gap:12px}
+.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+  text-decoration:none;color:var(--ink);background:var(--panel);
+  border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
+  transition:transform .16s,box-shadow .16s,background .16s}
+a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
+.card .num{font-family:"Archivo",sans-serif;font-weight:700;font-size:30px;color:var(--signal);
+  line-height:1;letter-spacing:-.03em}
+.card .t{display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin-bottom:3px}
+.card .d{display:block;font-size:14px;color:var(--soft)}
+.card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+.card.off{border-style:dashed;border-color:var(--rule);background:transparent;cursor:default}
+.card.off .num,.card.off .t{color:var(--faint)}
+.card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
+.soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
+  padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+
+/* ---- lab cards ---- */
+.labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.lab{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);padding:16px 18px}
+.lab .lh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lab .lh b{font-family:"Archivo",sans-serif;font-weight:600;font-size:18px}
+.lab .lh span{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  color:var(--pass);white-space:nowrap}
+.lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
+.lab code{font-size:11.5px;color:var(--probe)}
+
+/* ---- course intro ---- */
+.formula{margin:28px 0 0;background:var(--deep);color:#DCE3E8;border-radius:10px;
+  padding:18px 22px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.7;
+  box-shadow:var(--shadow)}
+.formula .eq{color:#fff;font-size:14.5px;margin-bottom:8px;overflow-wrap:anywhere}
+.formula b{color:var(--signal);font-weight:500}
+.skills{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:8px 0 0}
+.skill{background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px}
+.skill i{font-family:"Archivo",sans-serif;font-style:normal;font-weight:700;font-size:22px;
+  color:var(--signal);display:block;line-height:1;margin-bottom:6px}
+.skill span{font-size:14.5px}
+.arcs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.arc{border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px;background:var(--panel)}
+.arc .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--signal)}
+.arc b{display:block;font-family:"Archivo",sans-serif;margin:6px 0 4px;font-size:16px}
+.arc span{font-size:13.5px;color:var(--soft)}
+.fails{margin:10px 0 0;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:12px 16px;
+  line-height:1.85}
+.fails b{color:var(--ink);font-weight:500}
+.week{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);margin:0 0 12px;
+  overflow:hidden}
+.week.soon{border-style:dashed;border-color:var(--rule);background:transparent}
+.week .wh{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:start;
+  padding:16px 18px}
+.week .wn{font-family:"Archivo",sans-serif;font-weight:700;font-size:26px;color:var(--signal);
+  line-height:1}
+.week.soon .wn,.week.soon .wt{color:var(--faint)}
+.week .wt{font-family:"Archivo",sans-serif;font-weight:600;font-size:17px}
+.week .wq{font-size:13.5px;color:var(--soft);margin-top:3px}
+.week .st{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--pass);white-space:nowrap}
+.week.soon .st{color:var(--faint)}
+.week .wbody{border-top:1px solid var(--rule);padding:16px 18px 18px}
+
+/* ---- lesson page ---- */
+.page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
+.rail{position:sticky;top:22px;font-size:13.5px}
+.rail .rt{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
+  border-left:2px solid var(--rule);line-height:1.4}
+.rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.rail a i{font-family:"JetBrains Mono",monospace;font-style:normal;font-size:10.5px;
+  color:var(--faint);margin-right:7px}
+.rail a:hover i{color:var(--signal)}
+.doc{min-width:0}
+.doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:31px;letter-spacing:-.02em;
+  line-height:1.22;margin:62px 0 14px;padding-top:22px;border-top:2.5px solid var(--ink)}
+.doc h2 .hn{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11.5px;
+  letter-spacing:.24em;color:var(--signal);margin-bottom:10px}
+.doc h2.sub{font-weight:600;font-size:23px;color:var(--soft);border-top:none;
+  margin:0 0 18px;padding-top:0}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19.5px;margin:30px 0 8px;
+  padding-left:12px;border-left:3px solid var(--rule)}
+.doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
+.doc p{margin:12px 0}
+.doc ul,.doc ol{padding-left:22px}
+.doc li{margin:5px 0}
+.doc blockquote{margin:16px 0;padding:13px 18px;background:var(--panel);
+  border-left:4px solid var(--signal);border-radius:0 8px 8px 0;color:var(--ink)}
+.doc blockquote p{margin:6px 0}
+.doc blockquote h3{margin-top:2px}
+.doc blockquote h1{font-family:"Archivo",sans-serif;font-weight:700;
+  font-size:clamp(18px,2.4vw,24px);line-height:1.35;letter-spacing:-.012em;
+  margin:8px 0 6px;color:var(--ink)}
+.doc blockquote h1 + h1{color:var(--signal);font-size:clamp(15px,2vw,18px);font-weight:600}
+.doc table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.doc th,.doc td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+.doc thead th{background:var(--ink);color:var(--paper);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.doc tbody tr:last-child td{border-bottom:none}
+.doc tbody tr:nth-child(even){background:#fff}
+.doc hr{border:none;border-top:1px solid var(--rule);margin:30px 0}
+.doc details{background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+  padding:11px 15px;margin:14px 0}
+.doc summary{cursor:pointer;font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px;color:var(--probe)}
+.doc img{max-width:100%}
+
+/* ---- in-lesson figure: accumulating complexity ladder ---- */
+.ladder{margin:22px 0 8px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow);background:var(--panel)}
+.ladder figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.ladder figcaption span:last-child{color:#93A2AE;text-transform:none;letter-spacing:.02em}
+.rung{display:grid;grid-template-columns:46px 1fr;border-top:1px solid var(--rule)}
+.rung:first-of-type{border-top:none}
+.rn{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;color:var(--faint);
+  padding:14px 0 0;text-align:center;border-right:1px solid var(--rule)}
+.rbody{padding:12px 16px 14px}
+.rhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:9px}
+.rhead b{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px}
+.rhead code{background:none;padding:0;color:var(--soft);font-size:12.5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:"JetBrains Mono",monospace;font-size:11.5px;padding:3px 9px;border-radius:20px;
+  border:1px solid var(--rule);color:var(--faint);background:var(--panel-2)}
+.chip.new{border-color:var(--signal);color:#fff;background:var(--signal);font-weight:500}
+.wline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.08em;padding:8px 16px}
+.wline span:first-child{color:var(--signal);white-space:nowrap;font-weight:500}
+.lfoot{border-top:1px solid var(--rule);padding:11px 16px;font-size:13px;color:var(--soft)}
+.lfoot b{color:var(--signal)}
+@media(max-width:640px){.rhead code{display:none}}
+
+/* ---- in-lesson diagrams (```diag) ---- */
+.diag{margin:22px 0 12px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  background:var(--panel);box-shadow:var(--shadow)}
+.diag figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
+.dpipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px 18px}
+.dnode{border:1.5px solid var(--ink);border-radius:8px;padding:8px 12px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:14px}
+.darr{color:var(--signal);font-weight:700;font-family:"JetBrains Mono",monospace}
+.dflow{padding:16px 18px;display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.dflow .darr{text-align:center;padding:2px 0}
+.dstep{border:1.5px solid var(--ink);border-radius:8px;padding:10px 14px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:15px}
+.dcmp{display:grid;grid-template-columns:1fr 1fr}
+.dcol{padding:14px 16px}
+.dcol + .dcol{border-left:1.5px solid var(--rule)}
+.dh{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;margin-bottom:8px;color:var(--signal)}
+.dcell{font-size:14px;padding:6px 0;border-top:1px solid var(--rule)}
+.dcol .dcell:first-of-type{border-top:none}
+.dnest{padding:16px}
+.dbox{border:1.5px solid var(--ink);border-radius:8px;padding:10px 12px;background:#fff}
+.dbox .dbox{margin-top:8px;background:var(--panel);border-color:var(--rule)}
+.dbox .dbox .dbox{background:var(--panel-2)}
+.dlab{font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+.gcell{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;background:#fff}
+.gcell b{display:block;font-family:"Archivo",sans-serif;font-size:15px;margin-bottom:4px;color:var(--signal)}
+.gcell span{font-size:13.5px;color:var(--soft)}
+@media(max-width:640px){
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+
+.pager{display:flex;justify-content:space-between;gap:14px;margin:52px 0 0;
+  border-top:1.5px solid var(--ink);padding-top:18px;flex-wrap:wrap}
+.pager a{font-family:"JetBrains Mono",monospace;font-size:13px;text-decoration:none;color:var(--probe)}
+.pager a:hover{color:var(--signal)}
+
+footer{margin-top:56px;border-top:1.5px solid var(--ink);background:var(--panel)}
+footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding-top:18px;padding-bottom:44px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+
+@media(max-width:900px){
+  .mast .id{letter-spacing:.08em;font-size:10.5px;overflow:visible;text-overflow:unset;max-width:none}
+  .mast .id-name,.mast .id-dot{display:none}
+  .page{grid-template-columns:1fr;gap:20px}
+  .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
+  .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
+  .layer{grid-template-columns:1fr}
+  .layer .nm,.layer .note{border:none}
+  .layer .note{padding-top:0}
+  .waterline{grid-template-columns:1fr}
+  .card{grid-template-columns:46px 1fr}
+  .card .tag{display:none}
+  .skills,.arcs{grid-template-columns:1fr}
+  .week .wh{grid-template-columns:46px 1fr}
+  .week .st{display:none}
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .layer .bar{animation:none}
+  a.card:hover{transform:none}
+}
+.math-display{margin:24px 0;overflow-x:auto;text-align:center}
+.math-display mjx-container[display="true"]{margin:.65em 0!important}
+</style>
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['$', '$']], processEscapes: true},
+  options: {skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head><body>
+
+<header class="mast"><div class="wrap">
+<span class="id"><span class="id-name">Agent Evaluation &amp; Benchmark Engineering</span><span class="id-dot"> · </span><b>WEEK 03</b></span>
+<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="lesson01.html">W1</a><a href="w2-01.html">W2</a><a href="w3-01.html" class="on">W3</a></nav><nav class="mast-lessons"><a href="w3-01.html">1</a><a href="w3-02.html" class="on">2</a><span class="soonnav">3</span><span class="soonnav">4</span><span class="soonnav">5</span></nav></div>
+</div></header>
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">同一个 Agent「有时能做到」和「每次都能做到」是两件事</a><a href="#s1"><i>00</i>先看两个 pass@1=50% 的 Agent</a><a href="#s2"><i>01</i>先定义产品事件,再写公式</a><a href="#s3"><i>02</i>为什么不能把 pooled success rate 代进公式</a><a href="#s4"><i>03</i>总体定义不是有限样本 estimator</a><a href="#s5"><i>04</i>i.i.d. 不是一个无害的小字</a><a href="#s6"><i>05</i>Reliability gap 有用,但不是无条件的「随机性分数」</a><a href="#s7"><i>06</i>真实数据:随机性不是 temperature 开关</a><a href="#s8"><i>07</i>Don't Pass@k 到底反对什么?</a><a href="#s9"><i>08</i>Lab:从 canonical rows 生成四张图</a><a href="#s10"><i>09</i>读材料时只回答这些问题</a><a href="#s11">本课自检</a><a href="#s12">本课一句话</a></aside>
+<article class="doc"><h1>第 2 课:Repeated Trials——Capability 与 Reliability</h1>
+<h2 id="s0" class="sub">同一个 Agent「有时能做到」和「每次都能做到」是两件事</h2>
+<p><strong>Week 3 Day 2</strong> · 统计推断课 · 建议 70 分钟 + lab</p>
+<blockquote>
+<h3>本课唯一命题</h3>
+<h1><code>pass@k</code> 和 <code>pass^k</code> 不是同一个指标的两种写法。</h1>
+<h1>前者问 k 次里能否至少成功一次;后者问 k 次是否全部成功。选哪一个由产品使用方式决定。</h1>
+<p>📄 HumanEval/Codex §2.1、Appendix A · <code>pass@k</code> finite-sample estimator
+📄 τ-bench §3 · <code>pass^k</code> reliability metric
+📄 <em>On Randomness in Agentic Evals</em> §2.3–3
+💻 输入:Lesson 1 的 canonical <code>TrialResult</code> table</p>
+</blockquote>
+<figure class="diag"><figcaption><span>相同的 repeated trials,两个相反的问题</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Capability coverage · pass@k</div><div class="dcell">k 次中至少一次成功</div><div class="dcell">retry / search / candidate generation</div><div class="dcell">随 k 单调上升</div><div class="dcell">需要能识别或选出成功结果</div></div><div class="dcol"><div class="dh">Reliability · pass^k</div><div class="dcell">k 次必须全部成功</div><div class="dcell">repeated customer-facing execution</div><div class="dcell">随 k 单调下降</div><div class="dcell">不允许一次坏结果混过去</div></div></div></figure>
+
+<hr />
+<h2 id="s1"><span class="hn">§ 00</span>先看两个 <code>pass@1=50%</code> 的 Agent</h2>
+<p>100 个 task,两种完全不同的 task-level success probability 分布:</p>
+<figure class="diag"><figcaption><span>平均分相同,行为结构不同</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Agent A · uniform stochastic</div><div class="dcell">每个 task 都有 pᵢ=0.5</div><div class="dcell">每道题都可能成也可能败</div><div class="dcell">pass@1 = 50%</div></div><div class="dcol"><div class="dh">Agent B · polarized specialist</div><div class="dcell">50 个 task pᵢ=1,另 50 个 pᵢ=0</div><div class="dcell">会的题永远会,不会的题永远不会</div><div class="dcell">pass@1 = 50%</div></div></div></figure>
+
+<p>但 $k=5$ 时:</p>
+<table>
+<thead>
+<tr>
+<th>Agent</th>
+<th style="text-align: right;"><code>pass@1</code></th>
+<th style="text-align: right;"><code>pass@5</code></th>
+<th style="text-align: right;"><code>pass^5</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A:每题 $p_i=0.5$</td>
+<td style="text-align: right;">50.0%</td>
+<td style="text-align: right;">96.875%</td>
+<td style="text-align: right;">3.125%</td>
+</tr>
+<tr>
+<td>B:一半 $p_i=1$,一半 $p_i=0$</td>
+<td style="text-align: right;">50.0%</td>
+<td style="text-align: right;">50.0%</td>
+<td style="text-align: right;">50.0%</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="两个 pass@1 相同的 Agent 有完全不同的 pass 曲线" src="assets/lesson02-same-pass1.svg" /></p>
+<p>Agent A 的能力<strong>覆盖面</strong>很大:多试几次几乎每题都可能撞对;但一致性差。Agent B 的能力边界很硬:重试没有帮助,但它会做的题非常稳定。</p>
+<blockquote>
+<p><strong><code>pass@1</code> 只告诉你 $\mathbb E[p_i]$,没有告诉你 $p_i$ 在 tasks 之间怎样分布。</strong></p>
+</blockquote>
+<hr />
+<h2 id="s2"><span class="hn">§ 01</span>先定义产品事件,再写公式</h2>
+<p>沿用 Lesson 1:</p>
+<div class="math-display">\[
+p_i=P(Y_{ij}=1\mid T_i,A,C)
+\]</div>
+
+<p>假设同一 task 的 $k$ 次 attempts 在条件 $A,C$ 下 i.i.d.。对 task $i$:</p>
+<div class="math-display">\[
+\operatorname{pass@k}_i
+=P(\text{k 次中至少一次成功}\mid T_i)
+=1-(1-p_i)^k
+\]</div>
+
+<div class="math-display">\[
+\operatorname{pass^k}_i
+=P(\text{k 次全部成功}\mid T_i)
+=p_i^k
+\]</div>
+
+<p>再对目标 task distribution 做 task-macro average:</p>
+<div class="math-display">\[
+\operatorname{pass@k}=\mathbb E_T[1-(1-p_T)^k]
+\]</div>
+
+<div class="math-display">\[
+\operatorname{pass^k}=\mathbb E_T[p_T^k]
+\]</div>
+
+<p>两条曲线在 $k=1$ 相交:</p>
+<div class="math-display">\[
+\operatorname{pass@1}=\operatorname{pass^1}=\mathbb E_T[p_T]
+\]</div>
+
+<p><img alt="单个 task 在不同 k 下的 capability 与 reliability 曲线" src="assets/lesson02-single-task-curves.svg" /></p>
+<h3>1.1 <code>pass@k</code> 的「成功选择器」藏在哪里?</h3>
+<p>HumanEval 的定义是:为一道题生成 $k$ 个 samples,只要<strong>任意一个</strong>通过 unit tests 就算 solved。这里实际上有一个 oracle-quality selector——测试知道哪个 sample 是对的。</p>
+<figure class="diag"><figcaption><span>pass@k 什么时候是可部署指标</span></figcaption><div class="dflow"><div class="dstep">生成 k 个独立 candidates</div><div class="darr">↓</div><div class="dstep">有 verifier / tests 能识别成功</div><div class="darr">↓</div><div class="dstep">允许选择成功 candidate</div><div class="darr">↓</div><div class="dstep">部署成本包含 k 次 inference + verification</div></div></figure>
+
+<p>若产品只能返回一个答案、也没有办法识别哪个 candidate 正确,<code>pass@k</code> 是 capability upper bound,不是用户实际拿到正确答案的概率。</p>
+<h3>1.2 <code>pass^k</code> 不是「单次 reliability 的替代名」</h3>
+<p>单次平均成功率仍是 <code>pass@1</code>。<code>pass^k</code> 问的是更严格的 batch event:随机挑 $k$ 次,零失败的概率。</p>
+<p>一个每次成功率 95% 的稳定 task:</p>
+<pre><code class="language-text">pass^1  = 95.0%
+pass^10 = 59.9%
+pass^50 = 7.7%
+</code></pre>
+<p>低 <code>pass^50</code> 不等于单次成功率只有 7.7%;它表示连续 50 次全部无错是很高的门槛。报告时必须同时写 $k$。</p>
+<hr />
+<h2 id="s3"><span class="hn">§ 02</span>为什么不能把 pooled success rate 代进公式</h2>
+<p>Lesson 1 规定先按 task 建模。本课现在看到原因:两个指标都是 $p_i$ 的<strong>非线性函数</strong>。</p>
+<p>错误算法:</p>
+<pre><code class="language-text">先把所有 task × attempt pooled 成 p̄
+再算 1-(1-p̄)^k 或 p̄^k
+</code></pre>
+<p>正确目标:</p>
+<pre><code class="language-text">每个 task 先算 1-(1-pᵢ)^k 或 pᵢ^k
+再跨 tasks 等权平均
+</code></pre>
+<p>一般来说:</p>
+<div class="math-display">\[
+\mathbb E[1-(1-p_T)^k]\ne 1-(1-\mathbb E[p_T])^k
+\]</div>
+
+<div class="math-display">\[
+\mathbb E[p_T^k]\ne (\mathbb E[p_T])^k
+\]</div>
+
+<p>这正是开场两个 Agent 的差别。Jensen inequality 还能给出方向($k\ge2$):</p>
+<figure class="diag"><figcaption><span>先 pooled 再变换会向哪边错</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">pass@k · concave transform</div><div class="dcell">1-(1-E[p])^k 偏高</div><div class="dcell">把 capability coverage 说得太乐观</div></div><div class="dcol"><div class="dh">pass^k · convex transform</div><div class="dcell">E[p]^k 偏低</div><div class="dcell">把 deterministic specialists 说得太不可靠</div></div></div></figure>
+
+<p>注意:这是<strong>跨 task aggregation error</strong>。下一节还有另一种不同的错误:每个 task 只观察有限 attempts 时的 plug-in bias。</p>
+<hr />
+<h2 id="s4"><span class="hn">§ 03</span>总体定义不是有限样本 estimator</h2>
+<p>真实实验不知道 $p_i$。对 task $i$,我们只运行 $n$ 次,其中 $c$ 次成功。</p>
+<figure class="diag"><figcaption><span>n 和 k 不准混</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">n · observed attempts</div><div class="dcell">为了估计而实际收集多少次</div><div class="dcell">必须 n ≥ k</div><div class="dcell">例:n=10</div></div><div class="dcol"><div class="dh">k · metric / deployment budget</div><div class="dcell">问随机取多少次时的产品事件</div><div class="dcell">可以画 1…n 的曲线</div><div class="dcell">例:报告 pass@5 / pass^5</div></div></div></figure>
+
+<p>HumanEval/Codex 给出的 per-task unbiased estimator 是:</p>
+<div class="math-display">\[
+\widehat{\operatorname{pass@k}}_i
+=1-\frac{\binom{n-c}{k}}{\binom nk}
+\]</div>
+
+<p>τ-bench 对称地给出:</p>
+<div class="math-display">\[
+\widehat{\operatorname{pass^k}}_i
+=\frac{\binom c k}{\binom nk}
+\]</div>
+
+<p>直觉不是「估一个 $p$ 再做幂」,而是:</p>
+<blockquote>
+<p>从已经观察到的 $n$ 次 attempts 中,不放回地随机选 $k$ 次;有多少个组合满足至少一次成功 / 全部成功?</p>
+</blockquote>
+<p>然后 task-macro average:</p>
+<div class="math-display">\[
+\widehat{\operatorname{pass@k}}
+=\frac1N\sum_i\left(1-\frac{\binom{n_i-c_i}{k}}{\binom{n_i}{k}}\right)
+\]</div>
+
+<div class="math-display">\[
+\widehat{\operatorname{pass^k}}
+=\frac1N\sum_i\frac{\binom{c_i}{k}}{\binom{n_i}{k}}
+\]</div>
+
+<h3>3.1 为什么直接代入 $\hat p_i=c_i/n_i$ 会偏</h3>
+<p>常见 shortcut:</p>
+<div class="math-display">\[
+1-(1-c/n)^k,\qquad(c/n)^k
+\]</div>
+
+<p>因为非线性,有限样本中它们不是上面目标的 unbiased estimator。对 $k\ge2$:</p>
+<ul>
+<li>plug-in <code>pass@k</code> 通常向下偏;</li>
+<li>plug-in <code>pass^k</code> 通常向上偏。</li>
+</ul>
+<figure class="diag"><figcaption><span>两种错误必须分别抓</span></figcaption><div class="dgrid"><div class="gcell"><b>跨 tasks 先 pooled</b><span>aggregation / Jensen error</span></div><div class="gcell"><b>task 内先用 c/n 做幂</b><span>finite-sample plug-in bias</span></div><div class="gcell"><b>修复:每 task 变换再平均</b><span>修复:组合数 estimator</span></div></div></figure>
+
+<h3>3.2 边界检查比背公式更重要</h3>
+<p>对任意 task、$1\le k\le n$:</p>
+<pre><code class="language-text">k=1:  pass@1_hat = pass^1_hat = c/n
+c=0:  两条曲线都为 0
+c=n:  两条曲线都为 1
+pass^k_hat ≤ pass@1_hat ≤ pass@k_hat
+pass@k 随 k 不下降;pass^k 随 k 不上升
+n&lt;k:  undefined,不能外推成一个数字
+</code></pre>
+<hr />
+<h2 id="s5"><span class="hn">§ 04</span>i.i.d. 不是一个无害的小字</h2>
+<p>公式把 attempts 看作在同一个 $(T_i,A,C)$ 下的独立同分布重复。</p>
+<figure class="diag"><figcaption><span>一次合法的 repeated-attempt protocol</span></figcaption><div class="dgrid"><div class="gcell"><b>same SUT</b><span>model · harness · prompt/tools/config 不变</span></div><div class="gcell"><b>same task semantics</b><span>instruction · initial state · verifier 不变</span></div><div class="gcell"><b>fresh environment</b><span>不继承文件、数据库、git history、cache 答案</span></div><div class="gcell"><b>independent randomness</b><span>不复用上一次 trajectory 或 feedback</span></div><div class="gcell"><b>recorded conditions</b><span>temperature · provider · budget · infra version 可审计</span></div></div></figure>
+
+<h3>4.1 有 feedback 的 retry 不是这里的 <code>pass@k</code></h3>
+<figure class="diag"><figcaption><span>两种「再试一次」</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">i.i.d. fresh attempts</div><div class="dcell">每次从同一初态独立开始</div><div class="dcell">pass@k / pass^k 的对象</div></div><div class="dcol"><div class="dh">Adaptive retry policy</div><div class="dcell">看见前一次失败再改策略</div><div class="dcell">整个 retry controller 是新的 SUT</div></div></div></figure>
+
+<p>若 Agent 读取上一次错误、总结失败原因再修补,第二次成功概率已经条件于第一次轨迹。正确做法是把「最多重试 k 次的 controller」整体当成一个 Agent system,一次完整 controller execution 算一条 TrialResult。</p>
+<h3>4.2 共享故障会制造相关性</h3>
+<p>Anthropic 的实践说明:残留文件、共享 cache、资源耗尽会让 trials 不独立。同一个 provider incident 也可能让一整列 attempts 同时失败。</p>
+<p>这不会靠组合数公式自动消失。canonical table 应保留 run/batch/infra identity,Lesson 3 再决定 cluster-aware uncertainty;Week 6 决定 infra failure 的分母语义。</p>
+<hr />
+<h2 id="s6"><span class="hn">§ 05</span>Reliability gap 有用,但不是无条件的「随机性分数」</h2>
+<p>定义同一个 $k$ 下的展示量:</p>
+<div class="math-display">\[
+G_k=\operatorname{pass@k}-\operatorname{pass^k}
+\]</div>
+
+<figure class="diag"><figcaption><span>gap 何时宽,何时窄</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">pᵢ 接近 0 或 1</div><div class="dcell">重试很少改变 task outcome</div><div class="dcell">pass curves 靠近</div></div><div class="dcol"><div class="dh">pᵢ 在中间</div><div class="dcell">favorable / unfavorable path 都常见</div><div class="dcell">pass curves 分开</div></div></div></figure>
+
+<p>$G_k$ 的正确读法:</p>
+<ul>
+<li>同一个 Agent、同一个 task distribution、同一个 $k$ 下,展示 success 对随机 path 的依赖程度;</li>
+<li>$G_1=0$ 是定义决定的,不是 Agent 完美稳定;</li>
+<li>$k$ 增大时 gap 会机械变化,不能拿 $G_2$ 与 $G_{10}$ 直接比较;</li>
+<li>换一套更难或更异质的 tasks,gap 也会变,所以它不是脱离 benchmark 的 Agent 常数。</li>
+</ul>
+<p>对于 deterministic task probabilities($p_i\in{0,1}$),三条曲线完全重合。开场的 Agent B 就是这个极端。</p>
+<hr />
+<h2 id="s7"><span class="hn">§ 06</span>真实数据:随机性不是 temperature 开关</h2>
+<p><em>On Randomness in Agentic Evals</em> 对 SWE-bench Verified 收集 60,000 条 trajectories。DeepSWE-preview + R2E-Gym 的例子:</p>
+<pre><code class="language-text">pass@1 = 34.4%
+pass@5 = 52.9%   · optimistic coverage
+pass^5 = 15.5%   · all-five reliability
+</code></pre>
+<p>同一个 Agent 的「至少一次能解」与「连续五次都能解」相差 37.4 pp。论文还观察到 temperature 0 下明显的 run-to-run variance,说明 deterministic decoding 参数不等于 deterministic agent system。</p>
+<figure class="diag"><figcaption><span>长轨迹怎样把微小差异变成 outcome 差异</span></figcaption><div class="dflow"><div class="dstep">早期 token / tool call 分叉</div><div class="darr">↓</div><div class="dstep">不同 environment response</div><div class="darr">↓</div><div class="dstep">后续 context 改变</div><div class="darr">↓</div><div class="dstep">策略路径继续分离</div><div class="darr">↓</div><div class="dstep">最终一条 PASS · 一条 FAIL</div></div></figure>
+
+<p>这些数字是该论文六种 model–scaffold configurations 上的实证结果,不是所有 agent benchmark 的固定规律。课程引用它是为了证明 repeated trials 有现实必要,不是把 coding-agent 方差外推到所有领域。</p>
+<hr />
+<h2 id="s8"><span class="hn">§ 07</span><code>Don't Pass@k</code> 到底反对什么?</h2>
+<p>ICLR 2026 的 <em>Don't Pass@k</em> 关注的是:当 task 数和 trials 都少、$k$ 接近已收集的 $n$ 时,用 <code>pass@k</code> 给模型做 leaderboard ranking 可能不稳定,又缺少显式 uncertainty。论文提出 Bayesian posterior mean + credible interval 作为替代排名协议。</p>
+<figure class="diag"><figcaption><span>不要把争论压成「pass@k 好 / 坏」</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">作为产品 estimand</div><div class="dcell">有 k 次预算且能选出成功结果时有意义</div><div class="dcell">回答 capability coverage</div><div class="dcell">保留,并报告 cost / k / protocol</div></div><div class="dcol"><div class="dh">作为默认 leaderboard estimator</div><div class="dcell">小 n、无 interval 时可能排名不稳</div><div class="dcell">不自动回答 A 是否显著优于 B</div><div class="dcell">配合 Lesson 3–4 的 uncertainty 与 comparison</div></div></div></figure>
+
+<p>所以本课不把论文读成「删除 <code>pass@k</code>」。讨论题是:</p>
+<blockquote>
+<p><code>pass@k</code> 在这份报告里究竟是部署事件、capability envelope,还是拿来强行排出一个赢家的 leaderboard statistic?</p>
+</blockquote>
+<p>三者需要的证据不同。</p>
+<hr />
+<h2 id="s9"><span class="hn">§ 08</span>Lab:从 canonical rows 生成四张图</h2>
+<h3>8.1 参考实现</h3>
+<pre><code class="language-python">from math import comb
+
+def pass_at_k(n: int, c: int, k: int) -&gt; float:
+    if not 1 &lt;= k &lt;= n:
+        raise ValueError(&quot;require 1 &lt;= k &lt;= n&quot;)
+    return 1.0 - comb(n - c, k) / comb(n, k)
+
+def pass_hat_k(n: int, c: int, k: int) -&gt; float:
+    if not 1 &lt;= k &lt;= n:
+        raise ValueError(&quot;require 1 &lt;= k &lt;= n&quot;)
+    return comb(c, k) / comb(n, k)
+</code></pre>
+<p><code>math.comb(a,k)</code> 在 $a&lt;k$ 时返回 0,正好覆盖「成功数不足 k」或「失败数不足 k」的边界。大 $n$ 时可改用 HumanEval 的 product-form 实现避免巨大组合数在其他语言中溢出。</p>
+<h3>8.2 四张图,每张只回答一个问题</h3>
+<p><figure class="diag"><figcaption><span>Lesson 2 plots</span></figcaption><div class="dgrid"><div class="gcell"><b>1 · task-attempt heatmap</b><span>哪些 task 稳定成功 / 失败 / 红绿相间?</span></div><div class="gcell"><b>2 · pass curves</b><span>pass@k 上升、pass^k 下降得多快?</span></div><div class="gcell"><b>3 · ordered task rates</b><span>cᵢ/nᵢ 是 polarized 还是集中在中间?</span></div><div class="gcell"><b>4 · reliability gap</b><span>同一 k 下两条曲线相距多少?</span></div></div></figure></p>
+<p>Plot 2 必须同时显示:</p>
+<pre><code class="language-text">x = k
+y = benchmark task-macro estimate
+lines = pass@k, pass^k
+reference = pass@1
+caption = N tasks, n attempts/task, eligible tasks at each k
+</code></pre>
+<p>若各 task 的 $n_i$ 不同,不能让 $k$ 增大时悄悄换掉 task set。优先预先规划相同 $n$;否则固定 common eligible set,并显式报告每个 $k$ 的 support。missingness 的处理留给 Week 6,但不能隐藏。</p>
+<h3>8.3 Tests</h3>
+<pre><code class="language-text">[ ] k=1 时两种 estimator 都等于 task-macro c/n
+[ ] pass@k 单调不降,pass^k 单调不升
+[ ] 每个点都在 [0,1]
+[ ] n&lt;k 明确报错,不 extrapolate
+[ ] macro 是 per-task estimator 的平均,不是 pooled c / pooled n
+[ ] Agent A/B toy example 复现开场表格
+[ ] null / infra rows 未被静默当作 failure 或删除
+</code></pre>
+<hr />
+<h2 id="s10"><span class="hn">§ 09</span>读材料时只回答这些问题</h2>
+<h3>HumanEval/Codex</h3>
+<ul>
+<li>$n$ 与 $k$ 各是什么?为什么论文实际生成 $n=200$ 才报告 $k\le100$?</li>
+<li>为什么 <code>1-(1-c/n)^k</code> 有 bias?</li>
+<li>pass@k 里的 oracle selection 在 HumanEval 由什么实现?</li>
+<li>论文为什么为不同 $k$ 选择不同 temperature?这是否改变了 SUT/condition?</li>
+</ul>
+<h3>τ-bench</h3>
+<ul>
+<li>为什么 customer-service agent 更需要 <code>pass^k</code>?</li>
+<li>用户模拟器的随机措辞是否仍保持相同 task semantics?</li>
+<li><code>pass^1=pass@1=E[c/n]</code> 为什么成立?</li>
+<li><code>pass^8&lt;25%</code> 是单次成功率,还是八次全过的概率?</li>
+</ul>
+<h3>2026 两篇讨论材料</h3>
+<ul>
+<li><em>On Randomness</em> 的 60,000 trajectories 证明了什么,没有证明什么?</li>
+<li><em>Don't Pass@k</em> 反对的是产品 estimand,还是用小样本 point estimate 排行?</li>
+<li>如果报告 credible interval,是否就解决了 task validity 和 verifier validity?为什么没有?</li>
+</ul>
+<p>来源:</p>
+<ul>
+<li><a href="https://arxiv.org/abs/2107.03374">Evaluating Large Language Models Trained on Code</a></li>
+<li><a href="https://arxiv.org/abs/2406.12045">τ-bench</a></li>
+<li><a href="https://arxiv.org/abs/2602.07150">On Randomness in Agentic Evals</a></li>
+<li><a href="https://arxiv.org/abs/2510.04265">Don't Pass@k</a></li>
+<li><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">Anthropic: Demystifying evals for AI agents</a></li>
+</ul>
+<hr />
+<h2 id="s11">本课自检</h2>
+<pre><code class="language-text">[ ] 能用产品语言区分 pass@k 与 pass^k
+[ ] 能从 pᵢ 推导 1-(1-pᵢ)^k 与 pᵢ^k
+[ ] 能解释为什么 E[f(pᵢ)] 不等于 f(E[pᵢ])
+[ ] 能区分 aggregation error 与 finite-sample plug-in bias
+[ ] 能写出两个组合数 estimator,并解释 n 与 k
+[ ] 能说明 pass@k 的 verifier / oracle-selection 假设
+[ ] 能识别 adaptive retry 已经改变了 SUT
+[ ] 能说出 reliability gap 的三个比较限制
+[ ] 能解释 Don't Pass@k 为什么不是简单地宣布 pass@k 无效
+[ ] 能从 canonical rows 生成四张图并通过 monotonicity tests
+</code></pre>
+<hr />
+<h2 id="s12">本课一句话</h2>
+<blockquote>
+<p><strong><code>pass@k</code> 衡量「给足 k 次机会能不能找到成功路径」;<code>pass^k</code> 衡量「随机取 k 次能不能零失败」。</strong>
+<strong>先按 task 用有限样本 estimator,再跨 task 平均;指标回答哪个产品事件,必须和 $k$、选择器、成本与 independence protocol 一起报告。</strong></p>
+</blockquote>
+<p>下一课:两条曲线都是 point estimates。40 tasks × 10 attempts 为什么仍不是 400 个独立 observations,95% error bar 应怎样匹配 task 层级?</p>
+<div class="pager"><a href="w3-01.html">← W3 第 1 课 · Observation、Experimental Unit 与 Estimand</a><a href="toc.html#w3">Week 3 →</a></div>
+</article></div></div>
+<footer><div class="wrap">
+<span>Week 03 · Statistical Inference for Stochastic Agent Evals</span>
+<span>Adding Error Bars to Evals · On Randomness in Agentic Evals</span>
+<span>由 week03/*.md 生成 · build_site.py</span>
+</div></footer></body></html>

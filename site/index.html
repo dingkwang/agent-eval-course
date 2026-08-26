@@ -27,16 +27,19 @@ pre code{background:none;padding:0;color:inherit;font-size:inherit}
 
 /* ---- masthead ---- */
 .mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
-.mast .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;
+.mast .wrap{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
   padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
 .mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--soft);white-space:nowrap}
+  text-transform:uppercase;color:var(--soft);white-space:nowrap;padding-top:6px}
 .mast .id b{color:var(--signal);font-weight:500}
-.mast nav{display:flex;gap:4px;flex-wrap:wrap}
+.mast .id-dot{color:var(--soft)}
+.mast-nav{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
 .mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
   color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
 .mast nav a:hover{border-color:var(--rule);color:var(--ink)}
 .mast nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mast-lessons a,.mast-lessons .soonnav{font-size:11.5px}
 
 /* ---- hero ---- */
 .hero{padding:62px 0 8px}
@@ -260,7 +263,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
 
 @media(max-width:900px){
-  .mast .id{letter-spacing:.08em;font-size:10.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .mast .id{letter-spacing:.08em;font-size:10.5px;overflow:visible;text-overflow:unset;max-width:none}
+  .mast .id-name,.mast .id-dot{display:none}
   .page{grid-template-columns:1fr;gap:20px}
   .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
   .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
@@ -281,12 +285,22 @@ footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
   .layer .bar{animation:none}
   a.card:hover{transform:none}
 }
+.math-display{margin:24px 0;overflow-x:auto;text-align:center}
+.math-display mjx-container[display="true"]{margin:.65em 0!important}
 </style>
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['$', '$']], processEscapes: true},
+  options: {skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 </head><body>
 
 <header class="mast"><div class="wrap">
-<span class="id">Agent Evaluation &amp; Benchmark Engineering · <b>12 WEEKS</b></span>
-<nav><a href="index.html" class="on">课程</a><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><span class="soonnav">5</span><span class="soonnav">6</span><a href="w2-01.html">W2·1</a><a href="w2-02.html">W2·2</a><span class="soonnav">W2·3</span><span class="soonnav">W2·4</span><span class="soonnav">W2·5</span></nav></div></header>
+<span class="id"><span class="id-name">Agent Evaluation &amp; Benchmark Engineering</span><span class="id-dot"> · </span><b>12 WEEKS</b></span>
+<div class="mast-nav"><nav><a href="index.html" class="on">介绍</a><a href="toc.html">目录</a><a href="toc.html#w1">W1</a><a href="toc.html#w2">W2</a><a href="toc.html#w3">W3</a></nav></div>
+</div></header>
 <section class="hero"><div class="wrap">
 <span class="eyebrow">12 周 · 每周 5 天 · 每天约 1 小时</span>
 <h1>Agent Evaluation<br>&amp; Benchmark Engineering</h1>
@@ -324,21 +338,9 @@ W2 产生 observation · W5 是否测到目标能力 · W6 是否被运行噪声
 </div></section>
 
 <section class="sec"><div class="wrap">
-<h2>12 周</h2>
-<p class="lede">点 W1 / W2 已写的课直接进讲义。其余周先占位 —— 名字已经是真问题,不是待填的标签。</p>
-<div class="week" id="w1"><div class="wh"><div class="wn">1</div><div><div class="wt">Popular Benchmark Anatomy</div><div class="wq">拿到 repo,源码追通 task → environment → agent → rollout → verifier → result</div></div><div class="st">4/6</div></div><div class="wbody"><p class="lede" style="margin-top:16px">Day 1 总览,Day 2–5 一天一个真 benchmark 读源码,Day 6 自己造一个。
-已完成 <b>4/6</b>。本周不讲统计(→ W3)、runtime 抽象(→ W2)、排行榜(→ W8)。</p>
-<div class="strata">
-<div class="cap"><span>Complexity ladder</span><span>Lesson 1 · 六个代表性 benchmark</span></div>
-<div class="layer"><div class="nm">GAIA</div><div class="flow">task → answer<span class="bar" style="width:12%;animation-delay:0.00s"></span></div><div class="note">无环境:只给题和答案</div></div><div class="layer"><div class="nm">BFCL</div><div class="flow">task → structured tool call<span class="bar" style="width:29%;animation-delay:0.07s"></span></div><div class="note">无环境:只判 call 结构</div></div><div class="layer"><div class="nm">SWE-bench</div><div class="flow">task → patch → executable test<span class="bar" style="width:46%;animation-delay:0.14s"></span></div><div class="note">容器化 evaluation;agent 自带</div></div><div class="waterline"><span>▼ 现实水线</span><span>以下:benchmark 自己启动并管理有状态环境 —— agent 真的在里面跑</span></div><div class="layer"><div class="nm">τ³-bench</div><div class="flow">task → interaction → mutable state<span class="bar" style="width:63%;animation-delay:0.21s"></span></div><div class="note">领域数据库 + 模拟用户</div></div><div class="layer"><div class="nm">Terminal-Bench</div><div class="flow">task → container → any command<span class="bar" style="width:80%;animation-delay:0.28s"></span></div><div class="note">完整容器 + rollout 循环</div></div><div class="layer"><div class="nm">OSWorld</div><div class="flow">task → whole computer<span class="bar" style="width:97%;animation-delay:0.35s"></span></div><div class="note">整台机器:VM 生命周期</div></div>
-</div>
-<p class="stratanote">水线以上是 <b>dataset benchmark</b>(只给题和答案,agent 与环境自带);
-以下是 <b>environment benchmark</b>。SWE-bench 卡在中间:它给容器化的 <i>evaluation</i> harness,但不给 agent harness。</p>
-<div class="cards" style="margin-top:18px"><a class="card" href="lesson01.html"><span class="num">1</span><span><span class="t">Benchmark Anatomy</span><span class="d">六个 benchmark 的复杂度阶梯</span></span><span class="tag">总览</span></a><a class="card" href="lesson02.html"><span class="num">2</span><span><span class="t">Terminal-Bench 深读</span><span class="d">从 task 定义一路追到 score</span></span><span class="tag">源码</span></a><a class="card" href="lesson03.html"><span class="num">3</span><span><span class="t">SWE-bench</span><span class="d">Dataset / Runtime / Harness 为什么必须分开</span></span><span class="tag">源码 + 实验</span></a><a class="card" href="lesson04.html"><span class="num">4</span><span><span class="t">τ³-bench</span><span class="d">reward_basis 选出 verifier 再相乘;User LLM 在尺子里</span></span><span class="tag">源码</span></a><div class="card off"><span class="num">5</span><span><span class="t">OSWorld · WebArena</span><span class="d">把整台机器当 environment</span></span><span class="tag">源码</span></div><div class="card off"><span class="num">6</span><span><span class="t">造一个自己的 benchmark</span><span class="d">五个抽象亲手写一遍</span></span><span class="tag">编码</span></div></div>
-<p class="lede" style="margin:22px 0 12px">讲义里的结论来自这些 lab 的真实输出,不是复述文档。</p>
-<div class="labs"><div class="lab"><div class="lh"><b>SWE-bench Teardown</b><span>Day 3 · 已跑通</span></div><p>同一个 harness,四种 prediction → resolved / unresolved / empty patch / error</p><code>labs/swe-bench-teardown/</code></div><div class="lab"><div class="lh"><b>τ³ verifier teardown</b><span>Day 4 · 已跑通</span></div><p>四条手写轨迹喂进官方 evaluator;cheat 在 airline id=3 上 reward=1.0</p><code>labs/tau3-verifier/</code></div><div class="lab"><div class="lh"><b>hello-bench</b><span>Day 6 · 已跑通</span></div><p>290 行写完 Task→Environment→Agent→Verifier→Result;cheat agent 在弱 verifier 下 PASS、强 verifier 下 fail</p><code>labs/hello-bench/</code></div></div></div></div><div class="week" id="w2"><div class="wh"><div class="wn">2</div><div><div class="wt">Eval Runtime & Trajectory Engineering</div><div class="wq">不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录</div></div><div class="st">2/5</div></div><div class="wbody"><p class="lede" style="margin-top:16px">4 节深课 + Day 5 EvalRT Core。Harbor 贯穿;Inspect 对照。
-已完成 <b>2/5</b>。Agent ≠ Model 是第 1 课开头 10 分钟,不是单独一课。</p>
-<div class="cards"><a class="card" href="w2-01.html"><span class="num">1</span><span><span class="t">从 Eval Spec 到可执行 Trial</span><span class="d">JobPlan 编译,不是开跑</span></span><span class="tag">源码</span></a><a class="card" href="w2-02.html"><span class="num">2</span><span><span class="t">Agent / Environment / Trial 协议</span><span class="d">换实现后仍是同一个实验</span></span><span class="tag">源码</span></a><div class="card off"><span class="num">3</span><span><span class="t">Trajectory / 因果 / 副作用</span><span class="d">没收到 response 时怎么记</span></span><span class="tag">源码</span></div><div class="card off"><span class="num">4</span><span><span class="t">并发与 Runtime Correctness</span><span class="d">并发不改变实验语义</span></span><span class="tag">源码</span></div><div class="card off"><span class="num">5</span><span><span class="t">EvalRT Core</span><span class="d">五个强不变量</span></span><span class="tag">lab</span></div></div></div></div><div class="week soon" id="w3"><div class="wh"><div class="wn">3</div><div><div class="wt">Metrics & Statistics</div><div class="wq">一个 observation 是什么?误差棒怎么算?</div></div><div class="st">未写</div></div></div><div class="week soon" id="w4"><div class="wh"><div class="wn">4</div><div><div class="wt">Scorers / Verifiers / LLM-as-Judge</div><div class="wq">成功如何被判定?judge 准不准?</div></div><div class="st">未写</div></div></div><div class="week soon" id="w5"><div class="wh"><div class="wn">5</div><div><div class="wt">Benchmark Design, Audit & Dataset Lifecycle</div><div class="wq">成功/失败反映的是能力,还是题目和测试写坏了?</div></div><div class="st">未写</div></div></div><div class="week soon" id="w6"><div class="wh"><div class="wn">6</div><div><div class="wt">Reproducibility, Failure Semantics & Experiment Operations</div><div class="wq">同一 Agent、同一 benchmark,为什么改一点 infra 分数就变?哪些失败进分母?</div></div><div class="st">未写</div></div></div><div class="week soon" id="w7"><div class="wh"><div class="wn">7</div><div><div class="wt">Evaluation Integrity & Adversarial Validation</div><div class="wq">怎样防止 Agent、数据和基础设施破坏测量本身?(不讲 cgroups / seccomp)</div></div><div class="st">未写</div></div></div><div class="week" id="w8"><div class="wh"><div class="wn">8</div><div><div class="wt">Leaderboard / Aggregation / Artificial Analysis</div><div class="wq">成千上万个 task result 怎么压成一个数字?</div></div><div class="st">plan exists</div></div></div><div class="week soon" id="w9"><div class="wh"><div class="wn">9</div><div><div class="wt">Production / Online Evaluation</div><div class="wq">这个数字跟真实产品表现有什么关系?</div></div><div class="st">未写</div></div></div><div class="week soon" id="w10"><div class="wh"><div class="wn">10</div><div><div class="wt">Evaluation ↔ On-policy RL</div><div class="wq">同一套 environment 怎么同时服务 eval 与训练?</div></div><div class="st">未写</div></div></div><div class="week soon" id="w11"><div class="wh"><div class="wn">11</div><div><div class="wt">Kimi K3 / AgentENV / Harbor RL Case Study</div><div class="wq">前沿是怎么把这些拼在一起的?</div></div><div class="st">未写</div></div></div><div class="week soon" id="w12"><div class="wh"><div class="wn">12</div><div><div class="wt">Capstone Benchmark</div><div class="wq">自己从零做一个可运行、可复现、可评分的 benchmark</div></div><div class="st">未写</div></div></div>
+<a class="card" href="toc.html"><span class="num">12</span>
+<span><span class="t">周目录</span><span class="d">点已写的课直接进讲义。其余周先占位 —— 名字已经是真问题。</span></span>
+<span class="tag">目录</span></a>
 </div></section>
 <footer><div class="wrap">
 <span>Agent Evaluation &amp; Benchmark Engineering</span>

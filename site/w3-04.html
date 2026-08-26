@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>W3 第 4 课 · Paired Comparison、Power 与 Statistical Eval Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{
+  --paper:#EDEFF2; --panel:#F8FAFB; --panel-2:#E4E9ED; --rule:#C9D2D8;
+  --ink:#131A20; --soft:#5A6672; --faint:#8A95A0;
+  --deep:#0E1A22; --signal:#C8501C; --probe:#2B5F9E; --pass:#34734A;
+  --shadow:0 1px 0 rgba(19,26,32,.04), 0 16px 40px -24px rgba(19,26,32,.45);
+}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Instrument Sans",system-ui,sans-serif;font-size:16.5px;line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--probe)}
+code,kbd{font-family:"JetBrains Mono",monospace;font-size:.88em;
+  background:var(--panel-2);padding:.08em .38em;border-radius:3px}
+pre{background:var(--deep);color:#DCE3E8;border-radius:8px;padding:16px 18px;overflow-x:auto;
+  font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.72;box-shadow:var(--shadow)}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+/* ---- masthead ---- */
+.mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
+.mast .wrap{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--soft);white-space:nowrap;padding-top:6px}
+.mast .id b{color:var(--signal);font-weight:500}
+.mast .id-dot{color:var(--soft)}
+.mast-nav{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
+  color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
+.mast nav a:hover{border-color:var(--rule);color:var(--ink)}
+.mast nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mast-lessons a,.mast-lessons .soonnav{font-size:11.5px}
+
+/* ---- hero ---- */
+.hero{padding:62px 0 8px}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--signal);display:inline-flex;align-items:center;gap:11px}
+.eyebrow::before{content:"";width:30px;height:2px;background:var(--signal)}
+h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,74px);
+  letter-spacing:-.025em;line-height:.97;margin:18px 0 12px}
+.thesis{font-size:18px;color:var(--ink);max-width:38em;margin:0}
+.thesis b{color:var(--signal)}
+.subhead{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(15px,2vw,19px);
+  color:var(--soft);margin:0 0 18px}
+
+/* ---- signature: depth cross-section ---- */
+.strata{margin:34px 0 6px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow)}
+.strata .cap{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.strata .cap span:last-child{color:#93A2AE}
+.layer{display:grid;grid-template-columns:132px 1fr 300px;gap:0;align-items:center;
+  border-top:1px solid var(--rule);background:var(--panel);
+  transition:background .18s}
+.layer:first-of-type{border-top:none}
+.layer:hover{background:#fff}
+.layer .nm{font-family:"Archivo",sans-serif;font-weight:600;font-size:15px;padding:13px 16px;
+  border-right:1px solid var(--rule)}
+.layer .flow{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);padding:13px 16px}
+.layer .note{font-size:13px;color:var(--soft);padding:13px 16px;border-left:1px solid var(--rule)}
+.layer .bar{display:block;height:3px;background:var(--probe);border-radius:2px;margin-top:7px;
+  transform-origin:left;animation:grow .7s cubic-bezier(.2,.7,.3,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.waterline{display:grid;grid-template-columns:132px 1fr;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.1em}
+.waterline span{padding:7px 16px}
+.waterline span:first-child{color:var(--signal);border-right:1px solid #24333D}
+.stratanote{font-size:13.5px;color:var(--soft);margin:11px 2px 0}
+
+/* ---- lesson cards ---- */
+.sec{padding:50px 0 0}
+.sec h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(21px,3.2vw,29px);
+  letter-spacing:-.015em;margin:0 0 4px}
+.sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
+.cards{display:grid;gap:12px}
+.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+  text-decoration:none;color:var(--ink);background:var(--panel);
+  border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
+  transition:transform .16s,box-shadow .16s,background .16s}
+a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
+.card .num{font-family:"Archivo",sans-serif;font-weight:700;font-size:30px;color:var(--signal);
+  line-height:1;letter-spacing:-.03em}
+.card .t{display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin-bottom:3px}
+.card .d{display:block;font-size:14px;color:var(--soft)}
+.card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+.card.off{border-style:dashed;border-color:var(--rule);background:transparent;cursor:default}
+.card.off .num,.card.off .t{color:var(--faint)}
+.card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
+.soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
+  padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+
+/* ---- lab cards ---- */
+.labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.lab{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);padding:16px 18px}
+.lab .lh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lab .lh b{font-family:"Archivo",sans-serif;font-weight:600;font-size:18px}
+.lab .lh span{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  color:var(--pass);white-space:nowrap}
+.lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
+.lab code{font-size:11.5px;color:var(--probe)}
+
+/* ---- course intro ---- */
+.formula{margin:28px 0 0;background:var(--deep);color:#DCE3E8;border-radius:10px;
+  padding:18px 22px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.7;
+  box-shadow:var(--shadow)}
+.formula .eq{color:#fff;font-size:14.5px;margin-bottom:8px;overflow-wrap:anywhere}
+.formula b{color:var(--signal);font-weight:500}
+.skills{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:8px 0 0}
+.skill{background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px}
+.skill i{font-family:"Archivo",sans-serif;font-style:normal;font-weight:700;font-size:22px;
+  color:var(--signal);display:block;line-height:1;margin-bottom:6px}
+.skill span{font-size:14.5px}
+.arcs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.arc{border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px;background:var(--panel)}
+.arc .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--signal)}
+.arc b{display:block;font-family:"Archivo",sans-serif;margin:6px 0 4px;font-size:16px}
+.arc span{font-size:13.5px;color:var(--soft)}
+.fails{margin:10px 0 0;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:12px 16px;
+  line-height:1.85}
+.fails b{color:var(--ink);font-weight:500}
+.week{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);margin:0 0 12px;
+  overflow:hidden}
+.week.soon{border-style:dashed;border-color:var(--rule);background:transparent}
+.week .wh{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:start;
+  padding:16px 18px}
+.week .wn{font-family:"Archivo",sans-serif;font-weight:700;font-size:26px;color:var(--signal);
+  line-height:1}
+.week.soon .wn,.week.soon .wt{color:var(--faint)}
+.week .wt{font-family:"Archivo",sans-serif;font-weight:600;font-size:17px}
+.week .wq{font-size:13.5px;color:var(--soft);margin-top:3px}
+.week .st{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--pass);white-space:nowrap}
+.week.soon .st{color:var(--faint)}
+.week .wbody{border-top:1px solid var(--rule);padding:16px 18px 18px}
+
+/* ---- lesson page ---- */
+.page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
+.rail{position:sticky;top:22px;font-size:13.5px}
+.rail .rt{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
+  border-left:2px solid var(--rule);line-height:1.4}
+.rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.rail a i{font-family:"JetBrains Mono",monospace;font-style:normal;font-size:10.5px;
+  color:var(--faint);margin-right:7px}
+.rail a:hover i{color:var(--signal)}
+.doc{min-width:0}
+.doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:31px;letter-spacing:-.02em;
+  line-height:1.22;margin:62px 0 14px;padding-top:22px;border-top:2.5px solid var(--ink)}
+.doc h2 .hn{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11.5px;
+  letter-spacing:.24em;color:var(--signal);margin-bottom:10px}
+.doc h2.sub{font-weight:600;font-size:23px;color:var(--soft);border-top:none;
+  margin:0 0 18px;padding-top:0}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19.5px;margin:30px 0 8px;
+  padding-left:12px;border-left:3px solid var(--rule)}
+.doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
+.doc p{margin:12px 0}
+.doc ul,.doc ol{padding-left:22px}
+.doc li{margin:5px 0}
+.doc blockquote{margin:16px 0;padding:13px 18px;background:var(--panel);
+  border-left:4px solid var(--signal);border-radius:0 8px 8px 0;color:var(--ink)}
+.doc blockquote p{margin:6px 0}
+.doc blockquote h3{margin-top:2px}
+.doc blockquote h1{font-family:"Archivo",sans-serif;font-weight:700;
+  font-size:clamp(18px,2.4vw,24px);line-height:1.35;letter-spacing:-.012em;
+  margin:8px 0 6px;color:var(--ink)}
+.doc blockquote h1 + h1{color:var(--signal);font-size:clamp(15px,2vw,18px);font-weight:600}
+.doc table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.doc th,.doc td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+.doc thead th{background:var(--ink);color:var(--paper);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.doc tbody tr:last-child td{border-bottom:none}
+.doc tbody tr:nth-child(even){background:#fff}
+.doc hr{border:none;border-top:1px solid var(--rule);margin:30px 0}
+.doc details{background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+  padding:11px 15px;margin:14px 0}
+.doc summary{cursor:pointer;font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px;color:var(--probe)}
+.doc img{max-width:100%}
+
+/* ---- in-lesson figure: accumulating complexity ladder ---- */
+.ladder{margin:22px 0 8px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow);background:var(--panel)}
+.ladder figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.ladder figcaption span:last-child{color:#93A2AE;text-transform:none;letter-spacing:.02em}
+.rung{display:grid;grid-template-columns:46px 1fr;border-top:1px solid var(--rule)}
+.rung:first-of-type{border-top:none}
+.rn{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;color:var(--faint);
+  padding:14px 0 0;text-align:center;border-right:1px solid var(--rule)}
+.rbody{padding:12px 16px 14px}
+.rhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:9px}
+.rhead b{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px}
+.rhead code{background:none;padding:0;color:var(--soft);font-size:12.5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:"JetBrains Mono",monospace;font-size:11.5px;padding:3px 9px;border-radius:20px;
+  border:1px solid var(--rule);color:var(--faint);background:var(--panel-2)}
+.chip.new{border-color:var(--signal);color:#fff;background:var(--signal);font-weight:500}
+.wline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.08em;padding:8px 16px}
+.wline span:first-child{color:var(--signal);white-space:nowrap;font-weight:500}
+.lfoot{border-top:1px solid var(--rule);padding:11px 16px;font-size:13px;color:var(--soft)}
+.lfoot b{color:var(--signal)}
+@media(max-width:640px){.rhead code{display:none}}
+
+/* ---- in-lesson diagrams (```diag) ---- */
+.diag{margin:22px 0 12px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  background:var(--panel);box-shadow:var(--shadow)}
+.diag figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
+.dpipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px 18px}
+.dnode{border:1.5px solid var(--ink);border-radius:8px;padding:8px 12px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:14px}
+.darr{color:var(--signal);font-weight:700;font-family:"JetBrains Mono",monospace}
+.dflow{padding:16px 18px;display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.dflow .darr{text-align:center;padding:2px 0}
+.dstep{border:1.5px solid var(--ink);border-radius:8px;padding:10px 14px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:15px}
+.dcmp{display:grid;grid-template-columns:1fr 1fr}
+.dcol{padding:14px 16px}
+.dcol + .dcol{border-left:1.5px solid var(--rule)}
+.dh{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;margin-bottom:8px;color:var(--signal)}
+.dcell{font-size:14px;padding:6px 0;border-top:1px solid var(--rule)}
+.dcol .dcell:first-of-type{border-top:none}
+.dnest{padding:16px}
+.dbox{border:1.5px solid var(--ink);border-radius:8px;padding:10px 12px;background:#fff}
+.dbox .dbox{margin-top:8px;background:var(--panel);border-color:var(--rule)}
+.dbox .dbox .dbox{background:var(--panel-2)}
+.dlab{font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+.gcell{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;background:#fff}
+.gcell b{display:block;font-family:"Archivo",sans-serif;font-size:15px;margin-bottom:4px;color:var(--signal)}
+.gcell span{font-size:13.5px;color:var(--soft)}
+@media(max-width:640px){
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+
+.pager{display:flex;justify-content:space-between;gap:14px;margin:52px 0 0;
+  border-top:1.5px solid var(--ink);padding-top:18px;flex-wrap:wrap}
+.pager a{font-family:"JetBrains Mono",monospace;font-size:13px;text-decoration:none;color:var(--probe)}
+.pager a:hover{color:var(--signal)}
+
+footer{margin-top:56px;border-top:1.5px solid var(--ink);background:var(--panel)}
+footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding-top:18px;padding-bottom:44px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+
+@media(max-width:900px){
+  .mast .id{letter-spacing:.08em;font-size:10.5px;overflow:visible;text-overflow:unset;max-width:none}
+  .mast .id-name,.mast .id-dot{display:none}
+  .page{grid-template-columns:1fr;gap:20px}
+  .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
+  .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
+  .layer{grid-template-columns:1fr}
+  .layer .nm,.layer .note{border:none}
+  .layer .note{padding-top:0}
+  .waterline{grid-template-columns:1fr}
+  .card{grid-template-columns:46px 1fr}
+  .card .tag{display:none}
+  .skills,.arcs{grid-template-columns:1fr}
+  .week .wh{grid-template-columns:46px 1fr}
+  .week .st{display:none}
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .layer .bar{animation:none}
+  a.card:hover{transform:none}
+}
+.math-display{margin:24px 0;overflow-x:auto;text-align:center}
+.math-display mjx-container[display="true"]{margin:.65em 0!important}
+</style>
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['$', '$']], processEscapes: true},
+  options: {skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head><body>
+
+<header class="mast"><div class="wrap">
+<span class="id"><span class="id-name">Agent Evaluation &amp; Benchmark Engineering</span><span class="id-dot"> · </span><b>WEEK 03</b></span>
+<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="lesson01.html">W1</a><a href="w2-01.html">W2</a><a href="w3-01.html" class="on">W3</a><a href="w4-01.html">W4</a><a href="w5-01.html">W5</a></nav><nav class="mast-lessons"><a href="w3-01.html">1</a><a href="w3-02.html">2</a><a href="w3-03.html">3</a><a href="w3-04.html" class="on">4</a></nav></div>
+</div></header>
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">A 是否真的优于 B,以及证据是否足以支持发布决策?</a><a href="#s1"><i>00</i>A=60%、B=63% 还不够</a><a href="#s2"><i>01</i>先定义 comparison estimand</a><a href="#s3"><i>02</i>方法路由:直接对 paired object 做 inference</a><a href="#s4"><i>03</i>statistically &gt; 0 还不是发布标准</a><a href="#s5"><i>04</i>Power 与 MDE:运行之前问「这个实验看得见什么」</a><a href="#s6"><i>05</i>Many models、many slices 与持续偷看</a><a href="#s7"><i>06</i>综合 Lab:Statistical Eval Report</a><a href="#s8"><i>07</i>读材料时只回答这些问题</a><a href="#s9">本课自检</a><a href="#s10">本课一句话</a></aside>
+<article class="doc"><h1>第 4 课:Paired Comparison、Power 与 Statistical Eval Report</h1>
+<h2 id="s0" class="sub">A 是否真的优于 B,以及证据是否足以支持发布决策?</h2>
+<p><strong>Week 3 Day 4</strong> · 统计推断 + 综合 lab · 建议 100 分钟</p>
+<blockquote>
+<h3>本课唯一命题</h3>
+<h1>不要比较两个 headline scores;直接比较相同 task 上的 paired difference。</h1>
+<h1>在看结果前声明 meaningful effect、power 与 decision rule,最后把 estimate、uncertainty、missingness 和限制写进同一份可审计报告。</h1>
+<p>📄 Miller, <em>Adding Error Bars to Evals</em> · paired differences + power
+📄 Xie, <em>Measuring all the noises of LLM Evals</em> · all-pairs paired noise
+📄 Neuhof &amp; Benjamini, <em>Quantifying Ranking Uncertainty in LLM Benchmarks</em>
+💻 输出:Week 3 Statistical Eval Report</p>
+</blockquote>
+<figure class="diag"><figcaption><span>从两组 rows 到一个 decision</span></figcaption><div class="dflow"><div class="dstep">相同 task set 上运行 A 与 B</div><div class="darr">↓</div><div class="dstep">形成 per-task paired outcomes</div><div class="darr">↓</div><div class="dstep">估计 Δ = B - A + matched interval</div><div class="darr">↓</div><div class="dstep">对照预先声明的 meaningful margin</div><div class="darr">↓</div><div class="dstep">promote / reject / equivalent / inconclusive</div><div class="darr">↓</div><div class="dstep">连同 design、cost、missingness 与 limitations 发布</div></div></figure>
+
+<hr />
+<h2 id="s1"><span class="hn">§ 00</span>A=60%、B=63% 还不够</h2>
+<p>100 个相同 tasks,两种实验都有 A=60%、B=63%:</p>
+<table>
+<thead>
+<tr>
+<th>paired outcomes</th>
+<th style="text-align: right;">实验 X</th>
+<th style="text-align: right;">实验 Y</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>both pass</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">40</td>
+</tr>
+<tr>
+<td>B only passes</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">23</td>
+</tr>
+<tr>
+<td>A only passes</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td>both fail</td>
+<td style="text-align: right;">37</td>
+<td style="text-align: right;">17</td>
+</tr>
+<tr>
+<td>marginal difference</td>
+<td style="text-align: right;">+3 pp</td>
+<td style="text-align: right;">+3 pp</td>
+</tr>
+</tbody>
+</table>
+<figure class="diag"><figcaption><span>同样 +3pp,证据结构不同</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">实验 X · 3 discordant tasks</div><div class="dcell">绝大多数 task 完全相同</div><div class="dcell">差值来自 3 个 B-only</div><div class="dcell">小样本 exact inference 离散</div></div><div class="dcol"><div class="dh">实验 Y · 43 discordant tasks</div><div class="dcell">A/B 经常互有胜负</div><div class="dcell">23 个 B-only 对 20 个 A-only</div><div class="dcell">paired difference variance 很大</div></div></div></figure>
+
+<p>只看两个总体百分比,这两个实验完全一样。保留 task pairing 后,我们才知道差值来自哪些 tasks、discordance 有多大、以及该对什么进行 resampling。</p>
+<blockquote>
+<p><strong>A 与 B 的 uncertainty 不是两根 marginal error bars 的视觉关系。目标变量是同一 task 上的 $B-A$。</strong></p>
+</blockquote>
+<hr />
+<h2 id="s2"><span class="hn">§ 01</span>先定义 comparison estimand</h2>
+<p>Agent A、B 在 task $i$ 上的条件成功率分别为 $p_{Ai}$、$p_{Bi}$。目标 task distribution $D$ 上:</p>
+<div class="math-display">\[
+\Delta_D
+=\mathbb E_{T\sim D}[p_{BT}-p_{AT}]
+\]</div>
+
+<p>正值表示 B 更高。样本中先对每个 task 的 attempts 求均值:</p>
+<div class="math-display">\[
+D_i=\bar Y_{Bi}-\bar Y_{Ai}
+\]</div>
+
+<p>再跨 tasks 做 macro average:</p>
+<div class="math-display">\[
+\hat\Delta=\frac{1}{N}\sum_{i=1}^{N}D_i
+\]</div>
+
+<figure class="diag"><figcaption><span>Pairing 保留的结构</span></figcaption><div class="dflow"><div class="dstep">task i 的语义与难度</div><div class="darr">↓</div><div class="dpipe"><span class="dnode">A 在 task i 的 attempts</span><span class="darr">→</span><span class="dnode">task mean Aᵢ</span></div><div class="darr">↓</div><div class="dpipe"><span class="dnode">B 在 task i 的 attempts</span><span class="darr">→</span><span class="dnode">task mean Bᵢ</span></div><div class="darr">↓</div><div class="dstep">Dᵢ = Bᵢ - Aᵢ</div><div class="darr">↓</div><div class="dstep">跨 task 推断 Δ</div></div></figure>
+
+<p>若使用 production weights,对 $D_i$ 使用同一组预注册权重。若 A、B 的 missing tasks 不同,不能各自算一个分母后相减;必须报告 matched set、unmatched set 与 missing rule。</p>
+<h3>1.1 配对不是「刚好使用同一 benchmark 名」</h3>
+<figure class="diag"><figcaption><span>合法 pairing contract</span></figcaption><div class="dgrid"><div class="gcell"><b>same task identity</b><span>benchmark version + task digest 相同</span></div><div class="gcell"><b>same target condition</b><span>environment、budget、verifier policy 可比</span></div><div class="gcell"><b>matched execution wave</b><span>provider / infra drift 尽量 block 或随机交错</span></div><div class="gcell"><b>preserved IDs</b><span>task_id、batch_id、attempt_id 不在 summary 中丢失</span></div></div></figure>
+
+<p>若 A 在周一、B 在三周后运行,期间 provider routing、runtime image 或 benchmark 修复发生变化,task_id 相同也不能自动消除 time confounding。可随机交错 A/B 顺序、按 batch block,并保留 run wave。</p>
+<h3>1.2 Attempt 是否也要一一配对?</h3>
+<p>task 是主要 pairing unit。只有当两系统共享一个有意义的随机条件——例如同一 environment snapshot、同一 simulator seed 或同一故障注入——attempt-level pairing 才成立。随便把 A 的 attempt 1 与 B 的 attempt 1 对齐不会凭空创造 covariance。</p>
+<hr />
+<h2 id="s3"><span class="hn">§ 02</span>方法路由:直接对 paired object 做 inference</h2>
+<table>
+<thead>
+<tr>
+<th>Outcome / design</th>
+<th>推荐起点</th>
+<th>统计对象</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>binary,每 task 一次</td>
+<td>exact McNemar / paired binary interval</td>
+<td>B-only 与 A-only discordance</td>
+</tr>
+<tr>
+<td>bounded/continuous task score</td>
+<td>paired task bootstrap</td>
+<td>$D_i$ distribution</td>
+</tr>
+<tr>
+<td>每 task 多 attempts</td>
+<td>task bootstrap 搬动 A/B 两边完整 attempts</td>
+<td>per-task estimator difference</td>
+</tr>
+<tr>
+<td>repo / scenario clusters</td>
+<td>paired cluster bootstrap 或 hierarchical model</td>
+<td>cluster 内所有 A/B task pairs</td>
+</tr>
+<tr>
+<td>很少 tasks / clusters</td>
+<td>exact/randomization 或 Bayesian paired model</td>
+<td>明确 finite-sample assumptions</td>
+</tr>
+<tr>
+<td>pass@k / weighted/custom metric</td>
+<td>resample 后重算两边完整 metric 再相减</td>
+<td>metric-level $\Delta$</td>
+</tr>
+</tbody>
+</table>
+<h3>2.1 Binary paired table:McNemar 只看 discordant tasks</h3>
+<figure class="diag"><figcaption><span>Binary paired outcomes</span></figcaption><div class="dgrid"><div class="gcell"><b>A pass · B pass</b><span>concordant success</span></div><div class="gcell"><b>A fail · B fail</b><span>concordant failure</span></div><div class="gcell"><b>A fail · B pass</b><span>B-only · b</span></div><div class="gcell"><b>A pass · B fail</b><span>A-only · c</span></div></div></figure>
+
+<div class="math-display">\[
+\hat\Delta=\frac{b-c}{N}
+\]</div>
+
+<p>在「A、B 对 discordant outcome 等可能」的 null 下,exact McNemar test 把 $b$ 看作 $b+c$ 次试验中的 Binomial$(b+c,1/2)$。它没有使用 both-pass/both-fail 来虚增 evidence。</p>
+<pre><code class="language-python">from scipy.stats import binomtest
+
+discordant = b_only + a_only
+result = (
+    binomtest(b_only, discordant, p=0.5, alternative=&quot;two-sided&quot;)
+    if discordant else None  # 完全无 discordance;不能制造 evidence
+)
+</code></pre>
+<p><code>p-value</code> 不是 effect size,也不是「null 为真的概率」。报告仍以 $\hat\Delta$ 与 paired CI 为主;test 只回答预先声明的 hypothesis。</p>
+<h3>2.2 Paired task bootstrap:一张可复用的模板</h3>
+<pre><code class="language-python">import numpy as np
+
+def paired_task_bootstrap(task_differences, *, reps=20_000, seed=7):
+    d = np.asarray(task_differences, dtype=float)
+    if d.ndim != 1 or len(d) &lt; 2 or not np.isfinite(d).all():
+        raise ValueError(&quot;need at least two finite paired task differences&quot;)
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, len(d), size=(reps, len(d)))
+    draws = d[idx].mean(axis=1)
+    return d.mean(), np.quantile(draws, [0.025, 0.975])
+</code></pre>
+<p>真实 pipeline 不应只传一列已经不可追溯的 differences。每个 bootstrap replicate 应从 matched task IDs 搬动 A/B 两边的完整 attempts,再重算 task metric、weights、eligibility 与 $\Delta$。</p>
+<h3>2.3 Paired permutation / sign-flip 需要 exchangeability</h3>
+<p>在 sharp null 下交换同一 task 的 A/B labels,或对 $D_i$ 随机乘 $+1/-1$,可以构造 randomization distribution。但成立条件是 null 下 treatment labels exchangeable。若 A/B 使用不同预算、不同运行期或 adaptive policies,不能只因方法 non-parametric 就忽略 design。</p>
+<h3>2.4 为什么 pairing 通常更有 power</h3>
+<div class="math-display">\[
+\operatorname{Var}(B-A)
+=\operatorname{Var}(B)+\operatorname{Var}(A)
+-2\operatorname{Cov}(A,B)
+\]</div>
+
+<p>相近 systems 往往在相同 easy/hard tasks 上一起成功或失败,使 covariance 为正。paired analysis 保留这部分共同难度,差值 variance 因而更小。Miller 的实证分析发现多个 eval 上 frontier model question scores 的 correlation 明显为正;这解释了 pairing 为什么常是近乎免费的 variance reduction。</p>
+<hr />
+<h2 id="s4"><span class="hn">§ 03</span><code>statistically &gt; 0</code> 还不是发布标准</h2>
+<p>在看结果前定义 smallest meaningful improvement $\delta_*$。它可以来自产品价值、额外成本、风险容忍度或 migration cost,不能由本次 point estimate 倒推。</p>
+<figure class="diag"><figcaption><span>Decision margins</span></figcaption><div class="dgrid"><div class="gcell"><b>Superiority</b><span>需要证明 Δ &gt; δ*</span></div><div class="gcell"><b>Any improvement</b><span>特例 δ* = 0</span></div><div class="gcell"><b>Non-inferiority</b><span>需要证明 Δ &gt; -m</span></div><div class="gcell"><b>Equivalence</b><span>整个 CI 落在 [-m, +m]</span></div></div></figure>
+
+<p>令 paired interval 为 $[L,U]$:</p>
+<table>
+<thead>
+<tr>
+<th>规则</th>
+<th>结论</th>
+<th>应说什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$L&gt;\delta_*$</td>
+<td>meaningful improvement supported</td>
+<td>B 至少改善声明阈值</td>
+</tr>
+<tr>
+<td>$U&lt;\delta_*$</td>
+<td>required improvement not supported</td>
+<td>数据排除所需收益</td>
+</tr>
+<tr>
+<td>$L\le\delta_*\le U$</td>
+<td>inconclusive</td>
+<td>当前 design 分不清</td>
+</tr>
+<tr>
+<td>equivalence 且 $-m&lt;L&lt;U&lt;m$</td>
+<td>practically equivalent</td>
+<td>差异小于容忍区间</td>
+</tr>
+</tbody>
+</table>
+<p><figure class="diag"><figcaption><span>两种经常被混淆的失败</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">No significant difference</div><div class="dcell">CI 仍跨过 0 / margin</div><div class="dcell">可能只是 underpowered</div><div class="dcell">不能说 A=B</div></div><div class="dcol"><div class="dh">Evidence of equivalence</div><div class="dcell">整个 CI 已落入 equivalence band</div><div class="dcell">需要专门的 equivalence design</div><div class="dcell">可以在 margin 内说 practically equivalent</div></div></div></figure></p>
+<h3>3.1 把 accuracy gain 与 resource cost 放在同一 decision 上</h3>
+<p>若 B 多用 5 倍 tokens 才提高 2pp,决策不是纯 accuracy hypothesis。至少并列报告:</p>
+<figure class="diag"><figcaption><span>Outcome-resource decision</span></figcaption><div class="dgrid"><div class="gcell"><b>quality Δ</b><span>paired score / success difference</span></div><div class="gcell"><b>cost ratio</b><span>tokens、dollars、tool calls</span></div><div class="gcell"><b>latency Δ</b><span>mean + tail quantiles</span></div><div class="gcell"><b>failure risk</b><span>timeout / invalid / safety gate</span></div></div></figure>
+
+<p>不要把这些维度事后压成一个未经声明的 composite score。先给 Pareto view,只有存在稳定业务 trade-off 时才定义 utility function。</p>
+<hr />
+<h2 id="s5"><span class="hn">§ 04</span>Power 与 MDE:运行之前问「这个实验看得见什么」</h2>
+<p>power 是在真实 effect 达到目标时,design 作出预期判断的概率。minimum detectable effect(MDE) 是给定 $N$、$K$、variance、$\alpha$ 与 power 后能可靠看见的最小差异。</p>
+<p>对近似独立的 per-task differences,一个 planning approximation 是:</p>
+<div class="math-display">\[
+N\approx
+\left(
+\frac{(z_{1-\alpha/2}+z_{1-\beta})s_D}{\delta_*}
+\right)^2
+\]</div>
+
+<p>$s_D$ 应来自 pilot 或相近历史 comparison,不是从最终实验倒推。binary、clustered、weighted、pass@k 或 sequential design 优先使用 simulation-based power:完整模拟 data-generating process 与最终 estimator。</p>
+<figure class="diag"><figcaption><span>Simulation-based power</span></figcaption><div class="dflow"><div class="dstep">声明真实 Δ 与 task heterogeneity</div><div class="darr">↓</div><div class="dstep">模拟 A/B paired attempts + missing / batch structure</div><div class="darr">↓</div><div class="dstep">运行最终 estimator、CI 与 decision rule</div><div class="darr">↓</div><div class="dstep">重复 many experiments</div><div class="darr">↓</div><div class="dstep">power = 正确支持 decision 的比例</div></div></figure>
+
+<h3>4.1 N tasks 与 K attempts 的预算搜索</h3>
+<pre><code class="language-text">for candidate design (N, K):
+  estimate power or expected CI width from pilot components
+  estimate tokens, dollars and wall-clock
+  reject designs below task/category coverage requirements
+  keep Pareto-efficient designs
+</code></pre>
+<p>若目标是 new-task mean,增加 $N$ 通常同时减少 task 与 attempt noise;增加 $K$ 只减少 within-task noise。但如果 A/B 的 paired prediction noise 很大,适量增加 $K$ 可能显著缩小 $D_i$ noise。不要依赖通用的 “3 runs per task”;用 pilot components 决定。</p>
+<h3>4.2 Underpowered 结果的正确措辞</h3>
+<figure class="diag"><figcaption><span>不显著之后</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">错误</div><div class="dcell">A 和 B 一样</div><div class="dcell">B 没有提升</div><div class="dcell">再多跑一点直到显著</div></div><div class="dcol"><div class="dh">正确</div><div class="dcell">CI 仍允许 -4pp 到 +7pp;当前 design 无法区分</div><div class="dcell">未达到预注册 superiority criterion</div><div class="dcell">按 fixed plan 结束,或使用预注册 sequential method</div></div></div></figure>
+
+<hr />
+<h2 id="s6"><span class="hn">§ 05</span>Many models、many slices 与持续偷看</h2>
+<h3>5.1 先定义 comparison family</h3>
+<p>10 个 models 有 45 个 unordered pairs;再乘 categories、metrics 与 prompts,偶然赢家很快出现。</p>
+<figure class="diag"><figcaption><span>Multiplicity policy</span></figcaption><div class="dgrid"><div class="gcell"><b>Primary contrast</b><span>一个预注册 A vs B + primary metric</span></div><div class="gcell"><b>Confirmatory family</b><span>Holm 等 FWER control</span></div><div class="gcell"><b>Exploratory slices</b><span>BH-FDR 或明确标 exploratory</span></div><div class="gcell"><b>Post-hoc discovery</b><span>新实验确认,不在同一数据上重新宣布 confirmatory</span></div></div></figure>
+
+<p><code>p&lt;0.05</code> 不是每个 slice 各自拥有的免费预算。也不要把所有 diagnostics 粗暴塞进一个 family;family 应对应同一组要共同保证的 claims。</p>
+<h3>5.2 Rank 是所有 pairwise decisions 的压缩</h3>
+<p>raw leaderboard rank 没有 error bar。<em>Quantifying Ranking Uncertainty in LLM Benchmarks</em> 用 directional pairwise tests + multiple-comparison correction 构造 rank intervals:</p>
+<figure class="diag"><figcaption><span>Rank interval 的来源</span></figcaption><div class="dflow"><div class="dstep">每个 model pair 的 directional test</div><div class="darr">↓</div><div class="dstep">控制 comparison family error</div><div class="darr">↓</div><div class="dstep">数出明确高于 / 低于 model j 的集合</div><div class="darr">↓</div><div class="dstep">得到 model j 仍可能处于的 rank range</div></div></figure>
+
+<p>若 model 的 rank interval 是 <code>[2,7]</code>,报告单一的 <code>rank=3</code> 会制造不存在的精确度。完整 leaderboard aggregation 留到 Week 8;本课只要求不要把 point rank 当统计结论。</p>
+<h3>5.3 每完成一个 task 就偷看不是免费 early stopping</h3>
+<p>普通 fixed-sample CI / p-value 在反复查看并按显著性停止时失去标称 error control。选择之一:</p>
+<ul>
+<li>固定 $N$ 与 stopping rule,只在计划终点作 confirmatory decision;</li>
+<li>使用预注册的 group-sequential / always-valid method;</li>
+<li>把 partial run 标为 monitoring,最终仍按 fixed analysis 报告。</li>
+</ul>
+<p>2026 的 ParEvalLayer 与 Bayesian optimal stopping 是值得讨论的 frontier examples:它们把 threshold、task-group coverage、unresolved/abstain 与 resource limit 写进 stopping policy。它们不是「看到领先就停」的许可证。</p>
+<hr />
+<h2 id="s7"><span class="hn">§ 06</span>综合 Lab:Statistical Eval Report</h2>
+<p>Day 5 不再单独占一课。本节后半直接把 Week 3 的 artifacts 组装成 report。</p>
+<h3>6.1 必须交付的证据链</h3>
+<figure class="diag"><figcaption><span>Report evidence chain</span></figcaption><div class="dflow"><div class="dstep">SUT + benchmark manifest</div><div class="darr">↓</div><div class="dstep">estimand + sampling / pairing contract</div><div class="darr">↓</div><div class="dstep">canonical TrialResult rows</div><div class="darr">↓</div><div class="dstep">task-level estimates + missing flow</div><div class="darr">↓</div><div class="dstep">point estimate + matched interval</div><div class="darr">↓</div><div class="dstep">paired Δ + margin + power / MDE</div><div class="darr">↓</div><div class="dstep">decision + robustness + limitations</div></div></figure>
+
+<h3>6.2 一页 executive table</h3>
+<table>
+<thead>
+<tr>
+<th>field</th>
+<th>必填内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claim</td>
+<td>要支持的 deployment / benchmark decision</td>
+</tr>
+<tr>
+<td>SUT A / B</td>
+<td>model + harness + tools + budget + runtime / routing</td>
+</tr>
+<tr>
+<td>Target</td>
+<td>fixed bank $B$ 或 task distribution $D$</td>
+</tr>
+<tr>
+<td>Primary outcome</td>
+<td>one attempt、pass@k、pass^k 或其他明确 event</td>
+</tr>
+<tr>
+<td>Design</td>
+<td>$N$ tasks、$K$ attempts、clusters、pairing、run order</td>
+</tr>
+<tr>
+<td>Denominators</td>
+<td>planned / executed / scored / excluded + reasons</td>
+</tr>
+<tr>
+<td>A / B estimates</td>
+<td>point + structure-matched interval</td>
+</tr>
+<tr>
+<td>Paired result</td>
+<td>$\hat\Delta$、CI、meaningful margin $\delta_*$</td>
+</tr>
+<tr>
+<td>Power</td>
+<td>planned power 或 achieved CI width/MDE;不要 post-hoc observed power</td>
+</tr>
+<tr>
+<td>Resource</td>
+<td>tokens、cost、latency、timeouts</td>
+</tr>
+<tr>
+<td>Decision</td>
+<td>promote / reject / equivalent / inconclusive</td>
+</tr>
+<tr>
+<td>Limitations</td>
+<td>sampling frame、dependence、measurement与 validity 边界</td>
+</tr>
+</tbody>
+</table>
+<h3>6.3 四张核心图</h3>
+<figure class="diag"><figcaption><span>Statistical Eval Report figures</span></figcaption><div class="dgrid"><div class="gcell"><b>task × attempt heatmap</b><span>stochasticity、missingness、batch pattern</span></div><div class="gcell"><b>paired difference plot</b><span>每 task Dᵢ + overall CI</span></div><div class="gcell"><b>outcome-resource curve</b><span>quality 与 cost / latency 随预算变化</span></div><div class="gcell"><b>decision interval</b><span>CI 相对 0、δ* 或 equivalence band</span></div></div></figure>
+
+<p>不要再放两根独立 bar + marginal error bars 作为主要 A/B 图。paired difference plot 应让读者看到 improvement 是否集中在少数 categories/tasks。</p>
+<h3>6.4 Robustness matrix</h3>
+<table>
+<thead>
+<tr>
+<th>axis</th>
+<th>primary analysis</th>
+<th>sensitivity analysis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>task target</td>
+<td>declared macro / weights</td>
+<td>alternative pre-specified weights</td>
+</tr>
+<tr>
+<td>missingness</td>
+<td>registered denominator rule</td>
+<td>best/worst-case bounds</td>
+</tr>
+<tr>
+<td>uncertainty</td>
+<td>task/cluster bootstrap</td>
+<td>exact or hierarchical cross-check</td>
+</tr>
+<tr>
+<td>run structure</td>
+<td>all valid planned waves</td>
+<td>leave-one-batch/repo-out</td>
+</tr>
+<tr>
+<td>metric</td>
+<td>primary outcome</td>
+<td>declared secondary metrics</td>
+</tr>
+</tbody>
+</table>
+<p>敏感性分析若改变结论,最终 decision 应标 unstable;不能挑支持预期的一格当 headline。</p>
+<h3>6.5 Audit manifest</h3>
+<pre><code class="language-text">benchmark_id + benchmark_version + task digests
+agent config digests for A and B
+runtime image / infra / provider versions
+verifier version + scoring policy
+analysis code commit + dependency lock
+random seeds + bootstrap replicates
+all exclusions and protocol deviations
+generated report timestamp
+</code></pre>
+<h3>6.6 Release gates</h3>
+<pre><code class="language-text">[ ] primary claim、Δ direction 与 meaningful margin 在看结果前写下
+[ ] A/B 使用 matched task set;unmatched rows 单独列出
+[ ] CI resampling unit 与 estimand / design 一致
+[ ] point estimate、CI、N tasks、K attempts 与 cluster count 同时报告
+[ ] p-value 没有替代 effect size 与 interval
+[ ] no-significance 没有被写成 equality
+[ ] 多 comparisons / slices 有 family policy
+[ ] fixed stopping rule 或 sequential method 事先声明
+[ ] cost、latency、timeout 与 quality 使用同一 eligible population
+[ ] report 可由 canonical rows + pinned analysis code 重建
+</code></pre>
+<hr />
+<h2 id="s8"><span class="hn">§ 07</span>读材料时只回答这些问题</h2>
+<h3>Miller + <em>Measuring all the noises</em></h3>
+<ul>
+<li>paired covariance 为什么可以减少 question/task difficulty noise?</li>
+<li>repeated attempts 怎样改变 paired prediction noise 与 MDE?</li>
+<li>all-pairs empirical patterns 能否替代自己 eval 的 pilot?</li>
+</ul>
+<h3>Ranking uncertainty</h3>
+<ul>
+<li>为什么 rank CI 需要 directional pairwise tests 与 multiplicity control?</li>
+<li>inference unit 选 task 还是 subject/repo 时,rank interval 为什么会变化?</li>
+<li>indifference zone 与本课 $\delta_*$ 有什么关系?</li>
+</ul>
+<h3>Frontier stopping work</h3>
+<ul>
+<li>partial score 为什么不能单独支持 decision?</li>
+<li>task order、category coverage 与 unresolved rate 为什么必须进入 stopping policy?</li>
+<li>Bayesian stopping 的 credible-width criterion 是否与产品 meaningful margin 对齐?</li>
+</ul>
+<p>来源与代码:</p>
+<ul>
+<li><a href="https://arxiv.org/abs/2411.00640">Adding Error Bars to Evals</a> · <a href="https://www.anthropic.com/research/statistical-approach-to-model-evals">Anthropic research note</a></li>
+<li><a href="https://arxiv.org/abs/2512.21326">Measuring all the noises of LLM Evals</a> · <a href="https://all-the-noises.github.io/">interactive analyses</a></li>
+<li><a href="https://arxiv.org/abs/2503.01747">Don't Use the CLT in LLM Evals</a> · <a href="https://github.com/sambowyer/bayes_evals">bayes_evals</a></li>
+<li><a href="https://arxiv.org/abs/2607.16259">Quantifying Ranking Uncertainty in LLM Benchmarks</a> · <a href="https://github.com/BityaNeuhof/quantifying-rank-uncertainty">code</a></li>
+<li><a href="https://arxiv.org/abs/2607.06411">RuBench</a> · 小样本 paired comparison 的 agent case study</li>
+<li><a href="https://arxiv.org/abs/2608.02444">When Partial LLM-Agent Evaluations Support a Decision</a></li>
+<li><a href="https://arxiv.org/abs/2608.14425">Bayesian Optimal Stopping for LLM Evaluations</a></li>
+</ul>
+<hr />
+<h2 id="s9">本课自检</h2>
+<pre><code class="language-text">[ ] 能从相同 task outcomes 构造 Dᵢ 与 Δ_hat
+[ ] 能解释为什么两个 marginal CIs 重叠/不重叠不是 paired comparison
+[ ] 能对 binary paired outcomes 写出 b、c 与 exact McNemar logic
+[ ] 能让 task / cluster bootstrap 同时搬动 A/B descendants
+[ ] 能说明 attempt-level pairing 需要共享且有意义的随机条件
+[ ] 能区分 significance、superiority、non-inferiority 与 equivalence
+[ ] 能在实验前声明 δ*、power、N/K budget 与 stopping rule
+[ ] 能识别 multiple models / slices / peeking 带来的 error inflation
+[ ] 能解释 rank interval 为什么比 raw rank 更诚实
+[ ] 能交付包含 design、denominators、paired Δ、MDE、cost 与 limitations 的可重建报告
+</code></pre>
+<hr />
+<h2 id="s10">本课一句话</h2>
+<blockquote>
+<p><strong>比较的 observation 不是 A 的平均分和 B 的平均分,而是相同 task 上的 paired difference。</strong>
+<strong>可信结论必须同时回答:差多少、区间多宽、多少差异才有意义、实验原本看得见多小的 effect,以及哪些统计与 validity 限制仍未被解决。</strong></p>
+</blockquote>
+<p>Week 3 到这里结束。Week 4 不再假定 verifier score 正确,而是把 scorer 本身当作 measurement instrument 进行 validation。</p>
+<div class="pager"><a href="w3-03.html">← W3 第 3 课 · Uncertainty for Structured Eval Data</a><a href="toc.html#w3">Week 3 →</a></div>
+</article></div></div>
+<footer><div class="wrap">
+<span>Week 03 · Statistical Inference for Stochastic Agent Evals</span>
+<span>Adding Error Bars to Evals · On Randomness · Don't Use the CLT · Measuring all the noises</span>
+<span>由 week03/*.md 生成 · build_site.py</span>
+</div></footer></body></html>

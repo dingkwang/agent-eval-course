@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>W3 第 3 课 · Uncertainty for Structured Eval Data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{
+  --paper:#EDEFF2; --panel:#F8FAFB; --panel-2:#E4E9ED; --rule:#C9D2D8;
+  --ink:#131A20; --soft:#5A6672; --faint:#8A95A0;
+  --deep:#0E1A22; --signal:#C8501C; --probe:#2B5F9E; --pass:#34734A;
+  --shadow:0 1px 0 rgba(19,26,32,.04), 0 16px 40px -24px rgba(19,26,32,.45);
+}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Instrument Sans",system-ui,sans-serif;font-size:16.5px;line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--probe)}
+code,kbd{font-family:"JetBrains Mono",monospace;font-size:.88em;
+  background:var(--panel-2);padding:.08em .38em;border-radius:3px}
+pre{background:var(--deep);color:#DCE3E8;border-radius:8px;padding:16px 18px;overflow-x:auto;
+  font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.72;box-shadow:var(--shadow)}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+/* ---- masthead ---- */
+.mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
+.mast .wrap{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--soft);white-space:nowrap;padding-top:6px}
+.mast .id b{color:var(--signal);font-weight:500}
+.mast .id-dot{color:var(--soft)}
+.mast-nav{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
+  color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
+.mast nav a:hover{border-color:var(--rule);color:var(--ink)}
+.mast nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mast-lessons a,.mast-lessons .soonnav{font-size:11.5px}
+
+/* ---- hero ---- */
+.hero{padding:62px 0 8px}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--signal);display:inline-flex;align-items:center;gap:11px}
+.eyebrow::before{content:"";width:30px;height:2px;background:var(--signal)}
+h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,74px);
+  letter-spacing:-.025em;line-height:.97;margin:18px 0 12px}
+.thesis{font-size:18px;color:var(--ink);max-width:38em;margin:0}
+.thesis b{color:var(--signal)}
+.subhead{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(15px,2vw,19px);
+  color:var(--soft);margin:0 0 18px}
+
+/* ---- signature: depth cross-section ---- */
+.strata{margin:34px 0 6px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow)}
+.strata .cap{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.strata .cap span:last-child{color:#93A2AE}
+.layer{display:grid;grid-template-columns:132px 1fr 300px;gap:0;align-items:center;
+  border-top:1px solid var(--rule);background:var(--panel);
+  transition:background .18s}
+.layer:first-of-type{border-top:none}
+.layer:hover{background:#fff}
+.layer .nm{font-family:"Archivo",sans-serif;font-weight:600;font-size:15px;padding:13px 16px;
+  border-right:1px solid var(--rule)}
+.layer .flow{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);padding:13px 16px}
+.layer .note{font-size:13px;color:var(--soft);padding:13px 16px;border-left:1px solid var(--rule)}
+.layer .bar{display:block;height:3px;background:var(--probe);border-radius:2px;margin-top:7px;
+  transform-origin:left;animation:grow .7s cubic-bezier(.2,.7,.3,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.waterline{display:grid;grid-template-columns:132px 1fr;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.1em}
+.waterline span{padding:7px 16px}
+.waterline span:first-child{color:var(--signal);border-right:1px solid #24333D}
+.stratanote{font-size:13.5px;color:var(--soft);margin:11px 2px 0}
+
+/* ---- lesson cards ---- */
+.sec{padding:50px 0 0}
+.sec h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(21px,3.2vw,29px);
+  letter-spacing:-.015em;margin:0 0 4px}
+.sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
+.cards{display:grid;gap:12px}
+.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+  text-decoration:none;color:var(--ink);background:var(--panel);
+  border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
+  transition:transform .16s,box-shadow .16s,background .16s}
+a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
+.card .num{font-family:"Archivo",sans-serif;font-weight:700;font-size:30px;color:var(--signal);
+  line-height:1;letter-spacing:-.03em}
+.card .t{display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin-bottom:3px}
+.card .d{display:block;font-size:14px;color:var(--soft)}
+.card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+.card.off{border-style:dashed;border-color:var(--rule);background:transparent;cursor:default}
+.card.off .num,.card.off .t{color:var(--faint)}
+.card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
+.soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
+  padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+
+/* ---- lab cards ---- */
+.labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.lab{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);padding:16px 18px}
+.lab .lh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lab .lh b{font-family:"Archivo",sans-serif;font-weight:600;font-size:18px}
+.lab .lh span{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  color:var(--pass);white-space:nowrap}
+.lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
+.lab code{font-size:11.5px;color:var(--probe)}
+
+/* ---- course intro ---- */
+.formula{margin:28px 0 0;background:var(--deep);color:#DCE3E8;border-radius:10px;
+  padding:18px 22px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.7;
+  box-shadow:var(--shadow)}
+.formula .eq{color:#fff;font-size:14.5px;margin-bottom:8px;overflow-wrap:anywhere}
+.formula b{color:var(--signal);font-weight:500}
+.skills{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:8px 0 0}
+.skill{background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px}
+.skill i{font-family:"Archivo",sans-serif;font-style:normal;font-weight:700;font-size:22px;
+  color:var(--signal);display:block;line-height:1;margin-bottom:6px}
+.skill span{font-size:14.5px}
+.arcs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.arc{border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px;background:var(--panel)}
+.arc .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--signal)}
+.arc b{display:block;font-family:"Archivo",sans-serif;margin:6px 0 4px;font-size:16px}
+.arc span{font-size:13.5px;color:var(--soft)}
+.fails{margin:10px 0 0;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:12px 16px;
+  line-height:1.85}
+.fails b{color:var(--ink);font-weight:500}
+.week{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);margin:0 0 12px;
+  overflow:hidden}
+.week.soon{border-style:dashed;border-color:var(--rule);background:transparent}
+.week .wh{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:start;
+  padding:16px 18px}
+.week .wn{font-family:"Archivo",sans-serif;font-weight:700;font-size:26px;color:var(--signal);
+  line-height:1}
+.week.soon .wn,.week.soon .wt{color:var(--faint)}
+.week .wt{font-family:"Archivo",sans-serif;font-weight:600;font-size:17px}
+.week .wq{font-size:13.5px;color:var(--soft);margin-top:3px}
+.week .st{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--pass);white-space:nowrap}
+.week.soon .st{color:var(--faint)}
+.week .wbody{border-top:1px solid var(--rule);padding:16px 18px 18px}
+
+/* ---- lesson page ---- */
+.page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
+.rail{position:sticky;top:22px;font-size:13.5px}
+.rail .rt{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
+  border-left:2px solid var(--rule);line-height:1.4}
+.rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.rail a i{font-family:"JetBrains Mono",monospace;font-style:normal;font-size:10.5px;
+  color:var(--faint);margin-right:7px}
+.rail a:hover i{color:var(--signal)}
+.doc{min-width:0}
+.doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:31px;letter-spacing:-.02em;
+  line-height:1.22;margin:62px 0 14px;padding-top:22px;border-top:2.5px solid var(--ink)}
+.doc h2 .hn{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11.5px;
+  letter-spacing:.24em;color:var(--signal);margin-bottom:10px}
+.doc h2.sub{font-weight:600;font-size:23px;color:var(--soft);border-top:none;
+  margin:0 0 18px;padding-top:0}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19.5px;margin:30px 0 8px;
+  padding-left:12px;border-left:3px solid var(--rule)}
+.doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
+.doc p{margin:12px 0}
+.doc ul,.doc ol{padding-left:22px}
+.doc li{margin:5px 0}
+.doc blockquote{margin:16px 0;padding:13px 18px;background:var(--panel);
+  border-left:4px solid var(--signal);border-radius:0 8px 8px 0;color:var(--ink)}
+.doc blockquote p{margin:6px 0}
+.doc blockquote h3{margin-top:2px}
+.doc blockquote h1{font-family:"Archivo",sans-serif;font-weight:700;
+  font-size:clamp(18px,2.4vw,24px);line-height:1.35;letter-spacing:-.012em;
+  margin:8px 0 6px;color:var(--ink)}
+.doc blockquote h1 + h1{color:var(--signal);font-size:clamp(15px,2vw,18px);font-weight:600}
+.doc table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.doc th,.doc td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+.doc thead th{background:var(--ink);color:var(--paper);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.doc tbody tr:last-child td{border-bottom:none}
+.doc tbody tr:nth-child(even){background:#fff}
+.doc hr{border:none;border-top:1px solid var(--rule);margin:30px 0}
+.doc details{background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+  padding:11px 15px;margin:14px 0}
+.doc summary{cursor:pointer;font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px;color:var(--probe)}
+.doc img{max-width:100%}
+
+/* ---- in-lesson figure: accumulating complexity ladder ---- */
+.ladder{margin:22px 0 8px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow);background:var(--panel)}
+.ladder figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.ladder figcaption span:last-child{color:#93A2AE;text-transform:none;letter-spacing:.02em}
+.rung{display:grid;grid-template-columns:46px 1fr;border-top:1px solid var(--rule)}
+.rung:first-of-type{border-top:none}
+.rn{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;color:var(--faint);
+  padding:14px 0 0;text-align:center;border-right:1px solid var(--rule)}
+.rbody{padding:12px 16px 14px}
+.rhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:9px}
+.rhead b{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px}
+.rhead code{background:none;padding:0;color:var(--soft);font-size:12.5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:"JetBrains Mono",monospace;font-size:11.5px;padding:3px 9px;border-radius:20px;
+  border:1px solid var(--rule);color:var(--faint);background:var(--panel-2)}
+.chip.new{border-color:var(--signal);color:#fff;background:var(--signal);font-weight:500}
+.wline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.08em;padding:8px 16px}
+.wline span:first-child{color:var(--signal);white-space:nowrap;font-weight:500}
+.lfoot{border-top:1px solid var(--rule);padding:11px 16px;font-size:13px;color:var(--soft)}
+.lfoot b{color:var(--signal)}
+@media(max-width:640px){.rhead code{display:none}}
+
+/* ---- in-lesson diagrams (```diag) ---- */
+.diag{margin:22px 0 12px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  background:var(--panel);box-shadow:var(--shadow)}
+.diag figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
+.dpipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px 18px}
+.dnode{border:1.5px solid var(--ink);border-radius:8px;padding:8px 12px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:14px}
+.darr{color:var(--signal);font-weight:700;font-family:"JetBrains Mono",monospace}
+.dflow{padding:16px 18px;display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.dflow .darr{text-align:center;padding:2px 0}
+.dstep{border:1.5px solid var(--ink);border-radius:8px;padding:10px 14px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:15px}
+.dcmp{display:grid;grid-template-columns:1fr 1fr}
+.dcol{padding:14px 16px}
+.dcol + .dcol{border-left:1.5px solid var(--rule)}
+.dh{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;margin-bottom:8px;color:var(--signal)}
+.dcell{font-size:14px;padding:6px 0;border-top:1px solid var(--rule)}
+.dcol .dcell:first-of-type{border-top:none}
+.dnest{padding:16px}
+.dbox{border:1.5px solid var(--ink);border-radius:8px;padding:10px 12px;background:#fff}
+.dbox .dbox{margin-top:8px;background:var(--panel);border-color:var(--rule)}
+.dbox .dbox .dbox{background:var(--panel-2)}
+.dlab{font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+.gcell{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;background:#fff}
+.gcell b{display:block;font-family:"Archivo",sans-serif;font-size:15px;margin-bottom:4px;color:var(--signal)}
+.gcell span{font-size:13.5px;color:var(--soft)}
+@media(max-width:640px){
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+
+.pager{display:flex;justify-content:space-between;gap:14px;margin:52px 0 0;
+  border-top:1.5px solid var(--ink);padding-top:18px;flex-wrap:wrap}
+.pager a{font-family:"JetBrains Mono",monospace;font-size:13px;text-decoration:none;color:var(--probe)}
+.pager a:hover{color:var(--signal)}
+
+footer{margin-top:56px;border-top:1.5px solid var(--ink);background:var(--panel)}
+footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding-top:18px;padding-bottom:44px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+
+@media(max-width:900px){
+  .mast .id{letter-spacing:.08em;font-size:10.5px;overflow:visible;text-overflow:unset;max-width:none}
+  .mast .id-name,.mast .id-dot{display:none}
+  .page{grid-template-columns:1fr;gap:20px}
+  .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
+  .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
+  .layer{grid-template-columns:1fr}
+  .layer .nm,.layer .note{border:none}
+  .layer .note{padding-top:0}
+  .waterline{grid-template-columns:1fr}
+  .card{grid-template-columns:46px 1fr}
+  .card .tag{display:none}
+  .skills,.arcs{grid-template-columns:1fr}
+  .week .wh{grid-template-columns:46px 1fr}
+  .week .st{display:none}
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .layer .bar{animation:none}
+  a.card:hover{transform:none}
+}
+.math-display{margin:24px 0;overflow-x:auto;text-align:center}
+.math-display mjx-container[display="true"]{margin:.65em 0!important}
+</style>
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['$', '$']], processEscapes: true},
+  options: {skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head><body>
+
+<header class="mast"><div class="wrap">
+<span class="id"><span class="id-name">Agent Evaluation &amp; Benchmark Engineering</span><span class="id-dot"> · </span><b>WEEK 03</b></span>
+<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="lesson01.html">W1</a><a href="w2-01.html">W2</a><a href="w3-01.html" class="on">W3</a><a href="w4-01.html">W4</a><a href="w5-01.html">W5</a></nav><nav class="mast-lessons"><a href="w3-01.html">1</a><a href="w3-02.html">2</a><a href="w3-03.html" class="on">3</a><a href="w3-04.html">4</a></nav></div>
+</div></header>
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">CI 必须重采样 estimand 所声明的随机单位</a><a href="#s1"><i>00</i>同样 400 行,为什么不能使用同一根 error bar?</a><a href="#s2"><i>01</i>CI 在重复哪一个世界?</a><a href="#s3"><i>02</i>两层 variance 决定「多加 task 还是多跑 attempt」</a><a href="#s4"><i>03</i>方法路由:不要默认 mean ± 1.96 × SE</a><a href="#s5"><i>04</i>Variance components 是实验设计工具,不只是解释结果</a><a href="#s6"><i>05</i>四个常见但错误的 error bars</a><a href="#s7"><i>06</i>Coverage lab:让错误方法亲自失败</a><a href="#s8"><i>07</i>读材料时只回答这些问题</a><a href="#s9">本课自检</a><a href="#s10">本课一句话</a></aside>
+<article class="doc"><h1>第 3 课:Uncertainty for Structured Eval Data</h1>
+<h2 id="s0" class="sub">CI 必须重采样 estimand 所声明的随机单位</h2>
+<p><strong>Week 3 Day 3</strong> · 统计推断课 · 建议 80 分钟 + coverage lab</p>
+<blockquote>
+<h3>本课唯一命题</h3>
+<h1>Error bar 不是给 point estimate 加一根装饰线,而是一段可执行的重复实验说明。</h1>
+<h1>先决定什么会被重新抽样,再选择 Wilson、task bootstrap、cluster bootstrap 或 hierarchical model。</h1>
+<p>📄 Miller, <em>Adding Error Bars to Evals</em> · repeated answers、clustered questions
+📄 Bowyer et al., <em>Don't Use the CLT in LLM Evals With Fewer Than a Few Hundred Datapoints</em>
+📄 Xie, <em>Measuring all the noises of LLM Evals</em>
+💻 输入:Lesson 1–2 的 canonical rows、task estimates 与 metric contract</p>
+</blockquote>
+<figure class="diag"><figcaption><span>一条可信 CI 的生成顺序</span></figcaption><div class="dflow"><div class="dstep">estimand · fixed bank 还是 new tasks</div><div class="darr">↓</div><div class="dstep">sampling design · task / cluster / attempt 怎样进入</div><div class="darr">↓</div><div class="dstep">estimator · macro mean / pass curve / weighted score</div><div class="darr">↓</div><div class="dstep">resampling or probability model</div><div class="darr">↓</div><div class="dstep">interval + assumptions + effective sample size</div></div></figure>
+
+<hr />
+<h2 id="s1"><span class="hn">§ 00</span>同样 400 行,为什么不能使用同一根 error bar?</h2>
+<p>考虑三个都产生 400 行的实验:</p>
+<figure class="diag"><figcaption><span>400 rows 的三种结构</span></figcaption><div class="dgrid"><div class="gcell"><b>400 tasks × 1 attempt</b><span>400 个 task observations</span></div><div class="gcell"><b>40 tasks × 10 attempts</b><span>40 个 task clusters,每组 10 行</span></div><div class="gcell"><b>10 repos × 4 tasks × 10 attempts</b><span>10 个 repo clusters,再嵌套 task</span></div></div></figure>
+
+<p>若把后两种结构都当成 400 个独立 Bernoulli observations,会把共享 task 难度、repo 特征与 batch failure 当作 400 份新信息。行数没有造假,但 independent information 被夸大。</p>
+<figure class="diag"><figcaption><span>Naive row CI 与 structure-aware CI</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">把每行 independently resample</div><div class="dcell">n = 400</div><div class="dcell">打散同一 task / repo 的相关性</div><div class="dcell">CI 往往过窄</div></div><div class="dcol"><div class="dh">重采样 estimand 的 sampling unit</div><div class="dcell">N_task = 40 或 N_repo = 10</div><div class="dcell">descendants 一起移动</div><div class="dcell">uncertainty 与推广范围一致</div></div></div></figure>
+
+<blockquote>
+<p><strong><code>len(df)</code> 是存储行数,不是自动成立的统计 sample size。</strong></p>
+</blockquote>
+<p>Lesson 1 已经保留 <code>task_id</code>、<code>batch_id</code>、<code>infra_version</code> 与 category。本课解释为什么这些字段会改变 interval。</p>
+<hr />
+<h2 id="s2"><span class="hn">§ 01</span>CI 在重复哪一个世界?</h2>
+<h3>1.1 CI 不是「参数有 95% 概率在这里」</h3>
+<p>频率学派 95% CI 的 operational meaning 是:</p>
+<blockquote>
+<p>如果按同一个 sampling design 反复采数据并重算 interval,长期约 95% 的 intervals 覆盖目标 estimand。</p>
+</blockquote>
+<p>因此必须能回答:<strong>下一次重复实验,哪些东西会重新抽?</strong></p>
+<figure class="diag"><figcaption><span>两个常见世界</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Fixed bank B</div><div class="dcell">同一批 tasks 不变</div><div class="dcell">重跑 attempts</div><div class="dcell">主要量化 execution noise</div><div class="dcell">不能自动推广到新题</div></div><div class="dcol"><div class="dh">Target distribution D</div><div class="dcell">从 sampling frame 重抽 tasks</div><div class="dcell">task identity 也会变化</div><div class="dcell">同时量化 task selection + execution noise</div><div class="dcell">interval 支持声明范围内的新 task claim</div></div></div></figure>
+
+<p>fixed-bank mean:</p>
+<div class="math-display">\[
+\mu_B=\frac{1}{N}\sum_{i=1}^{N}p_i
+\]</div>
+
+<p>new-task mean:</p>
+<div class="math-display">\[
+\mu_D=\mathbb E_{T\sim D}[p_T]
+\]</div>
+
+<p>两个 point estimates 可能相同,CI 的重复机制却不同。对完整 fixed bank 做 task bootstrap,等于偷偷把固定 tasks 改成一个 hypothetical task population;这不是纯粹的技术选择,而是换了 estimand。</p>
+<h3>1.2 CI、prediction interval 与 sensitivity interval 不要混</h3>
+<figure class="diag"><figcaption><span>三种 interval 回答三个问题</span></figcaption><div class="dgrid"><div class="gcell"><b>Confidence interval</b><span>平均 performance estimand 有多精确</span></div><div class="gcell"><b>Prediction interval</b><span>下一道 task 或下一次 rollout 可能落在哪里</span></div><div class="gcell"><b>Sensitivity interval</b><span>换 prompt / judge / timeout rule 后结论怎样变化</span></div></div></figure>
+
+<p>一个均值的 95% CI 很窄,不表示下一次 rollout 几乎不会失败。对 binary task outcome,单次 prediction 仍然只有 0 或 1。prompt/judge sensitivity 也不会因为增加同一配置下的 tasks 自动消失。</p>
+<hr />
+<h2 id="s3"><span class="hn">§ 02</span>两层 variance 决定「多加 task 还是多跑 attempt」</h2>
+<p>用最小 two-level model 表示 task $i$ 的 attempt $j$:</p>
+<div class="math-display">\[
+Y_{ij}=\mu+u_i+\varepsilon_{ij}
+\]</div>
+
+<p>其中 $u_i$ 表示 task-level deviation,$\varepsilon_{ij}$ 表示同一 task 的 run-to-run deviation。平衡设计下:</p>
+<div class="math-display">\[
+\operatorname{Var}(\hat\mu)
+=\frac{\sigma_{\text{task}}^2}{N}
++\frac{\sigma_{\text{attempt}}^2}{NK}
+\]</div>
+
+<figure class="diag"><figcaption><span>预算投到哪里</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">增加 N tasks</div><div class="dcell">同时缩小 task 与 attempt 两项</div><div class="dcell">改善 new-task coverage</div><div class="dcell">通常更利于总体均值</div></div><div class="dcol"><div class="dh">增加 K attempts/task</div><div class="dcell">只缩小 attempt 项</div><div class="dcell">更精确估计现有 task 的 pᵢ</div><div class="dcell">更利于 reliability curve / unstable tasks</div></div></div></figure>
+
+<p>intraclass correlation 给出同 task 两行有多相似:</p>
+<div class="math-display">\[
+\rho=\frac{\sigma_{\text{task}}^2}
+{\sigma_{\text{task}}^2+\sigma_{\text{attempt}}^2}
+\]</div>
+
+<p>若每组大小为 $K$,一个常用 diagnostic 是 design effect:</p>
+<div class="math-display">\[
+\operatorname{DEFF}\approx 1+(K-1)\rho
+\]</div>
+
+<p>于是 naive effective sample size 近似变成:</p>
+<div class="math-display">\[
+n_{\text{eff}}\approx\frac{NK}{1+(K-1)\rho}
+\]</div>
+
+<p>它只用于解释「为什么 400 rows 不是 400 份独立信息」,不是本课最终 CI 算法。真实 Agent eval 还可能不平衡、heteroskedastic,并有 batch / repo 等交叉依赖。</p>
+<h3>2.1 Agent eval 常常不只是两层 nesting</h3>
+<figure class="diag"><figcaption><span>常见的 dependence path</span></figcaption><div class="dflow"><div class="dstep">repository / scenario family</div><div class="darr">↓</div><div class="dstep">task</div><div class="darr">↓</div><div class="dstep">attempt</div><div class="darr">↓</div><div class="dstep">trajectory outcome</div></div></figure>
+
+<figure class="diag"><figcaption><span>还会横向穿过多道 task 的 shared shocks</span></figcaption><div class="dgrid"><div class="gcell"><b>provider batch</b><span>同一时窗 routing / outage</span></div><div class="gcell"><b>infra batch</b><span>同 image、host、resource pressure</span></div><div class="gcell"><b>judge batch</b><span>同 judge version / prompt variant</span></div><div class="gcell"><b>experiment wave</b><span>deploy version 或 policy 在中途改变</span></div></div></figure>
+
+<p>repo → task → attempt 是 nested;provider batch × task 可能是 crossed。不要为了套一个简单公式把它们都叫 randomness。先画 design,保存 IDs;复杂 crossed design 可以用 multiway cluster、mixed-effects 或 Bayesian hierarchical model,并在报告中写清模型假设。</p>
+<hr />
+<h2 id="s4"><span class="hn">§ 03</span>方法路由:不要默认 <code>mean ± 1.96 × SE</code></h2>
+<p>Bowyer et al. 的 coverage experiments 表明,在小样本、clustered questions 与极端准确率下,CLT interval 可能严重 under-cover,越过 $[0,1]$,甚至在全对/全错时塌成零宽。bootstrap 在极小或 degenerate binary samples 中也不自动可靠。</p>
+<figure class="diag"><figcaption><span>选择 interval 的最短路径</span></figcaption><div class="dflow"><div class="dstep">先写 estimand 与最高 sampling unit</div><div class="darr">↓</div><div class="dstep">binary 且每 unit 一次?</div><div class="darr">↓</div><div class="dstep">是 · Wilson / exact / Beta posterior</div><div class="darr">↓</div><div class="dstep">否 · 保留完整 cluster 重算 estimator</div><div class="darr">↓</div><div class="dstep">units 足够?task / cluster bootstrap</div><div class="darr">↓</div><div class="dstep">units 很少或层级复杂?hierarchical model + sensitivity</div></div></figure>
+
+<table>
+<thead>
+<tr>
+<th>数据与目标</th>
+<th>默认起点</th>
+<th>不能做什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>i.i.d./exchangeable sampled tasks,每 task 一个 binary outcome</td>
+<td>Wilson 或 exact binomial interval</td>
+<td>Wald <code>p ± 1.96√p(1-p)/N</code></td>
+</tr>
+<tr>
+<td>new-task mean,每 task 多 attempts</td>
+<td>task-level bootstrap;整组 attempts 随 task 移动</td>
+<td>把 $NK$ rows 独立 resample</td>
+</tr>
+<tr>
+<td>fixed bank,每 task 多 attempts</td>
+<td>within-task model/bootstrap 后聚合;或 joint Beta simulation</td>
+<td>用 task bootstrap 假装重抽固定题库</td>
+</tr>
+<tr>
+<td>tasks 来自 repos / scenario families</td>
+<td>cluster bootstrap at declared sampling unit</td>
+<td>在 task 层打散 repo correlation</td>
+</tr>
+<tr>
+<td>很少 clusters、稀疏或极端 outcomes</td>
+<td>exact/Bayesian hierarchical model + prior sensitivity</td>
+<td>把 asymptotic cluster SE 当保证</td>
+</tr>
+<tr>
+<td>weighted / pass@k / custom metric</td>
+<td>每次 resample 重跑完整 estimator</td>
+<td>给旧 point estimate 套通用 SE</td>
+</tr>
+</tbody>
+</table>
+<h3>3.1 Wilson 解决的是一个窄问题</h3>
+<p>当 $N$ 个从同一目标分布抽取的<strong>独立/exchangeable task units</strong>各产生一次 binary outcome,$c$ 个成功:</p>
+<div class="math-display">\[
+\hat p=\frac{c}{N}
+\]</div>
+
+<p>Wilson interval 比 Wald interval 在小样本和 $p$ 接近 0/1 时更稳健。但它不覆盖 arbitrary heterogeneous fixed bank 的 Poisson-binomial uncertainty;40 tasks × 10 attempts 也不是 <code>N=400</code> 的 Wilson 问题,因为同一 task 的 10 行相关。</p>
+<h3>3.2 Task bootstrap 必须搬动完整 task block</h3>
+<p>对 new-task macro mean:</p>
+<pre><code class="language-text">repeat B times:
+  sample N task_ids with replacement
+  bring every selected task's attempts, statuses and weights
+  recompute task-level statistic
+  recompute macro estimator
+CI = quantiles of B replicated estimates
+</code></pre>
+<figure class="diag"><figcaption><span>正确与错误的 bootstrap</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Task bootstrap</div><div class="dcell">抽 task_id</div><div class="dcell">同 task attempts 一起复制</div><div class="dcell">每个 replicate 重跑 estimator</div><div class="dcell">保留 macro / missing rule</div></div><div class="dcol"><div class="dh">Row bootstrap</div><div class="dcell">抽 TrialResult row</div><div class="dcell">attempts 被拆散</div><div class="dcell">只对 pooled score 求 mean</div><div class="dcell">改变原实验语义</div></div></div></figure>
+
+<p>若 sampling design 是「先抽 repo,再抽 repo 内 tasks」,bootstrap 也应镜像这个过程。cluster 数很少时 percentile bootstrap 可能离散且不稳定;此时报告 cluster count,并用 hierarchical model、exact/randomization method 或 sensitivity analysis 交叉检查。</p>
+<h3>3.3 Hierarchical model 的价值是 partial pooling,不是自动正确</h3>
+<p>binary outcome 的一个起点:</p>
+<div class="math-display">\[
+Y_{ij}\sim\operatorname{Bernoulli}(p_i)
+\]</div>
+
+<div class="math-display">\[
+\operatorname{logit}(p_i)=\alpha+u_i,
+\qquad u_i\sim\mathcal N(0,\sigma_{\text{task}}^2)
+\]</div>
+
+<p>它能对 attempts 少的 task 做 partial pooling,还能扩展 repo、batch 与系统交互。但 credible interval 条件于 likelihood、prior 与 exchangeability assumptions。必须报告 prior sensitivity 与 posterior predictive checks;不要把「Bayesian」当成免除 design audit 的标签。</p>
+<hr />
+<h2 id="s5"><span class="hn">§ 04</span>Variance components 是实验设计工具,不只是解释结果</h2>
+<p><em>Measuring all the noises of LLM Evals</em> 把 total noise 分为:</p>
+<div class="math-display">\[
+\operatorname{Var}_{T,\epsilon}[Y]
+=\operatorname{Var}_{T}\!\left(\mathbb E_{\epsilon}[Y\mid T]\right)
++\mathbb E_T\!\left[\operatorname{Var}_{\epsilon}(Y\mid T)\right]
+\]</div>
+
+<figure class="diag"><figcaption><span>两个组件</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Task / data noise</div><div class="dcell">抽到哪些 task</div><div class="dcell">更多 tasks 才能缩小</div><div class="dcell">决定 new-task generalization</div></div><div class="dcol"><div class="dh">Prediction / execution noise</div><div class="dcell">固定 task 上走到哪条 trajectory</div><div class="dcell">repeated attempts 可估计并缩小</div><div class="dcell">决定 run-to-run stability</div></div></div></figure>
+
+<p>论文在其数据上发现 paired prediction noise 往往大于 paired data noise;这是经验结果,不是所有 Agent benchmark 的常数。课程的做法是先用 pilot 估组件,再做 budget projection:</p>
+<figure class="diag"><figcaption><span>Pilot → design</span></figcaption><div class="dflow"><div class="dstep">小规模 N₀ × K₀ balanced pilot</div><div class="darr">↓</div><div class="dstep">估 task / attempt / batch variance</div><div class="darr">↓</div><div class="dstep">预测候选 N × K 的 CI width</div><div class="darr">↓</div><div class="dstep">加入 cost 与 latency constraint</div><div class="darr">↓</div><div class="dstep">选择满足 precision 的 design</div></div></figure>
+
+<p><em>Hidden Measurement Error in LLM Pipelines</em> 进一步指出 prompt、judge choice 与 temperature 等未建模因素会造成 under-coverage。W3 的边界是:</p>
+<ul>
+<li>若 claim 条件于一个冻结 prompt/verifier,把它们写进 $C$,CI 只覆盖该配置;</li>
+<li>若 claim 要跨 prompt / judge generalize,它们必须成为 design 中被抽样或系统变化的 factors;</li>
+<li>judge 是否判对属于 Week 4 scorer validation,不能靠扩大 W3 error bar 修复。</li>
+</ul>
+<hr />
+<h2 id="s6"><span class="hn">§ 05</span>四个常见但错误的 error bars</h2>
+<figure class="diag"><figcaption><span>Failure gallery</span></figcaption><div class="dgrid"><div class="gcell"><b>400-row Wald</b><span>忽略 40 个 task clusters</span></div><div class="gcell"><b>bootstrap rows</b><span>打散 task / repo dependence</span></div><div class="gcell"><b>bootstrap fixed bank</b><span>把描述题库偷偷改成 new-task inference</span></div><div class="gcell"><b>CI over successful rows</b><span>missing / timeout 先改变了 denominator</span></div></div></figure>
+
+<h3>5.1 Error bars 不重叠不是差异检验</h3>
+<p>A、B 各自的 marginal CI 描述两个单独 estimands。<code>A-B</code> 的 uncertainty 还取决于两者在相同 tasks 上的 covariance。下一课直接对 paired differences 建 CI。</p>
+<h3>5.2 More rows 不会修复 omitted factor</h3>
+<p>若每个 task 都只使用同一个 prompt 和 judge,增加到一百万 tasks 也不能估计 prompt/judge sensitivity。sample size 只缩小 design 实际随机化过的维度。</p>
+<h3>5.3 Narrow CI 不等于 valid claim</h3>
+<p>CI 不覆盖 task validity、verifier correctness、data contamination 或 deployment shift。它是「在已声明 statistical model 内有多精确」,不是整条 validity argument。</p>
+<hr />
+<h2 id="s7"><span class="hn">§ 06</span>Coverage lab:让错误方法亲自失败</h2>
+<h3>6.1 Synthetic data-generating process</h3>
+<pre><code class="language-text">for simulation in 1..S:
+  draw N task probabilities p_i from a heterogeneous distribution
+  draw K Bernoulli attempts for each task
+  compute the true target mean
+  construct candidate 95% intervals
+  record whether each interval covers the target
+</code></pre>
+<p>至少比较:</p>
+<figure class="diag"><figcaption><span>Lab methods</span></figcaption><div class="dgrid"><div class="gcell"><b>naive row Wald</b><span>假装 NK independent</span></div><div class="gcell"><b>row bootstrap</b><span>错误 resampling unit</span></div><div class="gcell"><b>task bootstrap</b><span>resample task blocks</span></div><div class="gcell"><b>hierarchical interval</b><span>partial pooling + declared prior</span></div></div></figure>
+
+<h3>6.2 输出不只是一张 coverage bar chart</h3>
+<pre><code class="language-text">coverage · nominal target = 95%
+median interval width
+failure rate outside [0,1]
+behavior at all-pass / all-fail boundaries
+coverage by N, K and task heterogeneity
+</code></pre>
+<figure class="diag"><figcaption><span>Lab 最终判断</span></figcaption><div class="dflow"><div class="dstep">method nominal coverage 是否接近 95%</div><div class="darr">↓</div><div class="dstep">若否 · 是 finite-sample、clustering 还是 misspecification</div><div class="darr">↓</div><div class="dstep">若是 · interval 是否宽到无法支持 decision</div><div class="darr">↓</div><div class="dstep">把诊断带入 Lesson 4 power / MDE</div></div></figure>
+
+<h3>6.3 Implementation gates</h3>
+<pre><code class="language-text">[ ] random seed 固定,simulation truth 单独保存
+[ ] resample key 是 task_id / declared cluster,不是 dataframe row index
+[ ] 每个 replicate 重跑完整 aggregation 与 missing rule
+[ ] 同时报告 coverage 和 width,不只挑一个好看的指标
+[ ] 至少包含 p 接近 0 / 1 与少 clusters 的 stress case
+[ ] fixed-bank 与 new-task simulation 分开,不共用同一个 truth
+</code></pre>
+<hr />
+<h2 id="s8"><span class="hn">§ 07</span>读材料时只回答这些问题</h2>
+<h3>Miller + Anthropic research note</h3>
+<ul>
+<li>repeated answers 为什么先形成 question/task mean,再进入总体分析?</li>
+<li>clustered SE 的 cluster key 应由数据结构还是方便的字段决定?</li>
+<li>原文推荐 CLT interval;Bowyer et al. 后来的 coverage experiments 对 small $N$ 加了什么限制?</li>
+</ul>
+<h3><em>Don't Use the CLT...</em></h3>
+<ul>
+<li>为什么 Wald/CLT interval 在 all-pass 时会塌成零宽?</li>
+<li>Wilson、exact、bootstrap 与 Bayesian method 各在哪些设计下比较?</li>
+<li>为什么「bootstrap」不是不看 resampling unit 的万能答案?</li>
+</ul>
+<h3>2025–2026 variance papers</h3>
+<ul>
+<li><em>Measuring all the noises</em> 的 data noise / prediction noise 如何映射成 task / attempt?</li>
+<li>哪些结论是其大规模数据上的 empirical pattern,而不是定理?</li>
+<li><em>Hidden Measurement Error</em> 中哪些因素在本课只是 sensitivity axis,哪些需要进入 target population?</li>
+</ul>
+<p>来源与代码:</p>
+<ul>
+<li><a href="https://arxiv.org/abs/2411.00640">Adding Error Bars to Evals</a> · <a href="https://www.anthropic.com/research/statistical-approach-to-model-evals">Anthropic research note</a></li>
+<li><a href="https://arxiv.org/abs/2503.01747">Don't Use the CLT in LLM Evals With Fewer Than a Few Hundred Datapoints</a> · <a href="https://github.com/sambowyer/bayes_evals">Bayesian library</a> · <a href="https://github.com/sambowyer/no_clt_paper">reproduction code</a></li>
+<li><a href="https://arxiv.org/abs/2512.21326">Measuring all the noises of LLM Evals</a> · <a href="https://all-the-noises.github.io/">interactive analyses</a></li>
+<li><a href="https://arxiv.org/abs/2604.11581">Hidden Measurement Error in LLM Pipelines</a> · <a href="https://github.com/SolomonMg/totalevalerror">totalevalerror</a></li>
+<li><a href="https://arxiv.org/abs/2512.07795">ReasonBENCH</a> · <a href="https://github.com/au-clan/ReasonBench">code</a></li>
+</ul>
+<hr />
+<h2 id="s9">本课自检</h2>
+<pre><code class="language-text">[ ] 能先说出 CI 重复抽样的世界,再解释 95% coverage
+[ ] 能区分 fixed-bank、new-task 与 next-rollout uncertainty
+[ ] 能解释为什么 40×10 不是 Wilson interval 的 n=400
+[ ] 能写出 task / attempt variance 对 N 与 K 的依赖
+[ ] 能用 ICC / design effect 解释 effective sample size,但不把它当最终算法
+[ ] 能根据 design 选择 Wilson、task bootstrap、cluster bootstrap 或 hierarchical model
+[ ] 能写出 task bootstrap:抽 task_id 并搬动完整 descendants
+[ ] 能识别少 clusters、extreme outcomes 与 omitted factors 的风险
+[ ] 能说明 CI 不覆盖 verifier validity、task validity 或 deployment shift
+[ ] 能用 coverage simulation 比较方法,同时报告 coverage 与 width
+</code></pre>
+<hr />
+<h2 id="s10">本课一句话</h2>
+<blockquote>
+<p><strong>Error bar 是 sampling design 的可执行摘要。</strong>
+<strong>重采样 task、repo、attempt 还是配置不是软件细节;它决定 interval 覆盖哪个 estimand,以及 400 行究竟包含 400、40 还是 10 份独立信息。</strong></p>
+</blockquote>
+<p>下一课:有了 structure-aware uncertainty,才能直接估计 paired $\Delta=B-A$,预先写 meaningful improvement 与 power,并把整周结果压成一份可审计 Statistical Eval Report。</p>
+<div class="pager"><a href="w3-02.html">← W3 第 2 课 · Repeated Trials</a><a href="w3-04.html">W3 第 4 课 · Paired Comparison、Power 与 Statistical Eval Report →</a></div>
+</article></div></div>
+<footer><div class="wrap">
+<span>Week 03 · Statistical Inference for Stochastic Agent Evals</span>
+<span>Adding Error Bars to Evals · On Randomness · Don't Use the CLT · Measuring all the noises</span>
+<span>由 week03/*.md 生成 · build_site.py</span>
+</div></footer></body></html>

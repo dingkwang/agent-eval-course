@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>W4 第 2 课 · Deterministic Verifiers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{
+  --paper:#EDEFF2; --panel:#F8FAFB; --panel-2:#E4E9ED; --rule:#C9D2D8;
+  --ink:#131A20; --soft:#5A6672; --faint:#8A95A0;
+  --deep:#0E1A22; --signal:#C8501C; --probe:#2B5F9E; --pass:#34734A;
+  --shadow:0 1px 0 rgba(19,26,32,.04), 0 16px 40px -24px rgba(19,26,32,.45);
+}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Instrument Sans",system-ui,sans-serif;font-size:16.5px;line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--probe)}
+code,kbd{font-family:"JetBrains Mono",monospace;font-size:.88em;
+  background:var(--panel-2);padding:.08em .38em;border-radius:3px}
+pre{background:var(--deep);color:#DCE3E8;border-radius:8px;padding:16px 18px;overflow-x:auto;
+  font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.72;box-shadow:var(--shadow)}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+/* ---- masthead ---- */
+.mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
+.mast .wrap{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--soft);white-space:nowrap;padding-top:6px}
+.mast .id b{color:var(--signal);font-weight:500}
+.mast .id-dot{color:var(--soft)}
+.mast-nav{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
+  color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
+.mast nav a:hover{border-color:var(--rule);color:var(--ink)}
+.mast nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mast-lessons a,.mast-lessons .soonnav{font-size:11.5px}
+
+/* ---- hero ---- */
+.hero{padding:62px 0 8px}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--signal);display:inline-flex;align-items:center;gap:11px}
+.eyebrow::before{content:"";width:30px;height:2px;background:var(--signal)}
+h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,74px);
+  letter-spacing:-.025em;line-height:.97;margin:18px 0 12px}
+.thesis{font-size:18px;color:var(--ink);max-width:38em;margin:0}
+.thesis b{color:var(--signal)}
+.subhead{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(15px,2vw,19px);
+  color:var(--soft);margin:0 0 18px}
+
+/* ---- signature: depth cross-section ---- */
+.strata{margin:34px 0 6px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow)}
+.strata .cap{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.strata .cap span:last-child{color:#93A2AE}
+.layer{display:grid;grid-template-columns:132px 1fr 300px;gap:0;align-items:center;
+  border-top:1px solid var(--rule);background:var(--panel);
+  transition:background .18s}
+.layer:first-of-type{border-top:none}
+.layer:hover{background:#fff}
+.layer .nm{font-family:"Archivo",sans-serif;font-weight:600;font-size:15px;padding:13px 16px;
+  border-right:1px solid var(--rule)}
+.layer .flow{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);padding:13px 16px}
+.layer .note{font-size:13px;color:var(--soft);padding:13px 16px;border-left:1px solid var(--rule)}
+.layer .bar{display:block;height:3px;background:var(--probe);border-radius:2px;margin-top:7px;
+  transform-origin:left;animation:grow .7s cubic-bezier(.2,.7,.3,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.waterline{display:grid;grid-template-columns:132px 1fr;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.1em}
+.waterline span{padding:7px 16px}
+.waterline span:first-child{color:var(--signal);border-right:1px solid #24333D}
+.stratanote{font-size:13.5px;color:var(--soft);margin:11px 2px 0}
+
+/* ---- lesson cards ---- */
+.sec{padding:50px 0 0}
+.sec h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(21px,3.2vw,29px);
+  letter-spacing:-.015em;margin:0 0 4px}
+.sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
+.cards{display:grid;gap:12px}
+.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+  text-decoration:none;color:var(--ink);background:var(--panel);
+  border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
+  transition:transform .16s,box-shadow .16s,background .16s}
+a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
+.card .num{font-family:"Archivo",sans-serif;font-weight:700;font-size:30px;color:var(--signal);
+  line-height:1;letter-spacing:-.03em}
+.card .t{display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin-bottom:3px}
+.card .d{display:block;font-size:14px;color:var(--soft)}
+.card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+.card.off{border-style:dashed;border-color:var(--rule);background:transparent;cursor:default}
+.card.off .num,.card.off .t{color:var(--faint)}
+.card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
+.soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
+  padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+
+/* ---- lab cards ---- */
+.labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.lab{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);padding:16px 18px}
+.lab .lh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lab .lh b{font-family:"Archivo",sans-serif;font-weight:600;font-size:18px}
+.lab .lh span{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  color:var(--pass);white-space:nowrap}
+.lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
+.lab code{font-size:11.5px;color:var(--probe)}
+
+/* ---- course intro ---- */
+.formula{margin:28px 0 0;background:var(--deep);color:#DCE3E8;border-radius:10px;
+  padding:18px 22px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.7;
+  box-shadow:var(--shadow)}
+.formula .eq{color:#fff;font-size:14.5px;margin-bottom:8px;overflow-wrap:anywhere}
+.formula b{color:var(--signal);font-weight:500}
+.skills{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:8px 0 0}
+.skill{background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px}
+.skill i{font-family:"Archivo",sans-serif;font-style:normal;font-weight:700;font-size:22px;
+  color:var(--signal);display:block;line-height:1;margin-bottom:6px}
+.skill span{font-size:14.5px}
+.arcs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.arc{border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px;background:var(--panel)}
+.arc .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--signal)}
+.arc b{display:block;font-family:"Archivo",sans-serif;margin:6px 0 4px;font-size:16px}
+.arc span{font-size:13.5px;color:var(--soft)}
+.fails{margin:10px 0 0;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:12px 16px;
+  line-height:1.85}
+.fails b{color:var(--ink);font-weight:500}
+.week{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);margin:0 0 12px;
+  overflow:hidden}
+.week.soon{border-style:dashed;border-color:var(--rule);background:transparent}
+.week .wh{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:start;
+  padding:16px 18px}
+.week .wn{font-family:"Archivo",sans-serif;font-weight:700;font-size:26px;color:var(--signal);
+  line-height:1}
+.week.soon .wn,.week.soon .wt{color:var(--faint)}
+.week .wt{font-family:"Archivo",sans-serif;font-weight:600;font-size:17px}
+.week .wq{font-size:13.5px;color:var(--soft);margin-top:3px}
+.week .st{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--pass);white-space:nowrap}
+.week.soon .st{color:var(--faint)}
+.week .wbody{border-top:1px solid var(--rule);padding:16px 18px 18px}
+
+/* ---- lesson page ---- */
+.page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
+.rail{position:sticky;top:22px;font-size:13.5px}
+.rail .rt{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
+  border-left:2px solid var(--rule);line-height:1.4}
+.rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.rail a i{font-family:"JetBrains Mono",monospace;font-style:normal;font-size:10.5px;
+  color:var(--faint);margin-right:7px}
+.rail a:hover i{color:var(--signal)}
+.doc{min-width:0}
+.doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:31px;letter-spacing:-.02em;
+  line-height:1.22;margin:62px 0 14px;padding-top:22px;border-top:2.5px solid var(--ink)}
+.doc h2 .hn{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11.5px;
+  letter-spacing:.24em;color:var(--signal);margin-bottom:10px}
+.doc h2.sub{font-weight:600;font-size:23px;color:var(--soft);border-top:none;
+  margin:0 0 18px;padding-top:0}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19.5px;margin:30px 0 8px;
+  padding-left:12px;border-left:3px solid var(--rule)}
+.doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
+.doc p{margin:12px 0}
+.doc ul,.doc ol{padding-left:22px}
+.doc li{margin:5px 0}
+.doc blockquote{margin:16px 0;padding:13px 18px;background:var(--panel);
+  border-left:4px solid var(--signal);border-radius:0 8px 8px 0;color:var(--ink)}
+.doc blockquote p{margin:6px 0}
+.doc blockquote h3{margin-top:2px}
+.doc blockquote h1{font-family:"Archivo",sans-serif;font-weight:700;
+  font-size:clamp(18px,2.4vw,24px);line-height:1.35;letter-spacing:-.012em;
+  margin:8px 0 6px;color:var(--ink)}
+.doc blockquote h1 + h1{color:var(--signal);font-size:clamp(15px,2vw,18px);font-weight:600}
+.doc table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.doc th,.doc td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+.doc thead th{background:var(--ink);color:var(--paper);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.doc tbody tr:last-child td{border-bottom:none}
+.doc tbody tr:nth-child(even){background:#fff}
+.doc hr{border:none;border-top:1px solid var(--rule);margin:30px 0}
+.doc details{background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+  padding:11px 15px;margin:14px 0}
+.doc summary{cursor:pointer;font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px;color:var(--probe)}
+.doc img{max-width:100%}
+
+/* ---- in-lesson figure: accumulating complexity ladder ---- */
+.ladder{margin:22px 0 8px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow);background:var(--panel)}
+.ladder figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.ladder figcaption span:last-child{color:#93A2AE;text-transform:none;letter-spacing:.02em}
+.rung{display:grid;grid-template-columns:46px 1fr;border-top:1px solid var(--rule)}
+.rung:first-of-type{border-top:none}
+.rn{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;color:var(--faint);
+  padding:14px 0 0;text-align:center;border-right:1px solid var(--rule)}
+.rbody{padding:12px 16px 14px}
+.rhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:9px}
+.rhead b{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px}
+.rhead code{background:none;padding:0;color:var(--soft);font-size:12.5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:"JetBrains Mono",monospace;font-size:11.5px;padding:3px 9px;border-radius:20px;
+  border:1px solid var(--rule);color:var(--faint);background:var(--panel-2)}
+.chip.new{border-color:var(--signal);color:#fff;background:var(--signal);font-weight:500}
+.wline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.08em;padding:8px 16px}
+.wline span:first-child{color:var(--signal);white-space:nowrap;font-weight:500}
+.lfoot{border-top:1px solid var(--rule);padding:11px 16px;font-size:13px;color:var(--soft)}
+.lfoot b{color:var(--signal)}
+@media(max-width:640px){.rhead code{display:none}}
+
+/* ---- in-lesson diagrams (```diag) ---- */
+.diag{margin:22px 0 12px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  background:var(--panel);box-shadow:var(--shadow)}
+.diag figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
+.dpipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px 18px}
+.dnode{border:1.5px solid var(--ink);border-radius:8px;padding:8px 12px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:14px}
+.darr{color:var(--signal);font-weight:700;font-family:"JetBrains Mono",monospace}
+.dflow{padding:16px 18px;display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.dflow .darr{text-align:center;padding:2px 0}
+.dstep{border:1.5px solid var(--ink);border-radius:8px;padding:10px 14px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:15px}
+.dcmp{display:grid;grid-template-columns:1fr 1fr}
+.dcol{padding:14px 16px}
+.dcol + .dcol{border-left:1.5px solid var(--rule)}
+.dh{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;margin-bottom:8px;color:var(--signal)}
+.dcell{font-size:14px;padding:6px 0;border-top:1px solid var(--rule)}
+.dcol .dcell:first-of-type{border-top:none}
+.dnest{padding:16px}
+.dbox{border:1.5px solid var(--ink);border-radius:8px;padding:10px 12px;background:#fff}
+.dbox .dbox{margin-top:8px;background:var(--panel);border-color:var(--rule)}
+.dbox .dbox .dbox{background:var(--panel-2)}
+.dlab{font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+.gcell{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;background:#fff}
+.gcell b{display:block;font-family:"Archivo",sans-serif;font-size:15px;margin-bottom:4px;color:var(--signal)}
+.gcell span{font-size:13.5px;color:var(--soft)}
+@media(max-width:640px){
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+
+.pager{display:flex;justify-content:space-between;gap:14px;margin:52px 0 0;
+  border-top:1.5px solid var(--ink);padding-top:18px;flex-wrap:wrap}
+.pager a{font-family:"JetBrains Mono",monospace;font-size:13px;text-decoration:none;color:var(--probe)}
+.pager a:hover{color:var(--signal)}
+
+footer{margin-top:56px;border-top:1.5px solid var(--ink);background:var(--panel)}
+footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding-top:18px;padding-bottom:44px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+
+@media(max-width:900px){
+  .mast .id{letter-spacing:.08em;font-size:10.5px;overflow:visible;text-overflow:unset;max-width:none}
+  .mast .id-name,.mast .id-dot{display:none}
+  .page{grid-template-columns:1fr;gap:20px}
+  .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
+  .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
+  .layer{grid-template-columns:1fr}
+  .layer .nm,.layer .note{border:none}
+  .layer .note{padding-top:0}
+  .waterline{grid-template-columns:1fr}
+  .card{grid-template-columns:46px 1fr}
+  .card .tag{display:none}
+  .skills,.arcs{grid-template-columns:1fr}
+  .week .wh{grid-template-columns:46px 1fr}
+  .week .st{display:none}
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .layer .bar{animation:none}
+  a.card:hover{transform:none}
+}
+.math-display{margin:24px 0;overflow-x:auto;text-align:center}
+.math-display mjx-container[display="true"]{margin:.65em 0!important}
+</style>
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['$', '$']], processEscapes: true},
+  options: {skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head><body>
+
+<header class="mast"><div class="wrap">
+<span class="id"><span class="id-name">Agent Evaluation &amp; Benchmark Engineering</span><span class="id-dot"> · </span><b>WEEK 04</b></span>
+<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="lesson01.html">W1</a><a href="w2-01.html">W2</a><a href="w3-01.html">W3</a><a href="w4-01.html" class="on">W4</a></nav><nav class="mast-lessons"><a href="w4-01.html">1</a><a href="w4-02.html" class="on">2</a><span class="soonnav">3</span><span class="soonnav">4</span><span class="soonnav">5</span></nav></div>
+</div></header>
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">Unit tests、state predicates 与 substring 为什么会稳定地判错</a><a href="#s1"><i>00</i>一个 reward=1.0、任务却完全没完成的 case</a><a href="#s2"><i>01</i>Verifier 是 product event 的 executable approximation</a><a href="#s3"><i>02</i>四类 deterministic verifier,四种错法</a><a href="#s4"><i>03</i>String matching:语法相似不等于语义正确</a><a href="#s5"><i>04</i>Final-state trap:no-op 也可能等于 gold state</a><a href="#s6"><i>05</i>Reference trajectory 是 witness,不是唯一合法路径</a><a href="#s7"><i>06</i>Unit tests:通过测试不等于功能完全正确</a><a href="#s8"><i>07</i>Control suite:先测 verifier,再测 Agent</a><a href="#s9"><i>08</i>Process 与 outcome 要互补,不要重复计分</a><a href="#s10"><i>09</i>什么时候必须输出 UNKNOWN</a><a href="#s11"><i>10</i>Lab:把 τ³ airline id=3 变成 verifier regression suite</a><a href="#s12"><i>11</i>验收</a><a href="#s13">本课结论</a><a href="#s14">References</a></aside>
+<article class="doc"><h1>第 2 课:Deterministic Verifiers</h1>
+<h2 id="s0" class="sub">Unit tests、state predicates 与 substring 为什么会稳定地判错</h2>
+<p><strong>Week 4 Day 2</strong> · verifier engineering · 建议 75 分钟 + 30 分钟 lab</p>
+<blockquote>
+<h3>本课唯一命题</h3>
+<h1>Deterministic 只保证同一输入得到同一 verdict,不保证 verdict 与任务成功一致。</h1>
+<h1>好 verifier 必须同时拒绝 shortcut、接受 alternate-valid path,并在证据不足时 abstain。</h1>
+<p>📄 OpenAI, <a href="https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/"><em>Why SWE-bench Verified no longer measures frontier coding capabilities</em></a>, 2026
+📄 OpenAI, <a href="https://openai.com/index/separating-signal-from-noise-coding-evaluations/"><em>Separating signal from noise in coding evaluations</em></a>, 2026
+📄 <a href="https://arxiv.org/abs/2607.02577"><em>Benchmarking the Benchmarks: A Validity Audit of Tool-Calling Evaluation</em></a>, 2026 preprint
+📄 Rosset et al., <a href="https://arxiv.org/abs/2604.06240"><em>The Art of Building Verifiers for Computer Use Agents</em></a>, 2026 preprint
+💻 复用:<code>labs/tau3-verifier/</code></p>
+</blockquote>
+<figure class="diag"><figcaption><span>两种常被混为一谈的性质</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Determinism</div><div class="dcell">同一 evidence 每次 verdict 相同</div><div class="dcell">消除 scorer sampling variance</div><div class="dcell">可以稳定地错</div></div><div class="dcol"><div class="dh">Validity</div><div class="dcell">verdict 对应产品定义的成功</div><div class="dcell">控制 false positive / false negative</div><div class="dcell">才能作为可信 reward</div></div></div></figure>
+
+<p>LLM judge 的随机性很显眼;<code>pytest</code>、regex 和 DB hash 看起来像硬事实。但只要 predicate 写错、观察错对象或覆盖不足,它们会以 100% reproducibility 反复制造同一个错误。</p>
+<p>这不是只靠一个课程 toy case 得出的结论。2026 年对 BFCL v4、τ²-Bench Retail、LiveMCPBench 与 MCP-Atlas 的 trace-level audit 检查了 496 次执行,发现 <strong>92/496(18.5%)</strong> official labels 与 expert judgments 不一致。确定性 evaluator 的公开 failure modes 包括 brittle state matching、exact match、annotation error 与 trajectory lock-in;τ² 子样本中还同时出现了 substring communication false negative 和「预期状态不变,什么也不做仍 PASS」的 false positive。<a href="https://arxiv.org/html/2607.02577v1">Benchmarking the Benchmarks, Table 3 / §4.3</a></p>
+<hr />
+<h2 id="s1"><span class="hn">§ 00</span>一个 reward=1.0、任务却完全没完成的 case</h2>
+<p>Week 1 的可运行 lab 把四条手写 trajectory 送进 τ³-bench airline <code>id=3</code> 的官方 evaluator:</p>
+<table>
+<thead>
+<tr>
+<th>trajectory</th>
+<th>做了什么</th>
+<th style="text-align: right;">official reward</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gold</code></td>
+<td>查询正确数据并告知 4 件行李</td>
+<td style="text-align: right;">1.0</td>
+</tr>
+<tr>
+<td><code>silent</code></td>
+<td>查询正确但不告知答案</td>
+<td style="text-align: right;">0.0</td>
+</tr>
+<tr>
+<td><code>cheat</code></td>
+<td>什么都不查,只说 <code>your flight is AA-1234</code></td>
+<td style="text-align: right;"><strong>1.0</strong></td>
+</tr>
+<tr>
+<td><code>refuse</code></td>
+<td>没有 Agent action</td>
+<td style="text-align: right;">0.0</td>
+</tr>
+</tbody>
+</table>
+<figure class="diag"><figcaption><span>cheat 为什么变绿</span></figcaption><div class="dflow"><div class="dstep">COMMUNICATE 要找字符串 "4"</div><div class="darr">↓</div><div class="dstep">cheat 文本里出现 AA-1234</div><div class="darr">↓</div><div class="dstep">substring predicate 返回 true</div><div class="darr">↓</div><div class="dstep">只读 task 的 DB hash 也返回 true</div><div class="darr">↓</div><div class="dstep">1.0 × 1.0 = official reward 1.0</div></div></figure>
+
+<p>把 <code>AA-1234</code> 改成 <code>AA-1235</code>,同样零工作量,COMMUNICATE 从 1.0 变成 0.0。Evaluator 完全 deterministic;它稳定测到的是「任意 assistant 文本中是否出现字符 4」,不是「用户是否获得正确行李额度」。</p>
+<figure class="diag"><figcaption><span>scorer predicate 与 product event</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">实现的 predicate</div><div class="dcell">文本包含字符 4</div><div class="dcell">最终 DB 等于初始 DB</div><div class="dcell">二者都 true 就 PASS</div></div><div class="dcol"><div class="dh">想测的事件</div><div class="dcell">4 表示该用户可携带的行李件数</div><div class="dcell">Agent 查了必要信息并正确推导</div><div class="dcell">用户问题真的被解决</div></div></div></figure>
+
+<blockquote>
+<p>复现:<code>uv run --project ../code/tau2-bench python ../labs/tau3-verifier/run.py</code></p>
+</blockquote>
+<hr />
+<h2 id="s2"><span class="hn">§ 01</span>Verifier 是 product event 的 executable approximation</h2>
+<p>设 $U(x)$ 表示 trajectory $x$ 是否真正满足产品成功定义,$V(x)$ 是 verifier verdict。</p>
+<div class="math-display">\[
+V(x)\approx U(x)
+\]</div>
+
+<p>Verifier 需要同时接近两个方向:</p>
+<figure class="diag"><figcaption><span>必要条件与充分条件</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">避免 false positive</div><div class="dcell">V(x)=1 应足以说明 U(x)=1</div><div class="dcell">拒绝 shortcut / no-op / forbidden side effect</div></div><div class="dcol"><div class="dh">避免 false negative</div><div class="dcell">U(x)=1 时应尽量有 V(x)=1</div><div class="dcell">接受等价表达 / alternate path / irrelevant state changes</div></div></div></figure>
+
+<p>现实中很难证明完全等价,所以 verifier engineering 的工作不是写一次 predicate 就结束,而是不断构造反例逼近这个等价关系。</p>
+<figure class="diag"><figcaption><span>verifier development loop</span></figcaption><div class="dflow"><div class="dstep">写 success contract</div><div class="darr">↓</div><div class="dstep">实现最小 predicate</div><div class="darr">↓</div><div class="dstep">生成 positive / negative controls</div><div class="darr">↓</div><div class="dstep">寻找 shortest false-positive program</div><div class="darr">↓</div><div class="dstep">寻找 alternate-valid false negative</div><div class="darr">↓</div><div class="dstep">把反例加入 regression suite</div></div></figure>
+
+<hr />
+<h2 id="s3"><span class="hn">§ 02</span>四类 deterministic verifier,四种错法</h2>
+<figure class="diag"><figcaption><span>常见 verifier families</span></figcaption><div class="dgrid"><div class="gcell"><b>String / exact match</b><span>比较字符或 normalized answer</span></div><div class="gcell"><b>Unit / integration tests</b><span>执行代码并观察 assertions</span></div><div class="gcell"><b>State predicate</b><span>检查 DB、文件、UI、外部 receipt</span></div><div class="gcell"><b>Action / trace predicate</b><span>检查 tool call、顺序、policy 与副作用</span></div></div></figure>
+
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>典型 false positive</th>
+<th>典型 false negative</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>String</td>
+<td>关键词碰巧出现</td>
+<td>等价表达或格式不同</td>
+</tr>
+<tr>
+<td>Unit tests</td>
+<td>未覆盖行为仍通过</td>
+<td>测试绑定无关实现细节</td>
+</tr>
+<tr>
+<td>State</td>
+<td>no-op 恰好等于 expected state</td>
+<td>无关字段、时间、ID 不同</td>
+</tr>
+<tr>
+<td>Action</td>
+<td>模仿 reference calls 但结果错</td>
+<td>有效 alternate path 被拒绝</td>
+</tr>
+</tbody>
+</table>
+<p>关键不是找「最客观」的类型,而是让 evidence 与 product event 对齐。复杂任务通常需要组合多种 predicates,并保留 criterion-level breakdown。</p>
+<hr />
+<h2 id="s4"><span class="hn">§ 03</span>String matching:语法相似不等于语义正确</h2>
+<figure class="diag"><figcaption><span>substring 的四个攻击面</span></figcaption><div class="dgrid"><div class="gcell"><b>Collision</b><span>目标数字嵌在 flight ID、日期或金额中</span></div><div class="gcell"><b>Negation</b><span>"not 4" 仍包含 4</span></div><div class="gcell"><b>Quotation</b><span>重复用户的错误说法也命中</span></div><div class="gcell"><b>Context loss</b><span>说了 4,但不知道它指人数、件数还是价格</span></div></div></figure>
+
+<p>从弱到强的升级路线:</p>
+<figure class="diag"><figcaption><span>communication verifier ladder</span></figcaption><div class="dflow"><div class="dstep">raw substring</div><div class="darr">↓</div><div class="dstep">normalized extraction + typed field</div><div class="darr">↓</div><div class="dstep">绑定语义 role 与 entity</div><div class="darr">↓</div><div class="dstep">与 authoritative state 交叉检查</div><div class="darr">↓</div><div class="dstep">证据不够则 UNKNOWN</div></div></figure>
+
+<p>例如不要只输出 <code>contains("4")</code>,而要提取结构化 claim:</p>
+<pre><code class="language-json">{
+  &quot;claim_type&quot;: &quot;baggage_allowance&quot;,
+  &quot;passenger_id&quot;: &quot;P123&quot;,
+  &quot;itinerary_id&quot;: &quot;I456&quot;,
+  &quot;quantity&quot;: 4,
+  &quot;unit&quot;: &quot;bags&quot;,
+  &quot;evidence_refs&quot;: [&quot;tool:lookup_membership#9&quot;, &quot;tool:get_itinerary#12&quot;]
+}
+</code></pre>
+<p>然后 verifier 再把 claim 与 authoritative policy/state 对齐。LLM extraction 可以参与,但一旦用了模型,它就是 Lesson 3 的 model-graded scorer,不能再叫纯 deterministic。</p>
+<h3>3.1 Exact match 什么时候反而正确</h3>
+<figure class="diag"><figcaption><span>exact match 的适用边界</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">适合</div><div class="dcell">唯一 canonical ID、hash、选择题 label</div><div class="dcell">parser 先固定输出 grammar</div><div class="dcell">格式本身属于产品 contract</div></div><div class="dcol"><div class="dh">不适合</div><div class="dcell">开放式解释、自然语言 claim</div><div class="dcell">正确答案有多种表达</div><div class="dcell">格式只是无关表现形式</div></div></div></figure>
+
+<p>不要因为 exact match 简单就默认使用,也不要因为它简单就默认淘汰。它是否有效取决于「字符串身份」是不是产品事件的一部分。</p>
+<hr />
+<h2 id="s5"><span class="hn">§ 04</span>Final-state trap:no-op 也可能等于 gold state</h2>
+<p>airline <code>id=3</code> 是只读任务。Gold actions 只查询,所以 gold trajectory 执行前后 DB 不变:</p>
+<figure class="diag"><figcaption><span>相同终态,不同任务完成度</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Gold trajectory</div><div class="dcell">查询会员与行程后正确回答</div><div class="dcell">final DB = initial DB</div><div class="dcell">任务完成</div></div><div class="dcol"><div class="dh">Refuse / no-op</div><div class="dcell">什么也没查、什么也没说</div><div class="dcell">final DB = initial DB</div><div class="dcell">任务失败</div></div></div></figure>
+
+<p>因此 DB equality 在这道题上退化成常量 1:</p>
+<div class="math-display">\[
+V_{DB}(x)=\mathbf 1[state_{final}(x)=state_{gold}]=1
+\]</div>
+
+<p>这个 predicate 不是执行出错,而是对该 task <strong>没有区分能力</strong>。</p>
+<figure class="diag"><figcaption><span>发现 constant verifier</span></figcaption><div class="dflow"><div class="dpipe"><span class="dnode">对 Oracle 运行</span><span class="darr">→</span><span class="dnode">PASS</span></div><div class="darr">↓</div><div class="dpipe"><span class="dnode">对 Null 运行</span><span class="darr">→</span><span class="dnode">仍 PASS</span></div><div class="darr">↓</div><div class="dpipe"><span class="dnode">对随机无关 action 运行</span><span class="darr">→</span><span class="dnode">仍 PASS</span></div><div class="darr">↓</div><div class="dstep">判定该 criterion 对 task 无信息</div><div class="darr">↓</div><div class="dstep">删除、替换或补充 process / communication evidence</div></div></figure>
+
+<h3>4.1 Full-state equality 又可能太严格</h3>
+<figure class="diag"><figcaption><span>state predicate 的两端失败</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">太宽 · under-constrained</div><div class="dcell">只查 status=canceled,遗漏退款金额</div><div class="dcell">错误副作用仍可能通过</div><div class="dcell">false positive</div></div><div class="dcol"><div class="dh">太窄 · over-constrained</div><div class="dcell">比较整个 DB hash</div><div class="dcell">无关时间戳 / ID / 排序变化导致失败</div><div class="dcell">false negative</div></div></div></figure>
+
+<p>更稳的做法是从 contract 编译<strong>相关字段 predicate + invariants</strong>:</p>
+<pre><code class="language-python">assert order.status == &quot;canceled&quot;
+assert refund.amount == expected_refund
+assert inventory.reserved == before.inventory.reserved - requested_qty
+assert unrelated_customer_rows == before.unrelated_customer_rows
+</code></pre>
+<p>不是所有字段都要相等,但关键 side effects 必须明确检查。</p>
+<hr />
+<h2 id="s6"><span class="hn">§ 05</span>Reference trajectory 是 witness,不是唯一合法路径</h2>
+<figure class="diag"><figcaption><span>success 是一组 trajectories</span></figcaption><div class="dnest"><div class="dbox"><div class="dlab">所有可能 trajectories</div><div class="dbox"><div class="dlab">满足产品事件的有效集合 U</div><div class="dbox"><div class="dlab">官方 gold trajectory 只是其中一个 witness</div></div></div></div></div></figure>
+
+<p>如果 verifier 要求 Agent 完全复现 gold tool sequence,会拒绝:</p>
+<ul>
+<li>合并两个查询的批量 API;</li>
+<li>使用缓存但仍取得同一 authoritative fact;</li>
+<li>先验证身份再查询,而不是相反;</li>
+<li>通过另一个允许的工具达到等价 final state。</li>
+</ul>
+<figure class="diag"><figcaption><span>sequence equality 与 semantic invariants</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Gold trace equality</div><div class="dcell">动作名、参数、顺序全部相同</div><div class="dcell">容易写、容易复现</div><div class="dcell">把实现路径当规范</div></div><div class="dcol"><div class="dh">Semantic verification</div><div class="dcell">必要授权、outcome、禁止副作用满足</div><div class="dcell">更接近产品成功</div><div class="dcell">接受 alternate-valid paths</div></div></div></figure>
+
+<p>Action constraints 仍然必要,但应表示<strong>必须发生或绝不能发生的行为</strong>,而不是把示范解逐行复制成答案键。</p>
+<hr />
+<h2 id="s7"><span class="hn">§ 06</span>Unit tests:通过测试不等于功能完全正确</h2>
+<figure class="diag"><figcaption><span>test suite 的两类边界错误</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Too narrow / overly strict</div><div class="dcell">要求题目没规定的函数名或内部结构</div><div class="dcell">正确实现也 FAIL</div><div class="dcell">false negative</div></div><div class="dcol"><div class="dh">Too weak / low coverage</div><div class="dcell">只覆盖 happy path</div><div class="dcell">incomplete / shortcut fix 也 PASS</div><div class="dcell">false positive</div></div></div></figure>
+
+<p>OpenAI 2026 年复核 SWE-bench Verified 中 138 个 o3 未稳定解决的问题,报告至少 59.4% 存在 material test/design issue:35.5% 是 narrow tests,18.8% 是 wide tests,5.1% 是其他问题。<strong>这不是全 500 题的随机抽样错误率</strong>;它针对 frontier model 经常失败的子集,说明剩余 FAIL 不能自动解释成能力不足。<a href="https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/">官方审计</a></p>
+<p>同年对 SWE-Bench Pro 731-task public split 的质量审计也发现:</p>
+<figure class="diag"><figcaption><span>SWE-Bench Pro QA 报告的四类 breaking issue</span></figcaption><div class="dgrid"><div class="gcell"><b>Overly strict tests</b><span>强制 prompt 未规定的实现细节</span></div><div class="gcell"><b>Underspecified prompt</b><span>hidden tests 要求无法合理推断</span></div><div class="gcell"><b>Low-coverage tests</b><span>不完整 fix 仍能通过</span></div><div class="gcell"><b>Misleading prompt</b><span>题面把 Agent 引向错误行为</span></div></div></figure>
+
+<p>初始 automated filter 先 flag 286 个 potentially broken tasks;随后对这个候选集走两条深审路径:多轮 investigator agents + researcher final judgment 的 pipeline 最终标记 200/731,五名工程师独立 review 的 human campaign 标记 249/731。286 是 triage candidates,200 不是纯自动筛选输出;disagreement 与低置信 case 还会继续 escalation。<a href="https://openai.com/index/separating-signal-from-noise-coding-evaluations/">Separating signal from noise</a></p>
+<h3>6.1 测试通过需要三个方向</h3>
+<figure class="diag"><figcaption><span>executable verifier 的三层 assertions</span></figcaption><div class="dgrid"><div class="gcell"><b>Required behavior</b><span>题面明确要求的新功能</span></div><div class="gcell"><b>Regression safety</b><span>原有相关功能不被破坏</span></div><div class="gcell"><b>Forbidden shortcuts</b><span>不得修改 tests、绕过 verifier、硬编码答案</span></div></div></figure>
+
+<p>第三层是否属于 W4 还是 W7,取决于目的:普通 shortcut regression 属于 verifier completeness;主动对抗与 reward hacking 的系统研究留给 W7。</p>
+<hr />
+<h2 id="s8"><span class="hn">§ 07</span>Control suite:先测 verifier,再测 Agent</h2>
+<p>最小 verifier QA 不是「gold patch 能过」,而是一组带预期 verdict 的 controls。</p>
+<figure class="diag"><figcaption><span>六类必做 controls</span></figcaption><div class="dgrid"><div class="gcell"><b>Oracle</b><span>官方正确实现 / trajectory 必须 PASS</span></div><div class="gcell"><b>Null</b><span>不做任何工作必须 FAIL</span></div><div class="gcell"><b>Minimal corruption</b><span>改错一个关键事实必须 FAIL</span></div><div class="gcell"><b>Irrelevant mutation</b><span>无关格式 / 字段变化后 verdict 不变</span></div><div class="gcell"><b>Alternate valid path</b><span>不同合法路径仍 PASS</span></div><div class="gcell"><b>Forbidden side effect</b><span>outcome 正确但违规操作应按 contract FAIL</span></div></div></figure>
+
+<h3>7.1 Oracle + Null 是最低门槛,不是全部</h3>
+<figure class="diag"><figcaption><span>两端 sanity check</span></figcaption><div class="dflow"><div class="dpipe"><span class="dnode">Oracle FAIL</span><span class="darr">→</span><span class="dnode">verifier / environment / task 至少一个坏了</span></div><div class="darr">↓</div><div class="dpipe"><span class="dnode">Null PASS</span><span class="darr">→</span><span class="dnode">predicate 缺少必要条件</span></div><div class="darr">↓</div><div class="dstep">两者都正确</div><div class="darr">↓</div><div class="dstep">继续测 decision boundary 附近的 mutations</div></div></figure>
+
+<p>一个只会区分「完全正确」与「什么都不做」的 verifier,仍可能被几乎正确或巧妙 shortcut 的输出骗过。</p>
+<h3>7.2 Metamorphic tests</h3>
+<p>没有唯一 expected output 时,可以测试<strong>关系</strong>:</p>
+<figure class="diag"><figcaption><span>应保持 verdict 与应翻转 verdict</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Invariant transformation</div><div class="dcell">改写措辞、调整 JSON key 顺序</div><div class="dcell">无关字段、随机 ID 改变</div><div class="dcell">合法工具顺序变化</div><div class="dcell">verdict 应不变</div></div><div class="dcol"><div class="dh">Meaning-changing mutation</div><div class="dcell">把 refund 100 改成 10</div><div class="dcell">删除 authorization action</div><div class="dcell">增加 forbidden side effect</div><div class="dcell">PASS 应翻成 FAIL</div></div></div></figure>
+
+<p>这类测试特别适合暴露 brittle equality 与 substring collision。</p>
+<h3>7.3 Mutation testing verifier sensitivity</h3>
+<figure class="diag"><figcaption><span>从 Oracle 生成近邻反例</span></figcaption><div class="dflow"><div class="dstep">从正确 trajectory 开始</div><div class="darr">↓</div><div class="dstep">每次只破坏一个 atomic criterion</div><div class="darr">↓</div><div class="dstep">运行 verifier</div><div class="darr">↓</div><div class="dstep">记录该 mutation 是否被 kill</div><div class="darr">↓</div><div class="dstep">未被发现的 mutation = coverage hole</div></div></figure>
+
+<p>Mutation 不要只改输出文本。Agent task 至少要覆盖 tool argument、缺失 action、错误 entity、重复副作用、最终 state 与 communication claim。</p>
+<hr />
+<h2 id="s9"><span class="hn">§ 08</span>Process 与 outcome 要互补,不要重复计分</h2>
+<figure class="diag"><figcaption><span>process / outcome 的不同证据</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Process</div><div class="dcell">是否调用允许的工具、遵守 policy</div><div class="dcell">能解释 blocked success 与违规路径</div><div class="dcell">过度限制会拒绝创新路径</div></div><div class="dcol"><div class="dh">Outcome</div><div class="dcell">世界最后是否达到用户目标</div><div class="dcell">接近用户最终价值</div><div class="dcell">只看终态会漏掉危险过程</div></div></div></figure>
+
+<p>Rubric criteria 应该具体且非重叠。若 <code>correctly canceled order</code>、<code>order status is canceled</code>、<code>task completed</code> 三项其实检查同一个状态,相乘或平均只是重复加权。</p>
+<figure class="diag"><figcaption><span>criterion reduction 保留诊断</span></figcaption><div class="dflow"><div class="dstep">每条 criterion 独立输出 label + evidence</div><div class="darr">↓</div><div class="dstep">先保留完整 breakdown</div><div class="darr">↓</div><div class="dstep">按预注册规则 reduce 成 overall score</div><div class="darr">↓</div><div class="dstep">报告失败 reason code</div><div class="darr">↓</div><div class="dstep">不要只保存一个 0</div></div></figure>
+
+<p>CUAVerifierBench 的四项设计原则正好对应这里:非重叠 criteria、process/outcome 分离、controllable/uncontrollable failure 分离、完整 trajectory evidence。<a href="https://arxiv.org/html/2604.06240v1">论文</a></p>
+<hr />
+<h2 id="s10"><span class="hn">§ 09</span>什么时候必须输出 UNKNOWN</h2>
+<figure class="diag"><figcaption><span>不该硬判 PASS / FAIL 的情况</span></figcaption><div class="dgrid"><div class="gcell"><b>Missing evidence</b><span>关键 log、state 或截图不存在</span></div><div class="gcell"><b>Ambiguous contract</b><span>两个合理解释给出不同 verdict</span></div><div class="gcell"><b>Unsupported state</b><span>scorer parser 不认识新 schema / app version</span></div><div class="gcell"><b>Verifier failure</b><span>timeout、exception、judge malformed output</span></div></div></figure>
+
+<figure class="diag"><figcaption><span>UNKNOWN 的错误处理</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">错误做法</div><div class="dcell">exception → score=0</div><div class="dcell">缺截图 → 猜 FAIL</div><div class="dcell">parser 不认识 → 默认 PASS</div><div class="dcell">丢掉该 row</div></div><div class="dcol"><div class="dh">正确做法</div><div class="dcell">`verifier_error` + score=null</div><div class="dcell">`insufficient_evidence`</div><div class="dcell">fail closed 或 abstain,按 risk contract</div><div class="dcell">保留 observation,由 W6 决定分析口径</div></div></div></figure>
+
+<p>安全 gate 可能选择 fail closed;capability benchmark 通常应把 measurement failure 与 Agent failure 分列。两者没有通用答案,但必须在运行前写进 score contract。</p>
+<hr />
+<h2 id="s11"><span class="hn">§ 10</span>Lab:把 τ³ airline <code>id=3</code> 变成 verifier regression suite</h2>
+<p>不要先换成 LLM judge。先为现有 deterministic verifier 建立可证明的 failure envelope。</p>
+<h3>Step 1:固定现有四条 trajectories</h3>
+<pre><code class="language-text">gold    → expected PASS
+silent  → expected FAIL
+cheat   → expected FAIL
+refuse  → expected FAIL
+</code></pre>
+<h3>Step 2:再添加六条 controls</h3>
+<table>
+<thead>
+<tr>
+<th>case</th>
+<th>mutation</th>
+<th style="text-align: right;">expected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>semantic-collision</code></td>
+<td>negation / quoted-user 文本含 4,但没有有效 claim</td>
+<td style="text-align: right;">FAIL</td>
+</tr>
+<tr>
+<td><code>wrong-entity</code></td>
+<td>另一位旅客确实可带 4 件</td>
+<td style="text-align: right;">FAIL</td>
+</tr>
+<tr>
+<td><code>paraphrase</code></td>
+<td>“four checked suitcases are included”</td>
+<td style="text-align: right;">PASS</td>
+</tr>
+<tr>
+<td><code>format-noise</code></td>
+<td>大小写、标点、换行变化</td>
+<td style="text-align: right;">PASS</td>
+</tr>
+<tr>
+<td><code>forbidden-side-effect</code></td>
+<td>claim 正确,但发生未授权操作</td>
+<td style="text-align: right;">FAIL</td>
+</tr>
+<tr>
+<td><code>missing-log</code></td>
+<td>communication 正确但查询 evidence 缺失</td>
+<td style="text-align: right;">UNKNOWN</td>
+</tr>
+</tbody>
+</table>
+<figure class="diag"><figcaption><span>regression gate</span></figcaption><div class="dflow"><div class="dstep">10 个 labeled controls</div><div class="darr">↓</div><div class="dstep">运行 candidate verifier</div><div class="darr">↓</div><div class="dstep">生成 confusion matrix</div><div class="darr">↓</div><div class="dstep">检查每个 criterion 的 mutation kill rate</div><div class="darr">↓</div><div class="dstep">所有 mandatory controls 通过才替换官方 scorer</div></div></figure>
+
+<h3>Step 3:输出可诊断 score</h3>
+<pre><code class="language-json">{
+  &quot;overall&quot;: &quot;FAIL&quot;,
+  &quot;criteria&quot;: {
+    &quot;identity_evidence&quot;: &quot;FAIL&quot;,
+    &quot;itinerary_evidence&quot;: &quot;FAIL&quot;,
+    &quot;communication&quot;: &quot;PASS&quot;
+  },
+  &quot;reason_codes&quot;: [&quot;UNSUPPORTED_CLAIM&quot;],
+  &quot;evidence_refs&quot;: [&quot;assistant:1&quot;],
+  &quot;scorer_version&quot;: &quot;airline-baggage-v2&quot;
+}
+</code></pre>
+<p>这里 communication 可以 PASS,overall 仍 FAIL。Breakdown 告诉我们 Agent 说出了正确数字,但没有证明它来自正确用户与行程。</p>
+<h3>Step 4:写一个 verifier card</h3>
+<pre><code class="language-text">Product event:
+Allowed evidence:
+Known blind spots:
+Control suite commit:
+Oracle pass rate:
+Null rejection rate:
+Alternate-path acceptance:
+FPR / FNR on adjudicated audit set:
+Unsupported / UNKNOWN policy:
+</code></pre>
+<p>仓库中的 <code>labs/scorer-audit/</code> 已实现这 10 条 controls、baseline substring scorer、contract-aware candidate scorer、confusion matrix 与 verifier card。运行:</p>
+<pre><code class="language-bash">python3 labs/scorer-audit/run.py
+</code></pre>
+<hr />
+<h2 id="s12"><span class="hn">§ 11</span>验收</h2>
+<pre><code class="language-text">[ ] 能解释 deterministic 为什么不等于 valid
+[ ] 能从 product event 推出 predicate,而不是从方便读取的字段反推目标
+[ ] 能识别 substring collision、no-op state equality 与 full-hash brittleness
+[ ] 不把 gold trajectory 当唯一合法路径
+[ ] Unit tests 同时覆盖 required behavior、regressions 与 shortcuts
+[ ] Oracle PASS 且 Null FAIL
+[ ] 有 minimal corruption、irrelevant mutation 与 alternate-valid-path controls
+[ ] 每个 atomic criterion 都能指向 evidence
+[ ] scorer exception / missing evidence 不静默变成 Agent FAIL
+[ ] overall score 之外保留 criterion breakdown 与 reason codes
+[ ] 所有外部 audit 数字都注明抽样范围,不越界外推
+</code></pre>
+<blockquote>
+<h2 id="s13">本课结论</h2>
+<p><strong>好的 deterministic verifier 不是“更复杂的 if statement”,而是一组经反例验证的、与产品事件对齐的 executable claims。</strong></p>
+<p>它必须同时回答两个问题:有没有失败却能变绿的最短路径?有没有真正成功却会被拒绝的另一条合法路径?</p>
+</blockquote>
+<hr />
+<h2 id="s14">References</h2>
+<ol>
+<li>OpenAI. <a href="https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/">Why SWE-bench Verified no longer measures frontier coding capabilities</a>, 2026. Narrow / wide tests 与人工复核方法;污染部分留给 W7。</li>
+<li>OpenAI. <a href="https://openai.com/index/separating-signal-from-noise-coding-evaluations/">Separating signal from noise in coding evaluations</a>, 2026. SWE-Bench Pro QA pipeline:自动 triage + agent-assisted audit + 五名工程师独立 review。</li>
+<li><a href="https://arxiv.org/abs/2607.02577">Benchmarking the Benchmarks: A Validity Audit of Tool-Calling Evaluation</a>, 2026. BFCL、τ²-bench 与 LiveMCPBench 的 scorer disagreement 实证。</li>
+<li>Corby Rosset et al. <a href="https://arxiv.org/abs/2604.06240">The Art of Building Verifiers for Computer Use Agents</a>, 2026. Rubric、process/outcome、failure attribution 与 evidence coverage。</li>
+<li>Jimenez et al. <a href="https://arxiv.org/abs/2310.06770">SWE-bench: Can Language Models Resolve Real-World GitHub Issues?</a>, 2023. FAIL_TO_PASS / PASS_TO_PASS executable verifier 的原始框架。</li>
+<li>Course executable case: <a href="../labs/tau3-verifier/"><code>labs/tau3-verifier/</code></a> 与 <a href="../week01/lesson04-tau3-bench.md"><code>week01/lesson04-tau3-bench.md</code></a>。</li>
+</ol>
+<div class="pager"><a href="w4-01.html">← W4 第 1 课 · Scorer Is a Measurement Instrument</a><a href="toc.html#w4">Week 4 →</a></div>
+</article></div></div>
+<footer><div class="wrap">
+<span>Week 04 · Scorer Validation for Agent Evals</span>
+<span>CUAVerifierBench · tool-calling audits · Inspect scorers</span>
+<span>由 week04/*.md 生成 · build_site.py</span>
+</div></footer></body></html>

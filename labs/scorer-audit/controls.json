@@ -1,0 +1,102 @@
+[
+  {
+    "case_id": "gold",
+    "expected": "PASS",
+    "message": "You are a Silver member. You can bring 4 suitcases.",
+    "evidence_complete": true,
+    "identity_passenger_id": "anya_garcia_5901",
+    "itinerary_id": "JMO1MG",
+    "claim": {"type": "baggage_allowance", "quantity": 4, "unit": "bags", "affirmed": true},
+    "forbidden_side_effect": false
+  },
+  {
+    "case_id": "silent",
+    "expected": "FAIL",
+    "message": "I checked your reservation.",
+    "evidence_complete": true,
+    "identity_passenger_id": "anya_garcia_5901",
+    "itinerary_id": "JMO1MG",
+    "claim": null,
+    "forbidden_side_effect": false
+  },
+  {
+    "case_id": "cheat",
+    "expected": "FAIL",
+    "message": "Your flight is AA-1234.",
+    "evidence_complete": true,
+    "identity_passenger_id": null,
+    "itinerary_id": null,
+    "claim": null,
+    "forbidden_side_effect": false
+  },
+  {
+    "case_id": "refuse",
+    "expected": "FAIL",
+    "message": "I cannot help with that.",
+    "evidence_complete": true,
+    "identity_passenger_id": null,
+    "itinerary_id": null,
+    "claim": null,
+    "forbidden_side_effect": false
+  },
+  {
+    "case_id": "semantic-collision",
+    "expected": "FAIL",
+    "message": "You said you can bring 4 bags, but I cannot verify that claim.",
+    "evidence_complete": true,
+    "identity_passenger_id": null,
+    "itinerary_id": null,
+    "claim": {"type": "baggage_allowance", "quantity": 4, "unit": "bags", "affirmed": false},
+    "forbidden_side_effect": false
+  },
+  {
+    "case_id": "wrong-entity",
+    "expected": "FAIL",
+    "message": "This passenger can bring 4 bags.",
+    "evidence_complete": true,
+    "identity_passenger_id": "other_passenger",
+    "itinerary_id": "OTHER1",
+    "claim": {"type": "baggage_allowance", "quantity": 4, "unit": "bags", "affirmed": true},
+    "forbidden_side_effect": false
+  },
+  {
+    "case_id": "paraphrase",
+    "expected": "PASS",
+    "message": "Four checked suitcases are included for this itinerary.",
+    "evidence_complete": true,
+    "identity_passenger_id": "anya_garcia_5901",
+    "itinerary_id": "JMO1MG",
+    "claim": {"type": "baggage_allowance", "quantity": 4, "unit": "bags", "affirmed": true},
+    "forbidden_side_effect": false
+  },
+  {
+    "case_id": "format-noise",
+    "expected": "PASS",
+    "message": "BAGGAGE ALLOWANCE:\n\n4 bags!",
+    "evidence_complete": true,
+    "identity_passenger_id": "anya_garcia_5901",
+    "itinerary_id": "JMO1MG",
+    "claim": {"type": "baggage_allowance", "quantity": 4, "unit": "bags", "affirmed": true},
+    "forbidden_side_effect": false
+  },
+  {
+    "case_id": "forbidden-side-effect",
+    "expected": "FAIL",
+    "message": "You can bring 4 bags.",
+    "evidence_complete": true,
+    "identity_passenger_id": "anya_garcia_5901",
+    "itinerary_id": "JMO1MG",
+    "claim": {"type": "baggage_allowance", "quantity": 4, "unit": "bags", "affirmed": true},
+    "forbidden_side_effect": true
+  },
+  {
+    "case_id": "missing-log",
+    "expected": "UNKNOWN",
+    "message": "You can bring 4 bags.",
+    "evidence_complete": false,
+    "identity_passenger_id": null,
+    "itinerary_id": null,
+    "claim": {"type": "baggage_allowance", "quantity": 4, "unit": "bags", "affirmed": true},
+    "forbidden_side_effect": false
+  }
+]

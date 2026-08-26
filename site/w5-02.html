@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>W5 第 2 课 · Task Validity & Construct-Irrelevant Difficulty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{
+  --paper:#EDEFF2; --panel:#F8FAFB; --panel-2:#E4E9ED; --rule:#C9D2D8;
+  --ink:#131A20; --soft:#5A6672; --faint:#8A95A0;
+  --deep:#0E1A22; --signal:#C8501C; --probe:#2B5F9E; --pass:#34734A;
+  --shadow:0 1px 0 rgba(19,26,32,.04), 0 16px 40px -24px rgba(19,26,32,.45);
+}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Instrument Sans",system-ui,sans-serif;font-size:16.5px;line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--probe)}
+code,kbd{font-family:"JetBrains Mono",monospace;font-size:.88em;
+  background:var(--panel-2);padding:.08em .38em;border-radius:3px}
+pre{background:var(--deep);color:#DCE3E8;border-radius:8px;padding:16px 18px;overflow-x:auto;
+  font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.72;box-shadow:var(--shadow)}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+/* ---- masthead ---- */
+.mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
+.mast .wrap{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--soft);white-space:nowrap;padding-top:6px}
+.mast .id b{color:var(--signal);font-weight:500}
+.mast .id-dot{color:var(--soft)}
+.mast-nav{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
+  color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
+.mast nav a:hover{border-color:var(--rule);color:var(--ink)}
+.mast nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mast-lessons a,.mast-lessons .soonnav{font-size:11.5px}
+
+/* ---- hero ---- */
+.hero{padding:62px 0 8px}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--signal);display:inline-flex;align-items:center;gap:11px}
+.eyebrow::before{content:"";width:30px;height:2px;background:var(--signal)}
+h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,74px);
+  letter-spacing:-.025em;line-height:.97;margin:18px 0 12px}
+.thesis{font-size:18px;color:var(--ink);max-width:38em;margin:0}
+.thesis b{color:var(--signal)}
+.subhead{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(15px,2vw,19px);
+  color:var(--soft);margin:0 0 18px}
+
+/* ---- signature: depth cross-section ---- */
+.strata{margin:34px 0 6px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow)}
+.strata .cap{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.strata .cap span:last-child{color:#93A2AE}
+.layer{display:grid;grid-template-columns:132px 1fr 300px;gap:0;align-items:center;
+  border-top:1px solid var(--rule);background:var(--panel);
+  transition:background .18s}
+.layer:first-of-type{border-top:none}
+.layer:hover{background:#fff}
+.layer .nm{font-family:"Archivo",sans-serif;font-weight:600;font-size:15px;padding:13px 16px;
+  border-right:1px solid var(--rule)}
+.layer .flow{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);padding:13px 16px}
+.layer .note{font-size:13px;color:var(--soft);padding:13px 16px;border-left:1px solid var(--rule)}
+.layer .bar{display:block;height:3px;background:var(--probe);border-radius:2px;margin-top:7px;
+  transform-origin:left;animation:grow .7s cubic-bezier(.2,.7,.3,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.waterline{display:grid;grid-template-columns:132px 1fr;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.1em}
+.waterline span{padding:7px 16px}
+.waterline span:first-child{color:var(--signal);border-right:1px solid #24333D}
+.stratanote{font-size:13.5px;color:var(--soft);margin:11px 2px 0}
+
+/* ---- lesson cards ---- */
+.sec{padding:50px 0 0}
+.sec h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(21px,3.2vw,29px);
+  letter-spacing:-.015em;margin:0 0 4px}
+.sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
+.cards{display:grid;gap:12px}
+.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+  text-decoration:none;color:var(--ink);background:var(--panel);
+  border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
+  transition:transform .16s,box-shadow .16s,background .16s}
+a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
+.card .num{font-family:"Archivo",sans-serif;font-weight:700;font-size:30px;color:var(--signal);
+  line-height:1;letter-spacing:-.03em}
+.card .t{display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin-bottom:3px}
+.card .d{display:block;font-size:14px;color:var(--soft)}
+.card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+.card.off{border-style:dashed;border-color:var(--rule);background:transparent;cursor:default}
+.card.off .num,.card.off .t{color:var(--faint)}
+.card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
+.soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
+  padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+
+/* ---- lab cards ---- */
+.labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.lab{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);padding:16px 18px}
+.lab .lh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lab .lh b{font-family:"Archivo",sans-serif;font-weight:600;font-size:18px}
+.lab .lh span{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  color:var(--pass);white-space:nowrap}
+.lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
+.lab code{font-size:11.5px;color:var(--probe)}
+
+/* ---- course intro ---- */
+.formula{margin:28px 0 0;background:var(--deep);color:#DCE3E8;border-radius:10px;
+  padding:18px 22px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.7;
+  box-shadow:var(--shadow)}
+.formula .eq{color:#fff;font-size:14.5px;margin-bottom:8px;overflow-wrap:anywhere}
+.formula b{color:var(--signal);font-weight:500}
+.skills{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:8px 0 0}
+.skill{background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px}
+.skill i{font-family:"Archivo",sans-serif;font-style:normal;font-weight:700;font-size:22px;
+  color:var(--signal);display:block;line-height:1;margin-bottom:6px}
+.skill span{font-size:14.5px}
+.arcs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.arc{border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px;background:var(--panel)}
+.arc .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--signal)}
+.arc b{display:block;font-family:"Archivo",sans-serif;margin:6px 0 4px;font-size:16px}
+.arc span{font-size:13.5px;color:var(--soft)}
+.fails{margin:10px 0 0;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:12px 16px;
+  line-height:1.85}
+.fails b{color:var(--ink);font-weight:500}
+.week{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);margin:0 0 12px;
+  overflow:hidden}
+.week.soon{border-style:dashed;border-color:var(--rule);background:transparent}
+.week .wh{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:start;
+  padding:16px 18px}
+.week .wn{font-family:"Archivo",sans-serif;font-weight:700;font-size:26px;color:var(--signal);
+  line-height:1}
+.week.soon .wn,.week.soon .wt{color:var(--faint)}
+.week .wt{font-family:"Archivo",sans-serif;font-weight:600;font-size:17px}
+.week .wq{font-size:13.5px;color:var(--soft);margin-top:3px}
+.week .st{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--pass);white-space:nowrap}
+.week.soon .st{color:var(--faint)}
+.week .wbody{border-top:1px solid var(--rule);padding:16px 18px 18px}
+
+/* ---- lesson page ---- */
+.page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
+.rail{position:sticky;top:22px;font-size:13.5px}
+.rail .rt{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
+  border-left:2px solid var(--rule);line-height:1.4}
+.rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.rail a i{font-family:"JetBrains Mono",monospace;font-style:normal;font-size:10.5px;
+  color:var(--faint);margin-right:7px}
+.rail a:hover i{color:var(--signal)}
+.doc{min-width:0}
+.doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:31px;letter-spacing:-.02em;
+  line-height:1.22;margin:62px 0 14px;padding-top:22px;border-top:2.5px solid var(--ink)}
+.doc h2 .hn{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11.5px;
+  letter-spacing:.24em;color:var(--signal);margin-bottom:10px}
+.doc h2.sub{font-weight:600;font-size:23px;color:var(--soft);border-top:none;
+  margin:0 0 18px;padding-top:0}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19.5px;margin:30px 0 8px;
+  padding-left:12px;border-left:3px solid var(--rule)}
+.doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
+.doc p{margin:12px 0}
+.doc ul,.doc ol{padding-left:22px}
+.doc li{margin:5px 0}
+.doc blockquote{margin:16px 0;padding:13px 18px;background:var(--panel);
+  border-left:4px solid var(--signal);border-radius:0 8px 8px 0;color:var(--ink)}
+.doc blockquote p{margin:6px 0}
+.doc blockquote h3{margin-top:2px}
+.doc blockquote h1{font-family:"Archivo",sans-serif;font-weight:700;
+  font-size:clamp(18px,2.4vw,24px);line-height:1.35;letter-spacing:-.012em;
+  margin:8px 0 6px;color:var(--ink)}
+.doc blockquote h1 + h1{color:var(--signal);font-size:clamp(15px,2vw,18px);font-weight:600}
+.doc table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.doc th,.doc td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+.doc thead th{background:var(--ink);color:var(--paper);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.doc tbody tr:last-child td{border-bottom:none}
+.doc tbody tr:nth-child(even){background:#fff}
+.doc hr{border:none;border-top:1px solid var(--rule);margin:30px 0}
+.doc details{background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+  padding:11px 15px;margin:14px 0}
+.doc summary{cursor:pointer;font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px;color:var(--probe)}
+.doc img{max-width:100%}
+
+/* ---- in-lesson figure: accumulating complexity ladder ---- */
+.ladder{margin:22px 0 8px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow);background:var(--panel)}
+.ladder figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.ladder figcaption span:last-child{color:#93A2AE;text-transform:none;letter-spacing:.02em}
+.rung{display:grid;grid-template-columns:46px 1fr;border-top:1px solid var(--rule)}
+.rung:first-of-type{border-top:none}
+.rn{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;color:var(--faint);
+  padding:14px 0 0;text-align:center;border-right:1px solid var(--rule)}
+.rbody{padding:12px 16px 14px}
+.rhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:9px}
+.rhead b{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px}
+.rhead code{background:none;padding:0;color:var(--soft);font-size:12.5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:"JetBrains Mono",monospace;font-size:11.5px;padding:3px 9px;border-radius:20px;
+  border:1px solid var(--rule);color:var(--faint);background:var(--panel-2)}
+.chip.new{border-color:var(--signal);color:#fff;background:var(--signal);font-weight:500}
+.wline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.08em;padding:8px 16px}
+.wline span:first-child{color:var(--signal);white-space:nowrap;font-weight:500}
+.lfoot{border-top:1px solid var(--rule);padding:11px 16px;font-size:13px;color:var(--soft)}
+.lfoot b{color:var(--signal)}
+@media(max-width:640px){.rhead code{display:none}}
+
+/* ---- in-lesson diagrams (```diag) ---- */
+.diag{margin:22px 0 12px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  background:var(--panel);box-shadow:var(--shadow)}
+.diag figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
+.dpipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px 18px}
+.dnode{border:1.5px solid var(--ink);border-radius:8px;padding:8px 12px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:14px}
+.darr{color:var(--signal);font-weight:700;font-family:"JetBrains Mono",monospace}
+.dflow{padding:16px 18px;display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.dflow .darr{text-align:center;padding:2px 0}
+.dstep{border:1.5px solid var(--ink);border-radius:8px;padding:10px 14px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:15px}
+.dcmp{display:grid;grid-template-columns:1fr 1fr}
+.dcol{padding:14px 16px}
+.dcol + .dcol{border-left:1.5px solid var(--rule)}
+.dh{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;margin-bottom:8px;color:var(--signal)}
+.dcell{font-size:14px;padding:6px 0;border-top:1px solid var(--rule)}
+.dcol .dcell:first-of-type{border-top:none}
+.dnest{padding:16px}
+.dbox{border:1.5px solid var(--ink);border-radius:8px;padding:10px 12px;background:#fff}
+.dbox .dbox{margin-top:8px;background:var(--panel);border-color:var(--rule)}
+.dbox .dbox .dbox{background:var(--panel-2)}
+.dlab{font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+.gcell{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;background:#fff}
+.gcell b{display:block;font-family:"Archivo",sans-serif;font-size:15px;margin-bottom:4px;color:var(--signal)}
+.gcell span{font-size:13.5px;color:var(--soft)}
+@media(max-width:640px){
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+
+.pager{display:flex;justify-content:space-between;gap:14px;margin:52px 0 0;
+  border-top:1.5px solid var(--ink);padding-top:18px;flex-wrap:wrap}
+.pager a{font-family:"JetBrains Mono",monospace;font-size:13px;text-decoration:none;color:var(--probe)}
+.pager a:hover{color:var(--signal)}
+
+footer{margin-top:56px;border-top:1.5px solid var(--ink);background:var(--panel)}
+footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding-top:18px;padding-bottom:44px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+
+@media(max-width:900px){
+  .mast .id{letter-spacing:.08em;font-size:10.5px;overflow:visible;text-overflow:unset;max-width:none}
+  .mast .id-name,.mast .id-dot{display:none}
+  .page{grid-template-columns:1fr;gap:20px}
+  .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
+  .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
+  .layer{grid-template-columns:1fr}
+  .layer .nm,.layer .note{border:none}
+  .layer .note{padding-top:0}
+  .waterline{grid-template-columns:1fr}
+  .card{grid-template-columns:46px 1fr}
+  .card .tag{display:none}
+  .skills,.arcs{grid-template-columns:1fr}
+  .week .wh{grid-template-columns:46px 1fr}
+  .week .st{display:none}
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .layer .bar{animation:none}
+  a.card:hover{transform:none}
+}
+.math-display{margin:24px 0;overflow-x:auto;text-align:center}
+.math-display mjx-container[display="true"]{margin:.65em 0!important}
+</style>
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['$', '$']], processEscapes: true},
+  options: {skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head><body>
+
+<header class="mast"><div class="wrap">
+<span class="id"><span class="id-name">Agent Evaluation &amp; Benchmark Engineering</span><span class="id-dot"> · </span><b>WEEK 05</b></span>
+<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="lesson01.html">W1</a><a href="w2-01.html">W2</a><a href="w3-01.html">W3</a><a href="w4-01.html">W4</a><a href="w5-01.html" class="on">W5</a></nav><nav class="mast-lessons"><a href="w5-01.html">1</a><a href="w5-02.html" class="on">2</a><span class="soonnav">3</span><span class="soonnav">4</span><span class="soonnav">5</span></nav></div>
+</div></header>
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">同样是 10% pass rate,为什么有的 task 测到能力、有的只测到 artifact</a><a href="#s1"><i>00</i>同一个 10%,五种完全不同的解释</a><a href="#s2"><i>01</i>先冻结 task bundle,不要只读 prompt</a><a href="#s3"><i>02</i>Task-demand decomposition:先解释最短成功路径</a><a href="#s4"><i>03</i>Information sufficiency:可推导不等于显式写出</a><a href="#s5"><i>04</i>Solution-space audit:gold solution 是 witness,不是定义</a><a href="#s6"><i>05</i>Human feasibility 不是「找个人做出来」</a><a href="#s7"><i>06</i>Controlled perturbations:用因果 probe 找出「为什么难」</a><a href="#s8"><i>07</i>Pilot trajectories:不要只看 aggregate pass rate</a><a href="#s9"><i>08</i>SWE-Bench audits:筛掉「难」会让 benchmark 更差</a><a href="#s10"><i>09</i>Task admission rubric</a><a href="#s11"><i>10</i>Audit exercise:解释一个任务为什么难</a><a href="#s12"><i>11</i>验收</a><a href="#s13">本课结论</a><a href="#s14">References</a></aside>
+<article class="doc"><h1>第 2 课:Task Validity &amp; Construct-Irrelevant Difficulty</h1>
+<h2 id="s0" class="sub">同样是 10% pass rate,为什么有的 task 测到能力、有的只测到 artifact</h2>
+<p><strong>Week 5 Day 2</strong> · task admission · 建议 80 分钟 + 30 分钟 audit exercise</p>
+<blockquote>
+<h3>本课唯一命题</h3>
+<h1>低通过率不是 task quality evidence。</h1>
+<h1>必须证明 task 的难度由目标 capability demand 产生,而不是 hidden information、reference-path lock-in、环境摩擦或无关格式。</h1>
+<p>📄 OpenAI, <a href="https://openai.com/index/separating-signal-from-noise-coding-evaluations/"><em>Separating signal from noise in coding evaluations</em></a>, 2026
+📄 OpenAI, <a href="https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/"><em>Why SWE-bench Verified no longer measures frontier coding capabilities</em></a>, 2026
+📄 Wijk et al., <a href="https://arxiv.org/abs/2411.15114"><em>RE-Bench</em></a>, 2024
+📄 OpenAI &amp; Tacit Labs, <a href="https://cdn.openai.com/pdf/b4299379-0a97-4ffa-8b9b-c3fbb299caa9/lifescibench_preprint.pdf"><em>LifeSciBench</em></a>, 2026
+📘 Anthropic, <a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"><em>Demystifying evals for AI agents</em></a>, 2026</p>
+</blockquote>
+<figure class="diag"><figcaption><span>本课不是二分词汇课</span></figcaption><div class="dflow"><div class="dstep">观察到 task pass rate 很低</div><div class="darr">↓</div><div class="dstep">分解 task 实际施加的 demands</div><div class="darr">↓</div><div class="dstep">用 context、alternate paths、humans 与 perturbations 收集证据</div><div class="darr">↓</div><div class="dstep">判断低分能否归因给目标 capability</div><div class="darr">↓</div><div class="dstep">决定 keep / fix / quarantine / reject</div></div></figure>
+
+<p>「hard 与 broken 不同」一句话就能讲完。本课研究的是困难的部分:<strong>面对边界案例,怎样用可重复的 evidence 解释 task 为什么难。</strong></p>
+<hr />
+<h2 id="s1"><span class="hn">§ 00</span>同一个 10%,五种完全不同的解释</h2>
+<table>
+<thead>
+<tr>
+<th>task</th>
+<th>10% pass rate 的主要原因</th>
+<th style="text-align: right;">支持目标 capability claim?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>跨文件定位、修改与验证确实很难</td>
+<td style="text-align: right;">是</td>
+</tr>
+<tr>
+<td>B</td>
+<td>prompt 漏掉 hidden test 要求</td>
+<td style="text-align: right;">否</td>
+</tr>
+<tr>
+<td>C</td>
+<td>只接受 gold patch 使用的 internal helper</td>
+<td style="text-align: right;">否</td>
+</tr>
+<tr>
+<td>D</td>
+<td>时间预算远低于 competent human 的最短路径</td>
+<td style="text-align: right;">测到 speed/budget,需改 claim</td>
+</tr>
+<tr>
+<td>E</td>
+<td>任务同时要求目标 planning 与无关冷门 CLI 语法</td>
+<td style="text-align: right;">混合,需进一步分解</td>
+</tr>
+</tbody>
+</table>
+<figure class="diag"><figcaption><span>difficulty 与 validity 是两条轴</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Difficulty</div><div class="dcell">目标对象在指定条件下多大概率成功</div><div class="dcell">随 model / harness / budget 改变</div><div class="dcell">低 success 不等于有问题</div></div><div class="dcol"><div class="dh">Validity</div><div class="dcell">outcome 是否能解释为目标 construct 的 evidence</div><div class="dcell">相对于 task contract 与 capability claim 判断</div><div class="dcell">invalid task 可以很容易、也可以很难</div></div></div></figure>
+
+<p>难度是条件概率,不是 task 的永久标签:</p>
+<div class="math-display">\[
+d_i(A,H,E,B)=1-P(Y=1\mid T_i,A,H,E,B)
+\]</div>
+
+<p>同一题对不同 Agent population、harness、environment 与 budget 可以有不同难度。真正要审计的是:</p>
+<div class="math-display">\[
+\text{observed difficulty}
+=\text{target demand}+\text{realistic co-demand}+\text{irrelevant nuisance}+\text{task defect}
+\]</div>
+
+<hr />
+<h2 id="s2"><span class="hn">§ 01</span>先冻结 task bundle,不要只读 prompt</h2>
+<p>Agent task 不是一段自然语言:</p>
+<figure class="diag"><figcaption><span>Task bundle</span></figcaption><div class="dnest"><div class="dbox"><div class="dlab">Instruction · 可见要求与成功目标</div><div class="dbox"><div class="dlab">Initial state · repo / DB / files / UI</div><div class="dbox"><div class="dlab">Available information · docs / logs / nearby code / clarification</div><div class="dbox"><div class="dlab">Action surface · tools / permissions / network</div><div class="dbox"><div class="dlab">Resource policy · time / tokens / compute</div><div class="dbox"><div class="dlab">Success contract · accepted outcomes / prohibited side effects</div></div></div></div></div></div></div></div></figure>
+
+<p>task validity 是整个 bundle 的属性。只 proofread prompt,看不到这些错误:</p>
+<figure class="diag"><figcaption><span>prompt 之外的 defect</span></figcaption><div class="dgrid"><div class="gcell"><b>Initial state</b><span>dependency 缺失、gold patch 已部分应用、数据过期</span></div><div class="gcell"><b>Information</b><span>必要 requirement 只存在于 reviewer 私有上下文</span></div><div class="gcell"><b>Tools</b><span>任务要求浏览,但 network policy 禁止访问</span></div><div class="gcell"><b>Budget</b><span>setup 已消耗大部分时限</span></div><div class="gcell"><b>Success</b><span>tests 绑定 reference implementation 或漏查副作用</span></div></div></figure>
+
+<p>W4 从 scorer 角度问 predicate 会不会误判一条 trajectory;本课从 benchmark admission 角度问:<strong>这整个 task bundle 能不能进入声称测量某能力的数据集。</strong></p>
+<hr />
+<h2 id="s3"><span class="hn">§ 02</span>Task-demand decomposition:先解释最短成功路径</h2>
+<p>对每个 task,至少写出一条合理的最短成功路径,再将步骤映射到 demands。</p>
+<figure class="diag"><figcaption><span>repository bug task 的成功路径</span></figcaption><div class="dflow"><div class="dstep">理解 issue 与 reproduction</div><div class="darr">↓</div><div class="dstep">定位跨模块状态流</div><div class="darr">↓</div><div class="dstep">形成 failure hypothesis</div><div class="darr">↓</div><div class="dstep">修改 producer / consumer contract</div><div class="darr">↓</div><div class="dstep">运行 targeted tests</div><div class="darr">↓</div><div class="dstep">解释 regression 并修正</div></div></figure>
+
+<p>然后把 demands 分成三类:</p>
+<figure class="diag"><figcaption><span>demand 分类</span></figcaption><div class="dgrid"><div class="gcell"><b>Target construct</b><span>本来就想测的能力</span></div><div class="gcell"><b>Realistic co-demand</b><span>现实完成任务不可避免、但不是主结论的能力</span></div><div class="gcell"><b>Irrelevant nuisance</b><span>与 claim 无关,却显著影响 success 的因素</span></div></div></figure>
+
+<p>示例:</p>
+<table>
+<thead>
+<tr>
+<th>demand</th>
+<th>分类</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>跨文件 code localization</td>
+<td>target</td>
+<td>blueprint 明确要测 repository work</td>
+</tr>
+<tr>
+<td>阅读项目惯用 test structure</td>
+<td>realistic co-demand</td>
+<td>真实 repo 工作的一部分</td>
+</tr>
+<tr>
+<td>猜未记录的产品经理口头要求</td>
+<td>task defect</td>
+<td>Agent 没有可获得 evidence</td>
+</tr>
+<tr>
+<td>使用某个未说明 helper 名称</td>
+<td>irrelevant nuisance</td>
+<td>功能等价实现不依赖它</td>
+</tr>
+<tr>
+<td>构建系统偶发下载失败</td>
+<td>W6 infra noise</td>
+<td>不是本课的 capability demand</td>
+</tr>
+</tbody>
+</table>
+<h3>2.1 名义 skill label 不算分解</h3>
+<figure class="diag"><figcaption><span>label 与 mechanism</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">「planning task」</div><div class="dcell">「tool-use task」</div><div class="dcell">「long-horizon task」</div><div class="dcell">「research task」</div></div><div class="dcol"><div class="dh">task 需要维护哪些依赖、在哪些 feedback 后重规划</div><div class="dcell">成功需要选择什么 tool、参数错误怎样暴露</div><div class="dcell">有多少相互依赖的状态转换,而不只是 wall time 长</div><div class="dcell">需要提出、区分并更新哪些 hypotheses</div></div></div></figure>
+
+<p>如果 reviewer 不能说明低分是由哪段 mechanism 产生,<code>hard</code> 只是形容词。</p>
+<hr />
+<h2 id="s4"><span class="hn">§ 03</span>Information sufficiency:可推导不等于显式写出</h2>
+<p>现实任务不会把所有信息都写进 prompt。把任何 ambiguity 都叫 broken,会把 benchmark 变成教科书题;把任何遗漏都叫「需要主动探索」,又会替 hidden requirements 开脱。</p>
+<p>正确问题是:</p>
+<div class="math-display">\[
+I_{required}\subseteq \operatorname{closure}(I_{observable},R_{reasonable})?
+\]</div>
+
+<p>$I_{observable}$ 是 Agent 可以看到的信息,$R_{reasonable}$ 是目标对象应具备的合理推导规则。<code>closure</code> 表示通过 repository conventions、docs、tool observations 与允许的交互可以恢复的信息。</p>
+<figure class="diag"><figcaption><span>reasonable ambiguity 与 true underspecification</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Reasonable ambiguity</div><div class="dcell">要求可从类型、邻近代码与公开 convention 恢复</div><div class="dcell">多个线索互相支持</div><div class="dcell">目标专家通常会主动调查</div><div class="dcell">澄清能减少时间,但不是唯一成功路径</div></div><div class="dcol"><div class="dh">True underspecification</div><div class="dcell">hidden test 引入任何可见材料都没有的要求</div><div class="dcell">只能从 gold patch 反推</div><div class="dcell">独立专家给出互不兼容解释</div><div class="dcell">缺少澄清就没有唯一可判定 outcome</div></div></div></figure>
+
+<p>OpenAI 对 SWE-Bench Pro 的深度 review 让 investigator agents 进入 repository、运行 tests、检查 model attempts 与 nearby conventions,正是为了区分可由 repo context 消解的合理 ambiguity 与真正的 underspecification。<a href="https://openai.com/index/separating-signal-from-noise-coding-evaluations/">audit methodology</a></p>
+<h3>3.1 Information ledger</h3>
+<pre><code class="language-yaml">requirement: &quot;preserve backward-compatible timezone parsing&quot;
+visibility:
+  prompt: absent
+  public_docs: present
+  nearby_code: present
+  existing_tests: partial
+  gold_patch_only: false
+reasonable_for_target_agent: true
+review_evidence:
+  - docs/api.md#timezone-inputs
+  - parser.py:41-68
+</code></pre>
+<p>每条 hidden assertion 都应能回到至少一个 Agent 可见 source。<code>gold patch says so</code> 不是充分来源。</p>
+<hr />
+<h2 id="s5"><span class="hn">§ 04</span>Solution-space audit:gold solution 是 witness,不是定义</h2>
+<p>Reference solution 最多证明:</p>
+<div class="math-display">\[
+\exists x:\;U(x)=1
+\]</div>
+
+<p>它不证明只有这条 path 合法:</p>
+<div class="math-display">\[
+\{x:U(x)=1\}=\{x_{gold}\}
+\]</div>
+
+<figure class="diag"><figcaption><span>reference witness 与 reference lock-in</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Witness</div><div class="dcell">证明任务至少存在一条完成路径</div><div class="dcell">帮助验证 feasibility</div><div class="dcell">可用于构造 positive control</div></div><div class="dcol"><div class="dh">Lock-in</div><div class="dcell">把 gold patch 的实现细节当 success definition</div><div class="dcell">拒绝不同 abstraction、顺序或数据结构</div><div class="dcell">把相似度当 correctness</div></div></div></figure>
+
+<h3>4.1 画出 equivalence classes</h3>
+<p>对 coding task,合法 solution space 可能包含:</p>
+<figure class="diag"><figcaption><span>功能等价,实现不同</span></figcaption><div class="dgrid"><div class="gcell"><b>Patch A</b><span>修改 parser,集中 normalize</span></div><div class="gcell"><b>Patch B</b><span>修改 callers,在边界 normalize</span></div><div class="gcell"><b>Patch C</b><span>引入兼容 wrapper,保留旧 API</span></div><div class="gcell"><b>Patch D</b><span>重构内部表示,外部 behavior 不变</span></div></div></figure>
+
+<p>不能仅因为 D 与 gold diff 很远就拒绝;也不能仅因为 patch 与 gold 相似就认为完成。应由产品行为、invariants 与 prohibited side effects 定义 equivalence。</p>
+<h3>4.2 Alternate-valid controls</h3>
+<figure class="diag"><figcaption><span>solution-space audit</span></figcaption><div class="dflow"><div class="dstep">从 contract 写行为 invariants</div><div class="darr">↓</div><div class="dstep">让独立专家产生第二条合法路径</div><div class="darr">↓</div><div class="dstep">执行同一 scorer / tests</div><div class="darr">↓</div><div class="dstep">若 alternate-valid FAIL,定位绑定的实现细节</div><div class="darr">↓</div><div class="dstep">把它加入 task regression controls</div></div></figure>
+
+<p>这复用 W4 的 control 思想,但结论不同:W4 决定 scorer 是否升级;W5 决定 task 是否有资格代表目标能力。</p>
+<hr />
+<h2 id="s6"><span class="hn">§ 05</span>Human feasibility 不是「找个人做出来」</h2>
+<p>一个 author 能运行自己的 gold solution,只证明作者知道自己的意图。更强的 feasibility evidence 包括:</p>
+<figure class="diag"><figcaption><span>feasibility ladder</span></figcaption><div class="dgrid"><div class="gcell"><b>L0</b><span>author solution 在 frozen environment 可运行</span></div><div class="gcell"><b>L1</b><span>独立专家只看 Agent-visible information 能完成</span></div><div class="gcell"><b>L2</b><span>多位专家对 requirement 与 success criteria 基本一致</span></div><div class="gcell"><b>L3</b><span>completion time / clarification / failure traces 被记录</span></div><div class="gcell"><b>L4</b><span>专家提出的 alternate-valid solutions 也被接受</span></div></div></figure>
+
+<p>RE-Bench 不只发布七个 ML research engineering environments,还收集了 61 位不同专家的 71 次八小时 attempts。82% 的 expert attempts 得到 non-zero score,24% 达到或超过 strong reference solutions。<a href="https://arxiv.org/abs/2411.15114">RE-Bench</a></p>
+<p>这些数据提供的不只是「人能做」:</p>
+<ul>
+<li>task 是否需要目标 expertise;</li>
+<li>八小时预算是否让专家产生进展;</li>
+<li>reference solution 是否处在合理 performance range;</li>
+<li>humans 与 agents 的 strategy / time-return 怎样不同。</li>
+</ul>
+<h3>5.1 Human failure 不自动证明 broken</h3>
+<figure class="diag"><figcaption><span>两个错误推断</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">一个专家失败</div><div class="dcell">一个作者成功</div></div><div class="dcol"><div class="dh">任务 broken</div><div class="dcell">任务 valid</div></div></div></figure>
+
+<p>需要检查 expertise、budget、可见信息、环境一致性和失败原因。Feasibility 是证据组合,不是单个 bool。</p>
+<hr />
+<h2 id="s7"><span class="hn">§ 06</span>Controlled perturbations:用因果 probe 找出「为什么难」</h2>
+<p>如果一个因素理论上不属于目标 construct,改变它不应重写 benchmark 结论。构造保持核心任务不变的 variants:</p>
+<figure class="diag"><figcaption><span>task perturbation suite</span></figcaption><div class="dgrid"><div class="gcell"><b>Information</b><span>补充疑似遗漏 requirement / 去掉多余 hint</span></div><div class="gcell"><b>Surface</b><span>改格式、命名、文件顺序、无关 prose</span></div><div class="gcell"><b>Environment</b><span>固定无关 setup friction,保持可用 tools 不变</span></div><div class="gcell"><b>Solution</b><span>alternate-valid implementation / action order</span></div><div class="gcell"><b>Budget</b><span>增加 time / tokens,观察 failure mode 转换</span></div></div></figure>
+
+<p>设 $Z$ 是目标 demand,$N$ 是 nuisance,$Y$ 是成功。我们希望 nuisance perturbation 的影响受控:</p>
+<div class="math-display">\[
+\Delta_N=P(Y=1\mid Z,N_1)-P(Y=1\mid Z,N_0)
+\]</div>
+
+<p>如果只改无关 formatting 就让成功率从 10% 变成 70%,原 task 的低分主要不能解释为目标能力。</p>
+<h3>6.1 三种 perturbation 结论</h3>
+<table>
+<thead>
+<tr>
+<th>结果</th>
+<th>解释</th>
+<th>动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>semantic-preserving variants 稳定</td>
+<td>对 surface nuisance 较 robust</td>
+<td>支持 keep</td>
+</tr>
+<tr>
+<td>补充必要信息后大幅改善</td>
+<td>原题可能 underspecified</td>
+<td>fix / quarantine</td>
+</tr>
+<tr>
+<td>增加 budget 后逐步改善且策略相同</td>
+<td>task 测到 horizon / efficiency</td>
+<td>修改 claim 或分预算报告</td>
+</tr>
+<tr>
+<td>alternate-valid path 被拒绝</td>
+<td>solution-space 过窄</td>
+<td>修 success contract</td>
+</tr>
+<tr>
+<td>去掉 irrelevant setup 后模型排名反转</td>
+<td>benchmark 混入 setup capability</td>
+<td>拆 slice 或 redesign</td>
+</tr>
+</tbody>
+</table>
+<p>不是所有 sensitivity 都是 bug。如果 benchmark 明确测 prompt robustness,format sensitivity 就是 construct;如果 benchmark 声称测 domain reasoning,它更可能是 nuisance。判断永远相对于 blueprint。</p>
+<hr />
+<h2 id="s8"><span class="hn">§ 07</span>Pilot trajectories:不要只看 aggregate pass rate</h2>
+<p>至少选择三档 Agent / harness 做 pilot:</p>
+<figure class="diag"><figcaption><span>pilot panel</span></figcaption><div class="dgrid"><div class="gcell"><b>Null / weak</b><span>找 accidental pass、shortcut 与 constant criteria</span></div><div class="gcell"><b>Mid-level</b><span>暴露 specification friction 与常见失败模式</span></div><div class="gcell"><b>Frontier / expert</b><span>寻找 ceiling、alternate paths 与 task defects</span></div></div></figure>
+
+<p>对每道题保存 reason-coded failure attribution:</p>
+<pre><code class="language-yaml">task_id: repo-184
+trial_id: frontier-agent-03
+outcome: FAIL
+attribution:
+  primary: INFORMATION_GAP
+  secondary: TEST_REFERENCE_LOCK
+evidence:
+  - &quot;hidden test requires behavior absent from issue/docs/code&quot;
+  - &quot;alternate expert patch rejected&quot;
+confidence: high
+reviewer_ids: [r12, r19]
+</code></pre>
+<figure class="diag"><figcaption><span>aggregate 看不到的两种 0 分</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Capability failure</div><div class="dcell">Agent 看到了足够 evidence,但形成错误 hypothesis</div><div class="dcell">Agent 选择了错误修改并产生 regression</div><div class="dcell">可以进入 capability analysis</div></div><div class="dcol"><div class="dh">Task-validity failure</div><div class="dcell">requirement 不在 observable information set</div><div class="dcell">功能等价 patch 被 gold-specific test 拒绝</div><div class="dcell">应进入 task QA queue</div></div></div></figure>
+
+<p>本课只要求 pilot 产生 task-level evidence。如何抽样、怎样避免自动筛查漏掉 unflagged tasks,留给 Lesson 3。</p>
+<hr />
+<h2 id="s9"><span class="hn">§ 08</span>SWE-Bench audits:筛掉「难」会让 benchmark 更差</h2>
+<p>OpenAI 2026 对 SWE-bench Verified 的审计选择了 138 个 o3 经常失败的任务;至少 59.4% 被认为存在实质性 test design 或 problem-description 问题。这个样本是困难子集,不是 500 题的随机样本,所以不能外推成全 benchmark broken prevalence。<a href="https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/">Verified audit</a></p>
+<p>SWE-Bench Pro 的后续 pipeline 在 731 个 public tasks 中先 flag 286 个候选,再通过 investigator-agent + researcher 与五名工程师 review,分别识别 200 与 249 个 broken tasks。<a href="https://openai.com/index/separating-signal-from-noise-coding-evaluations/">Pro audit</a></p>
+<p>四个主要 failure families:</p>
+<figure class="diag"><figcaption><span>SWE-Bench Pro task-bundle failures</span></figcaption><div class="dgrid"><div class="gcell"><b>Overly strict tests</b><span>强制 prompt 未要求的实现细节</span></div><div class="gcell"><b>Underspecified prompts</b><span>hidden tests 检查不可合理推导的要求</span></div><div class="gcell"><b>Low-coverage tests</b><span>不完整修复也能通过</span></div><div class="gcell"><b>Misleading prompts</b><span>可见要求把 Agent 引向错误 behavior</span></div></div></figure>
+
+<p>但正确治理动作不是删除所有低通过率 task:</p>
+<figure class="diag"><figcaption><span>错误的清洗策略</span></figcaption><div class="dflow"><div class="dstep">按 frontier pass rate 排序</div><div class="darr">↓</div><div class="dstep">删除最难的 30%</div><div class="darr">↓</div><div class="dstep">broken tasks 可能减少</div><div class="darr">↓</div><div class="dstep">真正 frontier-discriminating tasks 也被删除</div><div class="darr">↓</div><div class="dstep">benchmark 快速饱和</div></div></figure>
+
+<p>需要根据 defect evidence 而不是 difficulty threshold 做 admission。</p>
+<hr />
+<h2 id="s10"><span class="hn">§ 09</span>Task admission rubric</h2>
+<p>每道候选 task 至少经过六个 gates:</p>
+<table>
+<thead>
+<tr>
+<th>Gate</th>
+<th>核心问题</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Construct alignment</td>
+<td>成功是否需要 blueprint 中的 target demand?</td>
+<td>demand decomposition</td>
+</tr>
+<tr>
+<td>Information sufficiency</td>
+<td>必要 requirement 能否从可见信息合理恢复?</td>
+<td>information ledger</td>
+</tr>
+<tr>
+<td>Feasibility</td>
+<td>独立目标专家能否在冻结条件下推进/完成?</td>
+<td>human attempts</td>
+</tr>
+<tr>
+<td>Solution breadth</td>
+<td>合法 alternate paths 是否被接受?</td>
+<td>alternate-valid controls</td>
+</tr>
+<tr>
+<td>Nuisance robustness</td>
+<td>无关 perturbation 是否主导结果?</td>
+<td>variant outcomes</td>
+</tr>
+<tr>
+<td>Diagnostic value</td>
+<td>item 是否补 coverage hole 或区分能力区间?</td>
+<td>pilot response matrix</td>
+</tr>
+</tbody>
+</table>
+<figure class="diag"><figcaption><span>admission decision</span></figcaption><div class="dflow"><div class="dstep">六个 gates 都有 evidence</div><div class="darr">↓</div><div class="dstep">KEEP</div><div class="darr">↓</div><div class="dstep">可定位且能修复 contract / data / tests</div><div class="darr">↓</div><div class="dpipe"><span class="dnode">FIX</span><span class="darr">→</span><span class="dnode">重新走全部 gates</span></div><div class="darr">↓</div><div class="dstep">证据不足或 reviewer disagreement 未解决</div><div class="darr">↓</div><div class="dstep">QUARANTINE</div><div class="darr">↓</div><div class="dstep">核心 construct 不对齐或不可恢复</div><div class="darr">↓</div><div class="dstep">REJECT</div></div></figure>
+
+<h3>9.1 不要静默修题</h3>
+<p>一旦 task 已发布,修 prompt、state 或 success criteria 都可能改变测量对象:</p>
+<pre><code class="language-text">task_id: repo-184
+old_digest: sha256:aaa...
+new_digest: sha256:bbb...
+change_reason: INFORMATION_SUFFICIENCY
+comparability: BREAKING
+requires_rerun: true
+</code></pre>
+<p>完整 lifecycle 与 benchmark versioning 在 Lesson 4 展开;这里先保留 task lineage。</p>
+<hr />
+<h2 id="s11"><span class="hn">§ 10</span>Audit exercise:解释一个任务为什么难</h2>
+<p>选择 <a href="https://github.com/METR/public-tasks"><code>METR/public-tasks</code></a> 中一个 task family,不要先运行 frontier model。提交以下材料。</p>
+<h3>Step 1:写 success path</h3>
+<pre><code class="language-text">initial observation
+→ first information-gathering action
+→ intermediate hypothesis
+→ state-changing work
+→ validation
+→ submission
+</code></pre>
+<h3>Step 2:写 demand decomposition</h3>
+<table>
+<thead>
+<tr>
+<th>demand</th>
+<th>target / realistic co-demand / nuisance</th>
+<th>evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3>Step 3:写 information ledger</h3>
+<p>列出每个 success criterion 所需信息在哪里可见。任何只存在于 solution / grader 的 requirement 都要 flag。</p>
+<h3>Step 4:设计四个 variants</h3>
+<pre><code class="language-text">V0 original
+V1 semantic-preserving surface mutation
+V2 suspected missing-information clarification
+V3 alternate-valid solution or path
+</code></pre>
+<p>预注册每个 variant 可能支持或推翻的解释,不要看到结果后再编原因。</p>
+<h3>Step 5:给 admission decision</h3>
+<pre><code class="language-yaml">decision: KEEP | FIX | QUARANTINE | REJECT
+claim_supported:
+claim_not_supported:
+primary_evidence:
+remaining_uncertainty:
+required_followup:
+</code></pre>
+<hr />
+<h2 id="s12"><span class="hn">§ 11</span>验收</h2>
+<pre><code class="language-text">[ ] 不把 hard vs broken 当成主要知识点
+[ ] 把 difficulty 写成 Agent / harness / environment / budget 条件下的量
+[ ] 审计完整 task bundle,而不只 proofread prompt
+[ ] 能把 demands 分成 target、realistic co-demand 与 nuisance
+[ ] 用 observable information closure 区分合理 ambiguity 与 underspecification
+[ ] gold solution 只作为 feasibility witness,不定义唯一合法路径
+[ ] 至少有一个独立 human attempt 与一个 alternate-valid control
+[ ] 用 controlled perturbation 检查 difficulty attribution
+[ ] pilot 同时包含 weak、mid 与 frontier / expert behavior
+[ ] 根据 defect evidence 做 keep / fix / quarantine / reject,不按低 pass rate 删除
+[ ] task 修订保留 digest、reason 与 comparability
+</code></pre>
+<blockquote>
+<h2 id="s13">本课结论</h2>
+<p><strong>高质量 difficult task 的标准不是「frontier model 做不出来」,而是「在信息充分、solution space 合理、环境与 budget 明确的条件下,失败仍可归因给目标 capability demand」。</strong></p>
+<p>低通过率只是现象;task admission 需要一条可以被 perturbation、human attempt 与 alternate path 攻击的因果解释。</p>
+</blockquote>
+<hr />
+<h2 id="s14">References</h2>
+<ol>
+<li>OpenAI. <a href="https://openai.com/index/separating-signal-from-noise-coding-evaluations/">Separating signal from noise in coding evaluations</a>, 2026. SWE-Bench Pro 的 task-bundle failure taxonomy 与 agent-assisted / human review 方法。</li>
+<li>OpenAI. <a href="https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/">Why SWE-bench Verified no longer measures frontier coding capabilities</a>, 2026. 困难子集中的 narrow / wide tests 与抽样解释边界;contamination 留给 W7。</li>
+<li>Hjalmar Wijk et al. <a href="https://arxiv.org/abs/2411.15114">RE-Bench: Evaluating frontier AI R&amp;D capabilities of language model agents against human experts</a>, 2024. 开放式 task、human expert attempts、budget 与 reference-solution evidence;<a href="https://github.com/METR/RE-Bench">repo</a>。</li>
+<li>OpenAI &amp; Tacit Labs. <a href="https://cdn.openai.com/pdf/b4299379-0a97-4ffa-8b9b-c3fbb299caa9/lifescibench_preprint.pdf">LifeSciBench</a>, 2026. Question-rubric consistency、scientific ambition、fact checking、多轮 expert review 与 independent validation。</li>
+<li>Anthropic. <a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">Demystifying evals for AI agents</a>, 2026. Agent task / trial / outcome 定义、task design 与 transcript inspection 的工程实践。</li>
+<li>METR. <a href="https://github.com/METR/public-tasks">Example Task Suite</a> 与 <a href="https://github.com/METR/task-standard">Task Standard</a>. 本课 audit exercise 的源码对象。</li>
+</ol>
+<div class="pager"><a href="w5-01.html">← W5 第 1 课 · From Capability Claim to Benchmark Blueprint</a><a href="toc.html#w5">Week 5 →</a></div>
+</article></div></div>
+<footer><div class="wrap">
+<span>Week 05 · Benchmark Design, Task QA & Dataset Lifecycle</span>
+<span>ECBD · construct validity · METR · LifeSciBench</span>
+<span>由 week05/*.md 生成 · build_site.py</span>
+</div></footer></body></html>

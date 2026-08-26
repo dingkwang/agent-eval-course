@@ -302,7 +302,7 @@ window.MathJax = {
 <div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="lesson01.html">W1</a><a href="w2-01.html">W2</a><a href="w3-01.html" class="on">W3</a><a href="w4-01.html">W4</a><a href="w5-01.html">W5</a></nav><nav class="mast-lessons"><a href="w3-01.html">1</a><a href="w3-02.html">2</a><a href="w3-03.html">3</a><a href="w3-04.html" class="on">4</a></nav></div>
 </div></header>
 <div class="wrap"><div class="page">
-<aside class="rail"><div class="rt">本课目录</div><a href="#s0">A 是否真的优于 B,以及证据是否足以支持发布决策?</a><a href="#s1"><i>00</i>A=60%、B=63% 还不够</a><a href="#s2"><i>01</i>先定义 comparison estimand</a><a href="#s3"><i>02</i>方法路由:直接对 paired object 做 inference</a><a href="#s4"><i>03</i>statistically &gt; 0 还不是发布标准</a><a href="#s5"><i>04</i>Power 与 MDE:运行之前问「这个实验看得见什么」</a><a href="#s6"><i>05</i>Many models、many slices 与持续偷看</a><a href="#s7"><i>06</i>综合 Lab:Statistical Eval Report</a><a href="#s8"><i>07</i>读材料时只回答这些问题</a><a href="#s9">本课自检</a><a href="#s10">本课一句话</a></aside>
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">A 是否真的优于 B,以及证据是否足以支持发布决策?</a><a href="#s1"><i>00</i>A=60%、B=63% 还不够</a><a href="#s2"><i>01</i>先定义 comparison estimand</a><a href="#s3"><i>02</i>方法路由:直接对 paired object 做 inference</a><a href="#s4"><i>03</i>statistically &gt; 0 还不是发布标准</a><a href="#s5"><i>04</i>Power 与 MDE:运行之前问「这个实验看得见什么」</a><a href="#s6"><i>05</i>比较越多、查看结果越频繁,越容易偶然找到「显著提升」</a><a href="#s7"><i>06</i>综合 Lab:Statistical Eval Report</a><a href="#s8"><i>07</i>读材料时只回答这些问题</a><a href="#s9">本课自检</a><a href="#s10">本课一句话</a></aside>
 <article class="doc"><h1>第 4 课:Paired Comparison、Power 与 Statistical Eval Report</h1>
 <h2 id="s0" class="sub">A 是否真的优于 B,以及证据是否足以支持发布决策?</h2>
 <p><strong>Week 3 Day 4</strong> · 统计推断 + 综合 lab · 建议 100 分钟</p>
@@ -541,18 +541,22 @@ N\approx
 <figure class="diag"><figcaption><span>不显著之后</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">错误</div><div class="dcell">A 和 B 一样</div><div class="dcell">B 没有提升</div><div class="dcell">再多跑一点直到显著</div></div><div class="dcol"><div class="dh">正确</div><div class="dcell">CI 仍允许 -4pp 到 +7pp;当前 design 无法区分</div><div class="dcell">未达到预注册 superiority criterion</div><div class="dcell">按 fixed plan 结束,或使用预注册 sequential method</div></div></div></figure>
 
 <hr />
-<h2 id="s6"><span class="hn">§ 05</span>Many models、many slices 与持续偷看</h2>
-<h3>5.1 先定义 comparison family</h3>
+<h2 id="s6"><span class="hn">§ 05</span>比较越多、查看结果越频繁,越容易偶然找到「显著提升」</h2>
+<p>这里有三种不同但相关的行为:</p>
+<figure class="diag"><figcaption><span>偶然赢家从哪里来</span></figcaption><div class="dgrid"><div class="gcell"><b>同时比较很多 models</b><span>10 个 models 已有 45 组 A/B pairs</span></div><div class="gcell"><b>查看很多 task slices</b><span>category、repo、难度、语言各做一次检验</span></div><div class="gcell"><b>反复查看中途结果</b><span>每完成一些 tasks 就检查,一显著便停止</span></div></div></figure>
+
+<p>它们的共同点是:<strong>给随机波动很多次成为“好消息”的机会。</strong> 即使每一次检验的 false-positive rate 都是 5%,做很多次后「至少出现一个假阳性」的概率也会升高。</p>
+<h3>5.1 先定义哪些比较共同对应一个结论</h3>
 <p>10 个 models 有 45 个 unordered pairs;再乘 categories、metrics 与 prompts,偶然赢家很快出现。</p>
 <figure class="diag"><figcaption><span>Multiplicity policy</span></figcaption><div class="dgrid"><div class="gcell"><b>Primary contrast</b><span>一个预注册 A vs B + primary metric</span></div><div class="gcell"><b>Confirmatory family</b><span>Holm 等 FWER control</span></div><div class="gcell"><b>Exploratory slices</b><span>BH-FDR 或明确标 exploratory</span></div><div class="gcell"><b>Post-hoc discovery</b><span>新实验确认,不在同一数据上重新宣布 confirmatory</span></div></div></figure>
 
 <p><code>p&lt;0.05</code> 不是每个 slice 各自拥有的免费预算。也不要把所有 diagnostics 粗暴塞进一个 family;family 应对应同一组要共同保证的 claims。</p>
-<h3>5.2 Rank 是所有 pairwise decisions 的压缩</h3>
+<h3>5.2 排名是很多组 A/B 比较的压缩</h3>
 <p>raw leaderboard rank 没有 error bar。<em>Quantifying Ranking Uncertainty in LLM Benchmarks</em> 用 directional pairwise tests + multiple-comparison correction 构造 rank intervals:</p>
 <figure class="diag"><figcaption><span>Rank interval 的来源</span></figcaption><div class="dflow"><div class="dstep">每个 model pair 的 directional test</div><div class="darr">↓</div><div class="dstep">控制 comparison family error</div><div class="darr">↓</div><div class="dstep">数出明确高于 / 低于 model j 的集合</div><div class="darr">↓</div><div class="dstep">得到 model j 仍可能处于的 rank range</div></div></figure>
 
 <p>若 model 的 rank interval 是 <code>[2,7]</code>,报告单一的 <code>rank=3</code> 会制造不存在的精确度。完整 leaderboard aggregation 留到 Week 8;本课只要求不要把 point rank 当统计结论。</p>
-<h3>5.3 每完成一个 task 就偷看不是免费 early stopping</h3>
+<h3>5.3 不要每完成一些 tasks 就查看结果,一显著便停止</h3>
 <p>普通 fixed-sample CI / p-value 在反复查看并按显著性停止时失去标称 error control。选择之一:</p>
 <ul>
 <li>固定 $N$ 与 stopping rule,只在计划终点作 confirmatory decision;</li>

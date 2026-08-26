@@ -266,9 +266,20 @@ B 没有提升 | 未达到预注册 superiority criterion
 
 ---
 
-## 五、Many models、many slices 与持续偷看
+## 五、比较越多、查看结果越频繁,越容易偶然找到「显著提升」
 
-### 5.1 先定义 comparison family
+这里有三种不同但相关的行为:
+
+```diag
+grid | 偶然赢家从哪里来
+同时比较很多 models | 10 个 models 已有 45 组 A/B pairs
+查看很多 task slices | category、repo、难度、语言各做一次检验
+反复查看中途结果 | 每完成一些 tasks 就检查,一显著便停止
+```
+
+它们的共同点是:**给随机波动很多次成为“好消息”的机会。** 即使每一次检验的 false-positive rate 都是 5%,做很多次后「至少出现一个假阳性」的概率也会升高。
+
+### 5.1 先定义哪些比较共同对应一个结论
 
 10 个 models 有 45 个 unordered pairs;再乘 categories、metrics 与 prompts,偶然赢家很快出现。
 
@@ -282,7 +293,7 @@ Post-hoc discovery | 新实验确认,不在同一数据上重新宣布 confirmat
 
 `p<0.05` 不是每个 slice 各自拥有的免费预算。也不要把所有 diagnostics 粗暴塞进一个 family;family 应对应同一组要共同保证的 claims。
 
-### 5.2 Rank 是所有 pairwise decisions 的压缩
+### 5.2 排名是很多组 A/B 比较的压缩
 
 raw leaderboard rank 没有 error bar。*Quantifying Ranking Uncertainty in LLM Benchmarks* 用 directional pairwise tests + multiple-comparison correction 构造 rank intervals:
 
@@ -296,7 +307,7 @@ flow | Rank interval 的来源
 
 若 model 的 rank interval 是 `[2,7]`,报告单一的 `rank=3` 会制造不存在的精确度。完整 leaderboard aggregation 留到 Week 8;本课只要求不要把 point rank 当统计结论。
 
-### 5.3 每完成一个 task 就偷看不是免费 early stopping
+### 5.3 不要每完成一些 tasks 就查看结果,一显著便停止
 
 普通 fixed-sample CI / p-value 在反复查看并按显著性停止时失去标称 error control。选择之一:
 

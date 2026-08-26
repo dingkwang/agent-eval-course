@@ -72,7 +72,7 @@ AA 另有一批更直接的 agent evaluations:
 | **2** | **Eval Runtime & Trajectory Engineering** | 不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录 | 📄 [4 课 + Day 5 lab](week02/PLAN.md) |
 | **3** | **Metrics & Statistics** | 一个 observation 是什么?误差棒怎么算? | |
 | **4** | **Scorers / Verifiers / LLM-as-Judge** | 成功如何被判定?judge 准不准? | |
-| **5** | **Benchmark Design, Audit & Dataset Lifecycle** | 成功/失败反映的是能力,还是题目和测试写坏了? | |
+| **5** | **Benchmark Design, Task QA & Dataset Lifecycle** | 从 capability claim 到 task set:成功/失败为什么能代表目标能力? | 🔨 2/5 |
 | **6** | **Reproducibility, Failure Semantics & Experiment Operations** | 同一 Agent、同一 benchmark,为什么改一点 infra 分数就变?哪些失败进分母? | |
 | **7** | **Evaluation Integrity & Adversarial Validation** | 怎样防止 Agent、数据和基础设施破坏测量本身?(不讲 cgroups/seccomp) | |
 | **8** | **Leaderboard / Aggregation / Artificial Analysis** | 成千上万个 task result 怎么压成一个数字? | 📄 已详细规划 |
@@ -126,16 +126,26 @@ Harbor 的层级是 Task / Dataset / Agent / Environment / Trial / Job。Inspect
 - [BrowserGym](https://arxiv.org/abs/2412.05467)(非 terminal environment 的统一 observation/action)
 - `../llm-rl-course/code/harbor` · `../agent-sandbox-course/code/inspect_ai` · SWE-bench harness
 
-## Week 5 · Benchmark Design, Audit & Dataset Lifecycle(预告)
+## Week 5 · Benchmark Design, Task QA & Dataset Lifecycle
 
-问题:如何证明成功和失败反映的是 Agent 能力,而不是题目或测试写坏了?
-OpenAI 2026 审计 SWE-Bench Pro 时估计约 30% 任务存在破坏性问题(测试过严、prompt 缺信息、覆盖不足、误导)。
+问题:如何证明一组 task 能支持预先声明的 capability claim,而不是只产生一批看起来困难的分数?
+
+| Day | 主题 | 核心产物 | 状态 |
+|---|---|---|---|
+| 1 | From Capability Claim to Benchmark Blueprint | intended use → construct → task distribution → evidence 的 validity argument | ✅ |
+| 2 | Task Validity & Construct-Irrelevant Difficulty | demand decomposition、information ledger、perturbation 与 admission decision | ✅ |
+| 3 | Benchmark QA Is a Sampling Problem | flagged + random-unflagged 双通道 audit | 待写 |
+| 4 | Release, Versioning & Retirement | immutable manifest、quarantine、comparability | 待写 |
+| 5 | Benchmark Release Candidate | 可运行的 candidate → audit → versioned release lab | 待写 |
+
+L1 以 ECBD 为设计骨架,结合 METR、HELM 与 LifeSciBench;L2 不把「hard vs broken」当成单独知识点,而是追问 observed difficulty 能否归因给 target capability demand。
 
 源码 / 文档:
+- [ECBD: Evidence-Centered Benchmark Design](https://arxiv.org/abs/2406.08723)与[worksheet repo](https://github.com/isle-dev/ECBD)
+- [Measuring What Matters: Construct Validity in LLM Benchmarks](https://arxiv.org/abs/2511.04703)
+- [METR Task Standard](https://github.com/METR/task-standard)与[public tasks](https://github.com/METR/public-tasks)
+- [LifeSciBench](https://cdn.openai.com/pdf/b4299379-0a97-4ffa-8b9b-c3fbb299caa9/lifescibench_preprint.pdf)
 - [OpenAI SWE-Bench Pro 审计](https://openai.com/index/separating-signal-from-noise-coding-evaluations/)
-- [Anthropic Agent Evals](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents)
-- [SWE-bench Verified 创建](https://openai.com/index/introducing-swe-bench-verified/)
-- [后续污染与测试缺陷](https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/)
 
 ## Week 6 · Reproducibility, Failure Semantics & Experiment Operations(预告)
 

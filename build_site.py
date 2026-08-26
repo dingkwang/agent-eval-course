@@ -18,6 +18,7 @@ SRC = ROOT / "week01"
 SRC_W2 = ROOT / "week02"
 SRC_W3 = ROOT / "week03"
 SRC_W4 = ROOT / "week04"
+SRC_W5 = ROOT / "week05"
 OUT = ROOT / "site"
 
 # (slug, day, title, desc, tag, source .md — None = 尚未写)
@@ -58,8 +59,8 @@ WEEKS = [
     ("4", "Scorer Validation for Agent Evals",
      "从 trajectory / environment state 到可信 score:verifier 真的把成功判对了吗?",
      "2/5", True),
-    ("5", "Benchmark Design, Audit & Dataset Lifecycle",
-     "成功/失败反映的是能力,还是题目和测试写坏了?", None, False),
+    ("5", "Benchmark Design, Task QA & Dataset Lifecycle",
+     "从 capability claim 到 task set:成功/失败为什么能代表目标能力?", "2/5", True),
     ("6", "Reproducibility, Failure Semantics & Experiment Operations",
      "同一 Agent、同一 benchmark,为什么改一点 infra 分数就变?哪些失败进分母?", None, False),
     ("7", "Evaluation Integrity & Adversarial Validation",
@@ -113,6 +114,22 @@ W4_LESSONS = [
      "用 reference labels 测量 scorer error", "统计", None),
     ("w4-05", "5", "Scorer Audit Report",
      "错误是否足以改变发布结论", "lab", None),
+]
+
+# Week 5: validate the benchmark's capability claim, task distribution, and tasks.
+W5_LESSONS = [
+    ("w5-01", "1", "From Capability Claim to Benchmark Blueprint",
+     "先写 validity argument,再收集 task", "方法 + 源码",
+     "lesson01-capability-to-benchmark-blueprint.md"),
+    ("w5-02", "2", "Task Validity & Construct-Irrelevant Difficulty",
+     "低通过率为什么能归因给目标能力", "方法 + 审计",
+     "lesson02-task-validity-difficulty.md"),
+    ("w5-03", "3", "Benchmark QA Is a Sampling Problem",
+     "自动筛查漏掉的坏题怎样被看见", "审计 + 统计", None),
+    ("w5-04", "4", "Release, Versioning & Retirement",
+     "修题后还是不是同一个 benchmark", "生命周期", None),
+    ("w5-05", "5", "Benchmark Release Candidate",
+     "从 candidates 到 versioned release", "lab", None),
 ]
 
 # depth cross-section: the signature figure. depth = how much real environment.
@@ -649,6 +666,7 @@ def _week_nav() -> list[tuple[str, str, list, str]]:
         ("2", "W2", W2_LESSONS, "#w2"),
         ("3", "W3", W3_LESSONS, "#w3"),
         ("4", "W4", W4_LESSONS, "#w4"),
+        ("5", "W5", W5_LESSONS, "#w5"),
     ]
 
 
@@ -659,6 +677,8 @@ def _active_week(active: str) -> str | None:
         return "3"
     if active.startswith("w4-"):
         return "4"
+    if active.startswith("w5-"):
+        return "5"
     if active.startswith("lesson"):
         return "1"
     return None
@@ -700,6 +720,8 @@ def masthead(active: str) -> str:
         badge = "WEEK 03"
     elif current == "4":
         badge = "WEEK 04"
+    elif current == "5":
+        badge = "WEEK 05"
     else:
         badge = "WEEK 01"
     return f"""<header class="mast"><div class="wrap">
@@ -811,6 +833,20 @@ def w4_body() -> str:
 <div class="cards">{''.join(cards)}</div>"""
 
 
+def w5_body() -> str:
+    cards = []
+    for slug, n, title, desc, tag, src in W5_LESSONS:
+        body = (f'<span class="num">{n}</span>'
+                f'<span><span class="t">{title}</span><span class="d">{desc}</span></span>'
+                f'<span class="tag">{tag}</span>')
+        cards.append(f'<a class="card" href="{slug}.html">{body}</a>' if src
+                     else f'<div class="card off">{body}</div>')
+    done = sum(1 for *_x, src in W5_LESSONS if src)
+    return f"""<p class="lede" style="margin-top:16px">4 节课 + Day 5 Benchmark Release Candidate lab。
+已完成 <b>{done}/5</b>。W5 固定通过审计的 scorer,改查 capability claim、task distribution 与 task admission。</p>
+<div class="cards">{''.join(cards)}</div>"""
+
+
 def build_intro() -> str:
     return f"""{HEAD.format(title="Agent Evaluation & Benchmark Engineering", css=CSS)}
 {masthead("index")}
@@ -871,6 +907,8 @@ def build_toc() -> str:
             body = w3_body()
         elif n == "4":
             body = w4_body()
+        elif n == "5":
+            body = w5_body()
         else:
             body = ""
         inner = f'<div class="wbody">{body}</div>' if body else ""
@@ -1081,6 +1119,40 @@ def build_w4_lesson(idx: int) -> str:
 {foot}"""
 
 
+def build_w5_lesson(idx: int) -> str:
+    slug, n, title, _d, _tag, src = W5_LESSONS[idx]
+    md_text = expand_diagrams(expand_math((SRC_W5 / src).read_text()))
+    md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
+    html, rail_html = _anchor_h2(render_math_blocks(md.convert(md_text)))
+    foot = footer(
+        "Week 05 · Benchmark Design, Task QA & Dataset Lifecycle",
+        "ECBD · construct validity · METR · LifeSciBench",
+        "由 week05/*.md 生成 · build_site.py",
+    )
+
+    def neighbor(step: int):
+        j = idx + step
+        while 0 <= j < len(W5_LESSONS):
+            if W5_LESSONS[j][5]:
+                return W5_LESSONS[j]
+            j += step
+        return None
+
+    p, nx = neighbor(-1), neighbor(1)
+    prev_l = (f'<a href="{p[0]}.html">← W5 第 {p[1]} 课 · {p[2]}</a>' if p
+              else '<a href="toc.html#w5">← Week 5</a>')
+    next_l = (f'<a href="{nx[0]}.html">W5 第 {nx[1]} 课 · {nx[2]} →</a>' if nx
+              else '<a href="toc.html#w5">Week 5 →</a>')
+    return f"""{HEAD.format(title=f"W5 第 {n} 课 · {title}", css=CSS)}
+{masthead(slug)}
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div>{rail_html}</aside>
+<article class="doc">{html}
+<div class="pager">{prev_l}{next_l}</div>
+</article></div></div>
+{foot}"""
+
+
 def main() -> None:
     OUT.mkdir(exist_ok=True)
     idx = build_intro()
@@ -1119,6 +1191,14 @@ def main() -> None:
             print(f"  {slug}.html    {'—':>8}   (未写)")
             continue
         page = build_w4_lesson(i)
+        (OUT / f"{slug}.html").write_text(page)
+        live.add(f"{slug}.html")
+        print(f"  {slug}.html   {len(page):>8,} B   ← {src}")
+    for i, (slug, *_rest, src) in enumerate(W5_LESSONS):
+        if src is None:
+            print(f"  {slug}.html    {'—':>8}   (未写)")
+            continue
+        page = build_w5_lesson(i)
         (OUT / f"{slug}.html").write_text(page)
         live.add(f"{slug}.html")
         print(f"  {slug}.html   {len(page):>8,} B   ← {src}")

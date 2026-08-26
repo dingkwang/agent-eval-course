@@ -5,11 +5,12 @@
 **Week 3 Day 1** · 统计推断课 · 建议 60 分钟 + 小 lab
 
 > ### 本课唯一命题
-> # 在计算平均分之前,先说明一行数据代表什么,以及这个数字要推广到哪里。
-> # `TrialResult` 是 observation;task 是主要独立采样单位;estimand 才是最终想知道的量。
+> # 在计算平均分之前,先冻结被测系统、说明一行数据代表什么,以及这个数字要推广到哪里。
+> # `TrialResult` 是 observation;task 是主要独立采样单位;estimand 与 sampling design 共同决定最终结论。
 
 > 📄 Evan Miller, *Adding Error Bars to Evals* §2、§3.1
 > 📄 Bjarnason et al., *On Randomness in Agentic Evals* §2.3–2.4
+> 📄 Wu et al., *Efficient Evaluation of LLM Performance with Statistical Guarantees* · finite-population inference
 > 💻 输入:Week 2 产生的 `TrialResult` rows
 
 ```diag
@@ -23,6 +24,44 @@ Verifier score + terminal status
 Week 2 证明一条 observation 是怎样被正确地产生和记录的。Week 3 不再问 adapter 有没有加料、verifier 对不对;先假定每次有效 Trial 已得到 score,问:
 
 **这些 score 的平均数在估计什么?不确定性来自 task 选择,还是同一 task 重跑时的随机性?**
+
+---
+
+## 起点、先写 data-generating process,不要只写 model 名
+
+Agent eval 的被测对象通常不是裸模型,而是一个**声明完整、可部署的配置**:
+
+```diag
+flow | 一条 score 怎样被产生
+目标使用场景与 task population
+sampling frame 与 task selection
+model + harness + prompt/tools + budget
+runtime / environment + provider routing
+attempt trajectory + terminal status
+verifier score 或 missing outcome
+```
+
+课程把这套配置记为 $A$,把固定的 evaluation condition 记为 $C$。最少应冻结:
+
+| 层 | 必须记录什么 | 为什么会改变结论 |
+|---|---|---|
+| Model | provider、model/version、reasoning effort | 同名 endpoint 也可能升级或路由 |
+| Agent harness | scaffold、system prompt、tool schema、memory/retry policy | harness 决定可采取的策略 |
+| Budget | token、tool-call、wall time、candidate 数 | 资源增加通常改变成功概率 |
+| Runtime | image、依赖、网络、workspace 初态、reset policy | state 与工具故障进入 trajectory |
+| Scoring condition | verifier/version、timeout 与 invalid rule | 决定什么进入分母、什么算成功 |
+
+这不是命名洁癖。RuBench 报告某个产品配置在 25 个 task 中有 5 个触发官方 safeguard fallback,请求被路由到另一模型;因此它实际测到的是 **CLI agent + routing policy + model**。ClawProBench 也把 declared model-plus-runtime configuration 明确当作 evaluation unit。两例都提醒:
+
+> **若配置中的一个组件在运行中改变,你不能把结果重新解释成裸模型能力。**
+
+```diag
+compare | 两种 claim,需要两种实验
+只改 model | model contrast · 其余 harness / budget / runtime 固定
+比较部署产品 | system contrast · 把 routing / tools / runtime 视作 SUT 一部分
+```
+
+本周仍假定 verifier 已给出可信 score;但必须保留它的版本和 invalid/missing 状态,否则后续无法知道统计分析到底条件于哪套测量规则。
 
 ---
 
@@ -197,6 +236,62 @@ production mix | 按真实流量权重,不是 benchmark 等权
 
 后两项是 Lesson 2;production weighting 是 Week 8/9。本课默认目标是:**new task + one attempt + task-macro average**。
 
+### 2.2 Fixed bank 与 task super-population 不是同一个 estimand
+
+很多 benchmark 并不是从真实 production traffic 随机抽出的。先区分两个都合理、但不能混写的目标:
+
+```math
+\mu_B(A,C)=\frac{1}{N}\sum_{i=1}^{N}p_i
+```
+
+这是 **fixed-bank estimand**:只问冻结题库 $B$ 上的平均表现。若把全部 $N$ 个 task 都跑完,task set 本身不是随机样本;剩余不确定性主要来自 repeated attempts。此时不能把一个假想的「抽题 CI」包装成对所有未来任务的保证。
+
+```math
+\mu_D(A,C)=\mathbb E_{T\sim D}[p_T]
+```
+
+这是 **super-population estimand**:想推广到目标分布 $D$ 中未见过的新 task。它需要 sampling frame、抽样/纳入机制与目标 $D$ 之间有可辩护的联系。CI 可以量化抽样波动,却不能修复 coverage bias:若 frame 根本没有移动端任务,误差棒再窄也不能支持移动端 claim。
+
+```diag
+compare | 先问推广到哪里,再决定不确定性
+Frozen benchmark bank B | Target task distribution D
+描述这 N 道题 | 推广到未来未见 task
+task 是有限总体成员 | task 被看作来自 sampling frame
+可报告 attempt uncertainty | 还需 task-sampling uncertainty
+不自动代表 production | 必须说明 external-validity 假设
+```
+
+若 production mix 不是 task 等权,目标应在看结果前声明权重:
+
+```math
+\mu_w=\frac{\sum_{i=1}^{N}w_i p_i}{\sum_{i=1}^{N}w_i}
+```
+
+`macro`、按 category 等权、按真实流量加权回答的是不同问题。不要因某种权重让分数更好看才事后选择。Wu et al. 进一步把大题库评测写成 finite-population inference,用主动抽题在查询预算下缩窄仍有 coverage guarantee 的 CI;它优化的是**已声明总体内的测量成本**,不是替你定义目标总体。
+
+### 2.3 一页报告必须带 estimand contract
+
+```diag
+grid | Estimand contract · 计算前填写
+SUT | model + harness + tools + budget + runtime / routing
+Outcome | score 定义、terminal status、verifier version
+Task target | fixed bank B 或 target distribution D
+Attempt event | one fresh attempt;Lesson 2 才扩展到 k 次
+Aggregation | task-macro、strata weight 或 production weight
+Missing rule | planned / executed / valid / scoreable 各有多少
+```
+
+尤其不要只报 `n=400`。至少同时报告:
+
+```text
+N_planned_tasks · N_included_tasks
+K_planned_attempts · K_executed_attempts
+n_scored · n_timeout · n_infra_error · n_verifier_error
+exclusion reasons + analysis denominator
+```
+
+这些数字不替 Week 6 决定 failure semantics;它们保证研究者没有用静默删除改变 estimand。
+
 ---
 
 ## 三、为什么同一个平均数有两类随机性
@@ -357,6 +452,10 @@ category
 [ ] agent_id 能解析到完整 config 或 config digest
 [ ] category 不随 attempt 改变
 [ ] batch_id / infra_version 足以定位共享故障
+[ ] SUT manifest 能解析到 model + harness + tools + budget + runtime / routing
+[ ] 报告明确写 fixed bank B 或 target distribution D,不混用两种 claim
+[ ] 若使用 weights,来源与归一化规则在看 outcome 前定义
+[ ] planned / executed / scored / excluded denominators 同时可重建
 ```
 
 ### 6.3 第一张图:task × attempt heatmap
@@ -398,10 +497,19 @@ grid | heatmap 应让人一眼看见什么
 - 60,000 trajectories 证明的是某些 coding-agent 配置的实证现象,还是所有 agent benchmark 的普遍常数?
 - 为什么这篇论文的 multi-run 数据仍不能自动解决 task-population validity?
 
+### 2026 case studies
+
+- RuBench 的 fallback 事件为什么说明 evaluation unit 是 deployed configuration,而非请求中写下的 model 名?
+- ClawProBench 的 model-plus-runtime unit 应如何进入 `agent_id` / config manifest?
+- Wu et al. 的 finite-population CI 保证条件于哪个题库?为什么它不自动支持 production generalization?
+
 来源:
 
 - [Adding Error Bars to Evals](https://arxiv.org/abs/2411.00640)
 - [On Randomness in Agentic Evals](https://arxiv.org/abs/2602.07150)
+- [RuBench](https://arxiv.org/abs/2607.06411)
+- [ClawProBench](https://arxiv.org/abs/2608.22510)
+- [Efficient Evaluation of LLM Performance with Statistical Guarantees](https://arxiv.org/abs/2601.20251) · [code](https://github.com/skbwu/efficiently-evaluating-llms)
 
 ---
 
@@ -411,20 +519,23 @@ grid | heatmap 应让人一眼看见什么
 [ ] 能说出 canonical table 的 grain:一行 = 一个 Trial execution,由 trial_id 标识
 [ ] 能解释为什么 benchmark_version / experiment_id 必须进入 semantic uniqueness
 [ ] 能解释 score=0 与 score=null 为什么必须分开
+[ ] 能把 SUT 写成 model + harness + tools + budget + runtime / routing,不把 system score 误称为裸模型能力
 [ ] 能区分一次运行、一道题的平均、这套题的平均、和对新题的推广;不把第一层当成「Agent 有多强」
 [ ] 能区分 estimand、estimator、estimate
+[ ] 能区分 fixed-bank estimand 与 target-distribution estimand,并指出 CI 不能修复 sampling-frame coverage bias
 [ ] 能写出默认 estimand:在条件 C 下,从 D 抽新 task 并运行一次的预期成功率
 [ ] 能解释 Var(Y) 的 between-task 与 within-task 两项
 [ ] 能解释为什么增加 tasks 与增加 attempts 不是同一种预算
 [ ] 能说出 N×K(N 题各 K 次)和 NK 个独立 task 的区别:400 行不等于 400 道题
 [ ] 能从 canonical rows 生成 task_estimates 与 task-attempt heatmap
+[ ] 能同时重建 planned / executed / scored / excluded denominators
 ```
 
 ---
 
 ## 本课一句话
 
-> **平均分之前先定 grain,误差棒之前先定 estimand。**
-> **一行 TrialResult 是一次 observation;先在 task 内汇总,再跨 task 推断,才能说清这个数字究竟代表当前题集、一次新运行,还是目标任务分布。**
+> **平均分之前先冻结 SUT、定 grain;误差棒之前先定 estimand 与 sampling frame。**
+> **一行 TrialResult 是一次 observation;先在 task 内汇总,再跨 task 推断,并公开权重与分母,才能说清这个数字究竟代表当前题集、一次新运行,还是目标任务分布。**
 
 下一课:同一个 $p_i$,产品可能关心「多试几次能不能成功」,也可能关心「每次都能不能成功」——`pass@k` 与 `pass^k` 会把这两个问题分开。

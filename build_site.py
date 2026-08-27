@@ -55,7 +55,7 @@ WEEKS = [
      "2/5", False),
     ("3", "Statistical Inference for Stochastic Agent Evals",
      "从 Trial observations 到可信结论:估计什么、不确定性多大、A 是否真的优于 B?",
-     "2/5", True),
+     "4/4", True),
     ("4", "Scorer Validation for Agent Evals",
      "从 trajectory / environment state 到可信 score:verifier 真的把成功判对了吗?",
      "2/5", True),
@@ -95,9 +95,12 @@ W3_LESSONS = [
      "lesson01-observation-estimand.md"),
     ("w3-02", "2", "Repeated Trials", "Capability vs Reliability", "统计",
      "lesson02-capability-reliability.md"),
-    ("w3-03", "3", "Error Bars", "CI 必须匹配数据结构", "统计", None),
-    ("w3-04", "4", "Paired Comparison 与 Power", "A 是否真的优于 B", "统计", None),
-    ("w3-05", "5", "Statistical Eval Report", "可审计的统计结论", "lab", None),
+    ("w3-03", "3", "Uncertainty for Structured Eval Data",
+     "CI 必须重采样 estimand 的随机单位", "统计 + lab",
+     "lesson03-uncertainty-structured-data.md"),
+    ("w3-04", "4", "Paired Comparison、Power 与 Statistical Eval Report",
+     "A 是否真的优于 B,证据是否足以支持决策", "统计 + report lab",
+     "lesson04-paired-comparison-report.md"),
 ]
 
 # Week 4: treat the scorer itself as a system under evaluation.
@@ -814,8 +817,8 @@ def w3_body() -> str:
         cards.append(f'<a class="card" href="{slug}.html">{body}</a>' if src
                      else f'<div class="card off">{body}</div>')
     done = sum(1 for *_x, src in W3_LESSONS if src)
-    return f"""<p class="lede" style="margin-top:16px">4 节课 + Day 5 Statistical Eval Report lab。
-已完成 <b>{done}/5</b>。W3 假定 verifier 已给出 score,只研究估计、不确定性与比较。</p>
+    return f"""<p class="lede" style="margin-top:16px">3 节课 + Day 4 Statistical Eval Report lab。
+已完成 <b>{done}/4</b>。W3 假定 verifier 已给出 score,只研究估计、不确定性、比较与决策。</p>
 <div class="cards">{''.join(cards)}</div>"""
 
 
@@ -1058,7 +1061,7 @@ def build_w3_lesson(idx: int) -> str:
     html, rail_html = _anchor_h2(render_math_blocks(md.convert(md_text)))
     foot = footer(
         "Week 03 · Statistical Inference for Stochastic Agent Evals",
-        "Adding Error Bars to Evals · On Randomness in Agentic Evals",
+        "Adding Error Bars to Evals · On Randomness · Don't Use the CLT · Measuring all the noises",
         "由 week03/*.md 生成 · build_site.py",
     )
 

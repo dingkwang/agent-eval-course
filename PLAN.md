@@ -70,7 +70,7 @@ AA 另有一批更直接的 agent evaluations:
 |---|---|---|---|
 | **1** | **Popular Benchmark Anatomy** | 拿到 repo,源码追通 task → environment → agent → rollout → verifier → result | 🔨 4/6 |
 | **2** | **Eval Runtime & Trajectory Engineering** | 不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录 | 📄 [4 课 + Day 5 lab](week02/PLAN.md) |
-| **3** | **Metrics & Statistics** | 一个 observation 是什么?误差棒怎么算? | |
+| **3** | **Statistical Inference for Stochastic Agent Evals** | 从 Trial observations 到 estimand、uncertainty、paired decision 与可审计报告 | 📄 4/4 |
 | **4** | **Scorers / Verifiers / LLM-as-Judge** | 成功如何被判定?judge 准不准? | |
 | **5** | **Benchmark Design, Task QA & Dataset Lifecycle** | 从 capability claim 到 task set:成功/失败为什么能代表目标能力? | 🔨 2/5 |
 | **6** | **Reproducibility, Failure Semantics & Experiment Operations** | 同一 Agent、同一 benchmark,为什么改一点 infra 分数就变?哪些失败进分母? | |
@@ -125,6 +125,36 @@ Harbor 的层级是 Task / Dataset / Agent / Environment / Trial / Job。Inspect
 - [Harbor ATIF RFC](https://github.com/harbor-framework/harbor/blob/main/rfcs/0001-trajectory-format.md)
 - [BrowserGym](https://arxiv.org/abs/2412.05467)(非 terminal environment 的统一 observation/action)
 - `../llm-rl-course/code/harbor` · `../agent-sandbox-course/code/inspect_ai` · SWE-bench harness
+
+## Week 3 · Statistical Inference for Stochastic Agent Evals
+
+问题:verifier 已给出 score 后,怎样从 stochastic Trial observations 得到可信、可比较、可审计的结论?
+
+为避免把每个统计术语拆成一课,W3 压成 **3 节课 + Day 4 report lab**:
+
+| Day | 主题 | 核心产物 | 状态 |
+|---|---|---|---|
+| 1 | Observation、Experimental Unit 与 Estimand | SUT + grain + target population + denominator contract | ✅ |
+| 2 | Repeated Trials | pass@k / pass^k + selector + dependence + resource curves | ✅ |
+| 3 | Uncertainty for Structured Eval Data | matched CI method + variance components + coverage lab | ✅ |
+| 4 | Paired Comparison、Power 与 Statistical Eval Report | paired $\Delta$ + margin/MDE + auditable report | ✅ |
+
+课程边界:
+
+```text
+W3  假定 score 正确,研究 estimate / uncertainty / comparison
+W4  打开 scorer,研究 measurement validity
+W5  打开 task set,研究 construct / benchmark validity
+W6  打开运行过程,研究 infra noise 与 failure semantics
+```
+
+核心论文与代码:
+
+- [Adding Error Bars to Evals](https://arxiv.org/abs/2411.00640)与[Anthropic research note](https://www.anthropic.com/research/statistical-approach-to-model-evals)
+- [Don't Use the CLT in LLM Evals](https://arxiv.org/abs/2503.01747)与[bayes_evals](https://github.com/sambowyer/bayes_evals)
+- [Measuring all the noises of LLM Evals](https://arxiv.org/abs/2512.21326)
+- [On Randomness in Agentic Evals](https://arxiv.org/abs/2602.07150)
+- [Quantifying Ranking Uncertainty in LLM Benchmarks](https://arxiv.org/abs/2607.16259)与[code](https://github.com/BityaNeuhof/quantifying-rank-uncertainty)
 
 ## Week 5 · Benchmark Design, Task QA & Dataset Lifecycle
 
@@ -303,6 +333,6 @@ cross-session leakage rate · recovery success · token/cost/latency
 ```
 [x] W1  Benchmark Anatomy (4/6)     [ ] W5  Benchmark design / audit     [ ] W9   production eval
 [ ] W2  Eval runtime (4 lectures + lab)  [ ] W6  Repro / failure semantics    [ ] W10  eval ↔ on-policy RL
-[ ] W3  Metrics & statistics        [ ] W7  Eval integrity / adversarial [ ] W11  Kimi K3 case study
+[x] W3  Statistical inference (4/4) [ ] W7  Eval integrity / adversarial [ ] W11  Kimi K3 case study
 [ ] W4  Scorers / judges            [ ] W8  Leaderboards (plan exists)   [ ] W12  capstone
 ```

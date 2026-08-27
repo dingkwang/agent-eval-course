@@ -466,11 +466,13 @@ scorer 预测该 reference preference label 的能力。
 <p>论文也明确承认 Reddit 用户人口结构与社交 upvote 动机的限制。Reference standard 不是脱离文化和场景的 gold truth。</p>
 <hr />
 <h2 id="s6"><span class="hn">§ 05</span>LLM judge 的 control suite</h2>
-<p>同一个 judge prompt 在一批正常样本上与人类相关,仍可能依赖 shortcut。至少要跑以下 counterfactual controls。</p>
-<figure class="diag"><figcaption><span>open-ended judge 的六类 controls</span></figcaption><div class="dgrid"><div class="gcell"><b>Position swap</b><span>A/B 交换后 preference 应翻转身份但不翻转作品</span></div><div class="gcell"><b>Identity blind</b><span>隐藏 / 伪造 model name,verdict 不应跟品牌走</span></div><div class="gcell"><b>Length perturbation</b><span>加无信息 filler 不应稳定获胜</span></div><div class="gcell"><b>Style laundering</b><span>只去掉表面 AI markers 不应自动提升 craft</span></div><div class="gcell"><b>Content corruption</b><span>文风不变但改错事实 / 人物关系,分数应下降</span></div><div class="gcell"><b>Repeat</b><span>固定输入重复评分,估计 verdict consistency</span></div></div></figure>
+<p>在自然样本中,高质量作品往往<strong>偶然共线</strong>了更多字数、工整排版或知名品牌标签。LLM judge 即使完全不理解文学技艺与严密逻辑,仅靠「字数更多、排在前面、用词华丽」等<strong>表面捷径（shortcut）</strong>,也能在正常测试集上刷出与人类看似相近的打分相关性（Clever Hans 效应）。</p>
+<p>一旦把依赖 shortcut 的 judge 用作 leaderboard 排序或 RL 训练信号,模型就会迅速学会灌水扩写与格式作弊（reward hacking）。</p>
+<p>为了验证 judge 测到的是<strong>真实技艺（craft &amp; fidelity）</strong>还是<strong>作弊捷径（shortcut）</strong>,必须构造控制变量的<strong>反事实变异集（counterfactual controls）</strong>进行压力测试:</p>
+<figure class="diag"><figcaption><span>open-ended judge 的六类 controls</span></figcaption><div class="dgrid"><div class="gcell"><b>Position swap</b><span>A/B 交换后 preference 应翻转身份但不翻转作品 (防 order bias)</span></div><div class="gcell"><b>Identity blind</b><span>隐藏 / 伪造 model name,verdict 不应跟品牌走 (防 brand halo)</span></div><div class="gcell"><b>Length perturbation</b><span>加无信息 filler 不应稳定获胜 (防 verbosity shortcut)</span></div><div class="gcell"><b>Style laundering</b><span>只去掉表面 AI markers 不应自动提升 craft (防 proxy gaming)</span></div><div class="gcell"><b>Content corruption</b><span>文风不变但改错事实 / 人物关系,分数应下降 (防 fluency over substance)</span></div><div class="gcell"><b>Repeat</b><span>固定输入重复评分,估计 verdict consistency (防 decision instability)</span></div></div></figure>
 
 <h3>5.1 Position bias 不是只跑两次然后取平均</h3>
-<p>对每个 pair 运行 <code>(A,B)</code> 与 <code>(B,A)</code>:</p>
+<p>自回归模型天然对 Prompt 中的先后位置敏感。对每个 pair 必须运行 <code>(A,B)</code> 与 <code>(B,A)</code> 两次判断:</p>
 <table>
 <thead>
 <tr>
@@ -483,12 +485,12 @@ scorer 预测该 reference preference label 的能力。
 <tr>
 <td>A</td>
 <td>A 对应作品仍胜</td>
-<td>order-consistent</td>
+<td>order-consistent (判决由作品质量决定)</td>
 </tr>
 <tr>
 <td>A</td>
 <td>新位置 A 胜</td>
-<td>position-sensitive</td>
+<td>position-sensitive (判决由展示位置决定)</td>
 </tr>
 <tr>
 <td>tie</td>
@@ -502,13 +504,15 @@ scorer 预测该 reference preference label 的能力。
 </tr>
 </tbody>
 </table>
-<p>既要报告经 permutation 汇总的 preference,也要报告 swap inconsistency rate。后者是 scorer coverage / reliability metric。</p>
+<p>既要报告经 permutation 汇总后的真实 preference,也要单独报告 <strong>swap inconsistency rate</strong>。后者是 scorer 自身的 reliability 与 coverage 缺陷指标。</p>
 <h3>5.2 Length bias 要用 meaning-preserving 与 meaning-damaging mutation 分开测</h3>
-<figure class="diag"><figcaption><span>两种 length mutation</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">无信息扩写</div><div class="dcell">重复已知结论、华丽同义句</div><div class="dcell">Quality 不应仅因更长上升</div><div class="dcell">用于检测 verbosity shortcut</div></div><div class="dcol"><div class="dh">有意义扩写</div><div class="dcell">补足必要铺垫、证据或人物动机</div><div class="dcell">Quality 可能合理上升</div><div class="dcell">用于测试 rubric 是否识别真实增益</div></div></div></figure>
+<p>单纯统计「长文本胜率」无法区分偏差与真实质量差异（好作品确实可能需要充分展开）。必须从同一篇原始 artifact 出发,人为构造两类受控变异:</p>
+<figure class="diag"><figcaption><span>两种 length mutation</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">无信息扩写 (filler)</div><div class="dcell">重复已知结论、华丽同义句、空洞修辞</div><div class="dcell">Quality 不应仅因更长上升</div><div class="dcell">用于检测 verbosity shortcut</div></div><div class="dcol"><div class="dh">有意义扩写 (informative)</div><div class="dcell">补足必要铺垫、因果论据或人物动机</div><div class="dcell">Quality 可能合理上升</div><div class="dcell">用于测试 rubric 是否识别真实增益</div></div></div></figure>
 
-<p>只计算「长文本胜率」无法区分偏差与真实质量差异。需要从同一 artifact 出发构造 controlled mutations。</p>
+<p>如果加了 30% 废话的文本在 judge 眼中胜率大幅上升,说明该 judge 的判决逻辑已被 verbosity shortcut 绑架。</p>
 <h3>5.3 Judge explanation 不是 correctness evidence</h3>
-<p>一段流畅 rationale 可以合理化错误 verdict。LitBench 甚至发现,在其 trained generative reward models 上加入 chain-of-thought 后 accuracy 从约 78% 降至约 72%。Judge 的 explanation 适合错误分析,不能代替和 reference labels 的比较。</p>
+<p>一段流畅、有说服力的 rationale 往往只是后置合理解释（post-hoc rationalization）,完全可以用来合理化一个错误的 verdict。</p>
+<p>LitBench 发现,在其训练好的 generative reward models 上加入 chain-of-thought 后,判断准确率反而从约 78% 降至约 72%。Judge 的 explanation 仅适合作为定性错误归因线索,<strong>绝不能当作判定正确的量化证据</strong>。</p>
 <hr />
 <h2 id="s7"><span class="hn">§ 06</span><code>lieflat</code> case:测到 style shift 以后还缺什么</h2>
 <p>该仓库公开了六次 operator failure,其中最适合本课的是:</p>

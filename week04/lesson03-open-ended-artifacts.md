@@ -260,46 +260,54 @@ scorer 预测该 reference preference label 的能力。
 
 ## 五、LLM judge 的 control suite
 
-同一个 judge prompt 在一批正常样本上与人类相关,仍可能依赖 shortcut。至少要跑以下 counterfactual controls。
+在自然样本中,高质量作品往往**偶然共线**了更多字数、工整排版或知名品牌标签。LLM judge 即使完全不理解文学技艺与严密逻辑,仅靠「字数更多、排在前面、用词华丽」等**表面捷径（shortcut）**,也能在正常测试集上刷出与人类看似相近的打分相关性（Clever Hans 效应）。
+
+一旦把依赖 shortcut 的 judge 用作 leaderboard 排序或 RL 训练信号,模型就会迅速学会灌水扩写与格式作弊（reward hacking）。
+
+为了验证 judge 测到的是**真实技艺（craft & fidelity）**还是**作弊捷径（shortcut）**,必须构造控制变量的**反事实变异集（counterfactual controls）**进行压力测试:
 
 ```diag
 grid | open-ended judge 的六类 controls
-Position swap | A/B 交换后 preference 应翻转身份但不翻转作品
-Identity blind | 隐藏 / 伪造 model name,verdict 不应跟品牌走
-Length perturbation | 加无信息 filler 不应稳定获胜
-Style laundering | 只去掉表面 AI markers 不应自动提升 craft
-Content corruption | 文风不变但改错事实 / 人物关系,分数应下降
-Repeat | 固定输入重复评分,估计 verdict consistency
+Position swap | A/B 交换后 preference 应翻转身份但不翻转作品 (防 order bias)
+Identity blind | 隐藏 / 伪造 model name,verdict 不应跟品牌走 (防 brand halo)
+Length perturbation | 加无信息 filler 不应稳定获胜 (防 verbosity shortcut)
+Style laundering | 只去掉表面 AI markers 不应自动提升 craft (防 proxy gaming)
+Content corruption | 文风不变但改错事实 / 人物关系,分数应下降 (防 fluency over substance)
+Repeat | 固定输入重复评分,估计 verdict consistency (防 decision instability)
 ```
 
 ### 5.1 Position bias 不是只跑两次然后取平均
 
-对每个 pair 运行 `(A,B)` 与 `(B,A)`:
+自回归模型天然对 Prompt 中的先后位置敏感。对每个 pair 必须运行 `(A,B)` 与 `(B,A)` 两次判断:
 
 | 第一次 | 交换后 | 解释 |
 |---|---|---|
-| A | A 对应作品仍胜 | order-consistent |
-| A | 新位置 A 胜 | position-sensitive |
+| A | A 对应作品仍胜 | order-consistent (判决由作品质量决定) |
+| A | 新位置 A 胜 | position-sensitive (判决由展示位置决定) |
 | tie | A / B | 决策边界不稳定 |
 | parse error | 任意 | scorer failure,不是作品 FAIL |
 
-既要报告经 permutation 汇总的 preference,也要报告 swap inconsistency rate。后者是 scorer coverage / reliability metric。
+既要报告经 permutation 汇总后的真实 preference,也要单独报告 **swap inconsistency rate**。后者是 scorer 自身的 reliability 与 coverage 缺陷指标。
 
 ### 5.2 Length bias 要用 meaning-preserving 与 meaning-damaging mutation 分开测
 
+单纯统计「长文本胜率」无法区分偏差与真实质量差异（好作品确实可能需要充分展开）。必须从同一篇原始 artifact 出发,人为构造两类受控变异:
+
 ```diag
 compare | 两种 length mutation
-无信息扩写 | 有意义扩写
-重复已知结论、华丽同义句 | 补足必要铺垫、证据或人物动机
+无信息扩写 (filler) | 有意义扩写 (informative)
+重复已知结论、华丽同义句、空洞修辞 | 补足必要铺垫、因果论据或人物动机
 Quality 不应仅因更长上升 | Quality 可能合理上升
 用于检测 verbosity shortcut | 用于测试 rubric 是否识别真实增益
 ```
 
-只计算「长文本胜率」无法区分偏差与真实质量差异。需要从同一 artifact 出发构造 controlled mutations。
+如果加了 30% 废话的文本在 judge 眼中胜率大幅上升,说明该 judge 的判决逻辑已被 verbosity shortcut 绑架。
 
 ### 5.3 Judge explanation 不是 correctness evidence
 
-一段流畅 rationale 可以合理化错误 verdict。LitBench 甚至发现,在其 trained generative reward models 上加入 chain-of-thought 后 accuracy 从约 78% 降至约 72%。Judge 的 explanation 适合错误分析,不能代替和 reference labels 的比较。
+一段流畅、有说服力的 rationale 往往只是后置合理解释（post-hoc rationalization）,完全可以用来合理化一个错误的 verdict。
+
+LitBench 发现,在其训练好的 generative reward models 上加入 chain-of-thought 后,判断准确率反而从约 78% 降至约 72%。Judge 的 explanation 仅适合作为定性错误归因线索,**绝不能当作判定正确的量化证据**。
 
 ---
 

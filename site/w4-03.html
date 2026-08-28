@@ -302,7 +302,7 @@ window.MathJax = {
 <div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="lesson01.html">W1</a><a href="w2-01.html">W2</a><a href="w3-01.html">W3</a><a href="w4-01.html" class="on">W4</a><a href="w5-01.html">W5</a></nav><nav class="mast-lessons"><a href="w4-01.html">1</a><a href="w4-02.html">2</a><a href="w4-03.html" class="on">3</a><span class="soonnav">4</span><span class="soonnav">5</span></nav></div>
 </div></header>
 <div class="wrap"><div class="page">
-<aside class="rail"><div class="rt">本课目录</div><a href="#s0">文学写作没有 gold answer 时,judge 究竟代表谁?</a><a href="#s1"><i>00</i>先把四个不同问题拆开</a><a href="#s2"><i>01</i>开放式 artifact 不是「完全主观」,而是多层测量</a><a href="#s3"><i>02</i>Rubric 是局部 measurement contract</a><a href="#s4"><i>03</i>Absolute score 与 pairwise preference 回答不同问题</a><a href="#s5"><i>04</i>LitBench:「人类标签」也要写 measurement contract</a><a href="#s6"><i>05</i>LLM judge 的 control suite</a><a href="#s7"><i>06</i>lieflat case:测到 style shift 以后还缺什么</a><a href="#s8"><i>07</i>Model writing eval 与 Writing Agent eval</a><a href="#s9"><i>08</i>不要太早压成一个总分</a><a href="#s10"><i>09</i>Lab:审计一个「去 AI 味后写得更好」的 claim</a><a href="#s11"><i>10</i>验收</a><a href="#s12">本课结论</a><a href="#s13">References</a></aside>
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">文学写作没有 gold answer 时,judge 究竟代表谁?</a><a href="#s1"><i>00</i>先把四个不同问题拆开</a><a href="#s2"><i>01</i>开放式 artifact 不是「完全主观」,而是多层测量</a><a href="#s3"><i>02</i>Rubric 是局部 measurement contract</a><a href="#s4"><i>03</i>Absolute score 与 pairwise preference 回答不同问题</a><a href="#s5"><i>04</i>LitBench:「人类标签」也要写 measurement contract</a><a href="#s6"><i>05</i>LLM judge 的 control suite</a><a href="#s7"><i>06</i>lieflat case:测到 style shift 以后还缺什么</a><a href="#s8"><i>07</i>Model writing eval 与 Writing Agent eval</a><a href="#s9"><i>08</i>不要太早压成一个总分</a><a href="#s10"><i>09</i>P2 checkpoint:审计一个「去 AI 味后写得更好」的 claim</a><a href="#s11"><i>10</i>验收</a><a href="#s12">本课结论</a><a href="#s13">References</a></aside>
 <article class="doc"><h1>第 3 课:LLM-as-a-Judge for Open-Ended Artifacts</h1>
 <h2 id="s0" class="sub">文学写作没有 gold answer 时,judge 究竟代表谁?</h2>
 <p><strong>Week 4 Day 3</strong> · creative writing · preference evaluation · 建议 85 分钟 + 35 分钟 audit lab</p>
@@ -584,7 +584,7 @@ scorer 预测该 reference preference label 的能力。
 
 <p>是否允许 B 胜出取决于 intended use。发布 gate、创意探索和 best-of-N selection 会有不同 reduction policy。先报告 vector、disagreement 与 Pareto frontier;只有决策必须单排序时才冻结 aggregation。</p>
 <hr />
-<h2 id="s10"><span class="hn">§ 09</span>Lab:审计一个「去 AI 味后写得更好」的 claim</h2>
+<h2 id="s10"><span class="hn">§ 09</span>P2 checkpoint:审计一个「去 AI 味后写得更好」的 claim</h2>
 <p>目标不是训练一个文学 judge,而是证明现成 judge 到底测到什么。</p>
 <h3>Step 1:冻结三个 claim</h3>
 <pre><code class="language-yaml">claims:

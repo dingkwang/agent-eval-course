@@ -1,5 +1,7 @@
 # Week 8 — From Rollouts to Leaderboards
 
+> **Assessment policy**:本周的 aggregation 与 sensitivity labs 都进入 [P4 Evaluation Decision Report](../ASSESSMENTS.md)。W8 不新增独立作业；P4 在 W11 结束时统一提交。
+
 **一个个 task 的结果,最后是怎样变成「Claude 63、GPT 61」这种排行榜数字的?**
 
 > 这一周**不学 benchmark 怎么运行**(W1–W2 已学)。研究后半条 pipeline:
@@ -209,7 +211,7 @@ Leaderboard Engineering
 └── 8. Multi-objective      quality · cost · latency · Pareto frontier
 ```
 
-## 最终作业(不是写总结,是做项目)
+## P4 checkpoint(不是新的独立作业)
 
 ```
 labs/leaderboard/
@@ -220,7 +222,7 @@ labs/leaderboard/
 ├── sensitivity.py
 └── README.md
 ```
-自己生成:
+把以下结果并入 P4 Evaluation Decision Report:
 ```
 Model  Index   95% CI
 A      68.3    [66.1, 70.4]

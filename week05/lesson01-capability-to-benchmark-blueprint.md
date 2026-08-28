@@ -496,7 +496,7 @@ validity_plan:
 
 ---
 
-## 十二、Exercise:审计 METR public task suite
+## 十二、P3 checkpoint:审计 METR public task suite
 
 打开:
 

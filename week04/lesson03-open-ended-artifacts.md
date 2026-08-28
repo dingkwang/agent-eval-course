@@ -407,7 +407,7 @@ Artifact A | Artifact B
 
 ---
 
-## 九、Lab:审计一个「去 AI 味后写得更好」的 claim
+## 九、P2 checkpoint:审计一个「去 AI 味后写得更好」的 claim
 
 目标不是训练一个文学 judge,而是证明现成 judge 到底测到什么。
 

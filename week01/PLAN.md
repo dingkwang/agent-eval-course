@@ -1,6 +1,8 @@
 # Week 1 — Benchmark Archaeology
 ## 拿到任何 agent benchmark repo,能从源码追通整条链
 
+> **Assessment policy**:本周的 Source Code Map、SWE-bench teardown、τ³ verifier 与 hello-bench 都是 [P1 Eval Runtime Teardown](../ASSESSMENTS.md) 的 checkpoints，不是四份独立作业。P1 在 W2 结束时只提交一次。
+
 > **v2**(2026-08 重构)。v1「Evaluation 基本框架 → 统计 → 横向分析」已废止;
 > 那一版里仍然有效的四篇讲义移到 `../_deferred/`,会在 W2/W3/W7/W8 重新启用。
 
@@ -96,7 +98,7 @@ OSWorld         visual observation → computer actions → application state
                     resolved?
 ```
 
-**四个亲手实验**(先做 lab,再写讲义):
+**四个亲手实验**(P1 checkpoint；先做 lab,再写讲义):
 ```
 1. 跑 gold patch          → 确认 evaluator 本身能工作
 2. 跑 empty / 错误 patch  → 看 unresolved
@@ -150,7 +152,7 @@ action space · app/browser state · evaluator 怎么定位最终 UI/application
 
 ---
 
-## Day 6 · 自己造一个 benchmark(本周最重要的一天)
+## Day 6 · 自己造一个 benchmark(P1 checkpoint)
 
 > **repo 现在 lesson 很多、lab 太少。这一天不写讲义,写代码。**
 

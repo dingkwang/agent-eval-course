@@ -411,7 +411,7 @@ requires_rerun: true
 
 ---
 
-## 十、Audit exercise:解释一个任务为什么难
+## 十、P3 checkpoint:解释一个任务为什么难
 
 选择 [`METR/public-tasks`](https://github.com/METR/public-tasks) 中一个 task family,不要先运行 frontier model。提交以下材料。
 

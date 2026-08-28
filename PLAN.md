@@ -3,6 +3,7 @@
 
 > **12 周 · 每周 5 天 · 每天约 1 小时**。素材清单见 `MATERIALS.md`,第 1 周逐日见 `week01/PLAN.md`。
 > 姊妹课:`../agent-sandbox-course`(Secure Agent Environments)· `../llm-rl-course`(LLM RL → PPO → GRPO)。
+> 正式提交采用 **[4 个阶段项目 + 1 个 Capstone](ASSESSMENTS.md)**；所有 lesson lab / exercise 只是 checkpoint，不单独计数。
 
 ---
 
@@ -69,7 +70,7 @@ AA 另有一批更直接的 agent evaluations:
 | 周 | 主题 | 核心问题 | 状态 |
 |---|---|---|---|
 | **1** | **Popular Benchmark Anatomy** | 拿到 repo,源码追通 task → environment → agent → rollout → verifier → result | 🔨 4/6 |
-| **2** | **Eval Runtime & Trajectory Engineering** | 不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录 | 📄 [4 课 + Day 5 lab](week02/PLAN.md) |
+| **2** | **Eval Runtime & Trajectory Engineering** | 不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录 | 📄 [4 课 + P1 checkpoint](week02/PLAN.md) |
 | **3** | **Statistical Inference for Stochastic Agent Evals** | 从 Trial observations 到 estimand、uncertainty、paired decision 与可审计报告 | 📄 4/4 |
 | **4** | **Scorers / Verifiers / LLM-as-Judge** | 从 executable outcome 到开放式作品:成功与质量如何被判定? | 🔨 3/5 |
 | **5** | **Benchmark Design, Task QA & Dataset Lifecycle** | 从 capability claim 到 task set:成功/失败为什么能代表目标能力? | 🔨 2/5 |
@@ -80,6 +81,20 @@ AA 另有一批更直接的 agent evaluations:
 | **10** | **Evaluation ↔ On-policy RL** | 同一套 environment 怎么同时服务 eval 与训练? | |
 | **11** | **Kimi K3 / AgentENV / Harbor RL Case Study** | 前沿是怎么把这些拼在一起的? | |
 | **12** | **Capstone Benchmark** | 自己从零做一个可运行、可复现、可评分的 benchmark | |
+
+## 正式提交:4 + 1
+
+课程内容按周展开，但不按 lesson 收作业。正式交付只有:
+
+```text
+P1 · W1–W2   Eval Runtime Teardown
+P2 · W3–W4   Measurement Audit
+P3 · W5–W7   Benchmark Release Candidate
+P4 · W8–W11  Evaluation Decision Report
+C1 · W12     Permission-Aware Multi-User Agent Benchmark
+```
+
+完整合并关系、截止点与验收条件见 [`ASSESSMENTS.md`](ASSESSMENTS.md)。讲义中的小 lab、exercise、实验与 checklist 继续保留用于练习，但它们不是新的 submission；全课也不设置独立 quiz 或 written exam。
 
 **三段式**:
 ```
@@ -166,7 +181,7 @@ W6  打开运行过程,研究 infra noise 与 failure semantics
 | 2 | Deterministic Verifiers | shortcut / alternate-valid path / UNKNOWN control suite | ✅ |
 | 3 | LLM-as-a-Judge for Open-Ended Artifacts | creative writing 的 constraint / fidelity / craft / audience 分层 eval | ✅ |
 | 4 | Gold Set 与 Calibration | reference labels、scorer error 与 threshold calibration | 待写 |
-| 5 | Scorer Audit Report | scorer error 是否足以改变发布结论 | 待写 |
+| 5 | P2 Measurement Audit submission | scorer error 是否足以改变发布结论 | 待写 |
 
 W4 前两课从 computer-use、tool-calling 与 coding 的 executable outcome 出发;L3 补上没有 canonical answer 的 artifact tasks。文学写作是主 case,但方法同时适用于 research brief、报告、presentation、产品文案与设计方案。
 
@@ -189,7 +204,7 @@ L3 必须分开四个不同 estimand:AI 来源识别、风格特征、改写 int
 | 2 | Task Validity & Construct-Irrelevant Difficulty | demand decomposition、information ledger、perturbation 与 admission decision | ✅ |
 | 3 | Benchmark QA Is a Sampling Problem | flagged + random-unflagged 双通道 audit | 待写 |
 | 4 | Release, Versioning & Retirement | immutable manifest、quarantine、comparability | 待写 |
-| 5 | Benchmark Release Candidate | 可运行的 candidate → audit → versioned release lab | 待写 |
+| 5 | P3 Release Candidate checkpoint | 可运行的 candidate → audit → versioned release lab | 待写 |
 
 L1 以 ECBD 为设计骨架,结合 METR、HELM 与 LifeSciBench;L2 不把「hard vs broken」当成单独知识点,而是追问 observed difficulty 能否归因给 target capability demand。
 
@@ -355,7 +370,7 @@ cross-session leakage rate · recovery success · token/cost/latency
 # 进度
 ```
 [x] W1  Benchmark Anatomy (4/6)     [ ] W5  Benchmark design / audit     [ ] W9   production eval
-[ ] W2  Eval runtime (4 lectures + lab)  [ ] W6  Repro / failure semantics    [ ] W10  eval ↔ on-policy RL
+[ ] W2  Eval runtime (4 lectures + P1)   [ ] W6  Repro / failure semantics    [ ] W10  eval ↔ on-policy RL
 [x] W3  Statistical inference (4/4) [ ] W7  Eval integrity / adversarial [ ] W11  Kimi K3 case study
 [ ] W4  Scorers / judges (3/5)      [ ] W8  Leaderboards (plan exists)   [ ] W12  capstone
 ```

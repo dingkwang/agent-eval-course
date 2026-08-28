@@ -302,180 +302,246 @@ window.MathJax = {
 <div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="projects.html" class="on">项目</a><a href="toc.html#w1">W1</a><a href="toc.html#w2">W2</a><a href="toc.html#w3">W3</a><a href="toc.html#w4">W4</a><a href="toc.html#w5">W5</a></nav></div>
 </div></header>
 <div class="wrap"><div class="page">
-<aside class="rail"><div class="rt">项目要求</div><a href="#s0">W1–W2 · 从 benchmark 源码地图到可审计的 mini runtime</a><a href="#s1"><i>01</i>最终问题</a><a href="#s2"><i>02</i>必须复用的课程 checkpoints</a><a href="#s3"><i>03</i>实现范围</a><a href="#s4"><i>04</i>必须运行的 controls</a><a href="#s5"><i>05</i>提交目录</a><a href="#s6"><i>06</i>演示场景</a><a href="#s7"><i>07</i>验收 Rubric</a><a href="#s8"><i>08</i>不要求做什么</a></aside>
+<aside class="rail"><div class="rt">项目要求</div><a href="#s0">W1–W2 · 拆一个真实 benchmark，再扩展现有的 hello-bench</a><a href="#s1"><i>01</i>最后要交什么</a><a href="#s2"><i>02</i>第一部分：拆一个真实 benchmark</a><a href="#s3"><i>03</i>第二部分：扩展现有 mini eval</a><a href="#s4"><i>04</i>第三部分：跑五个实验</a><a href="#s5"><i>05</i>README 只回答六个问题</a><a href="#s6"><i>06</i>评分</a><a href="#s7"><i>07</i>选做，不影响通过</a></aside>
 <article class="doc"><h1>P1 · Eval Runtime Teardown</h1>
-<h2 id="s0" class="sub">W1–W2 · 从 benchmark 源码地图到可审计的 mini runtime</h2>
-<p><strong>正式提交次数:1</strong> · <strong>建议投入:10–12 小时</strong> · <strong>截止:W2 结束</strong></p>
+<h2 id="s0" class="sub">W1–W2 · 拆一个真实 benchmark，再扩展现有的 hello-bench</h2>
+<p><strong>正式提交次数:1</strong> · <strong>建议投入:8–10 小时</strong> · <strong>截止:W2 结束</strong></p>
 <blockquote>
-<p>你接手了一套只会输出 leaderboard score 的 eval。你的任务不是再包一层 CLI，而是证明一条 observation 怎样从 task 被可靠地产生，并交付一个别人可以运行、追踪和审计的最小实现。</p>
+<p>这份作业不是让你重写 Harbor，也不是写一篇 runtime 理论报告。你只做两件主事：先把一个真实 benchmark 的源码执行链找出来，再把课程现有的 <code>hello-bench</code> 扩展成一个能留下完整运行记录的 mini eval。</p>
 </blockquote>
 <hr />
-<h2 id="s1"><span class="hn">§ 01</span>最终问题</h2>
-<p>交付物必须让 reviewer 能回答:</p>
-<pre><code class="language-text">给定同一份 resolved evaluation spec，
-不同 Agent / backend 是否执行了同一个实验，
-每次 action、environment effect、observation 与 result 是否可追溯，
-异常、超时和取消是否仍会留下可解释的 terminal result？
-</code></pre>
-<figure class="diag"><figcaption><span>P1 的证据链</span></figcaption><div class="dflow"><div class="dstep">Benchmark source map</div><div class="darr">↓</div><div class="dpipe"><span class="dnode">Resolved EvalSpec</span><span class="darr">→</span><span class="dnode">immutable JobPlan</span></div><div class="darr">↓</div><div class="dstep">AgentAdapter ↔ EnvironmentBackend</div><div class="darr">↓</div><div class="dpipe"><span class="dnode">Trajectory events</span><span class="darr">→</span><span class="dnode">Verifier</span><span class="darr">→</span><span class="dnode">TrialResult</span></div><div class="darr">↓</div><div class="dstep">Oracle / Null / Cheat / Fault controls</div></div></figure>
-
-<h2 id="s2"><span class="hn">§ 02</span>必须复用的课程 checkpoints</h2>
-<p>这些不是五份作业，只是 P1 的中间证据:</p>
-<table>
-<thead>
-<tr>
-<th>来源</th>
-<th>进入 P1 的内容</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>W1 Source Code Map</td>
-<td>一个真实 benchmark 的 task、runner、environment、verifier、result 源码路径</td>
-</tr>
-<tr>
-<td>SWE-bench teardown</td>
-<td>gold / empty / malformed / partial prediction 的 harness 行为</td>
-</tr>
-<tr>
-<td>τ³ verifier teardown</td>
-<td>trajectory、mutable state、reward basis 与 verifier failure</td>
-</tr>
-<tr>
-<td>hello-bench</td>
-<td>Task → Environment → Agent → Verifier → Result 的最小可运行实现</td>
-</tr>
-<tr>
-<td>W2 EvalRT Core</td>
-<td>resolved plan、protocol boundary、causal events、terminal semantics、bounded execution</td>
-</tr>
-</tbody>
-</table>
-<h2 id="s3"><span class="hn">§ 03</span>实现范围</h2>
-<p>至少实现以下接口。名字可以改变，语义不能缺失。</p>
-<pre><code class="language-python">compile_eval(spec) -&gt; JobPlan
-run_trial(plan, agent, environment) -&gt; TrialResult
-verify(trial_evidence) -&gt; ScoreResult
-</code></pre>
-<p><code>JobPlan</code> 必须物化默认值、task version、Agent config、environment config、budget、attempt identity 与 scorer version。不能把墙钟时间或随机 job name 当作实验语义。</p>
-<p>Trajectory 至少区分:</p>
-<pre><code class="language-text">ModelRequest · ModelResponse
-ToolRequested · ToolCommitted · ToolObserved
-EnvironmentChanged · TrialTerminated · VerifierCompleted
-</code></pre>
-<p>若 tool 已产生副作用但 response 丢失，日志必须表达 ambiguous outcome；不能悄悄重试并伪造一条干净轨迹。</p>
-<h2 id="s4"><span class="hn">§ 04</span>必须运行的 controls</h2>
-<table>
-<thead>
-<tr>
-<th>Control</th>
-<th>预期</th>
-<th>若不满足说明什么</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Oracle Agent</td>
-<td>满足可解任务</td>
-<td>task、setup、runtime 或 verifier 可能坏了</td>
-</tr>
-<tr>
-<td>Null Agent</td>
-<td>不应凭空成功</td>
-<td>setup 或 success condition 替 Agent 完成了任务</td>
-</tr>
-<tr>
-<td>Cheat / shortcut Agent</td>
-<td>被强 verifier 拒绝</td>
-<td>verifier 可能只测表面 proxy</td>
-</tr>
-<tr>
-<td>HintInjecting Adapter</td>
-<td>conformance test 必须失败</td>
-<td>adapter 改变了实验信息条件</td>
-</tr>
-<tr>
-<td>Timeout / crash</td>
-<td>有 terminal result 和 cleanup evidence</td>
-<td>failure semantics 不完整</td>
-</tr>
-<tr>
-<td>同 task 并发两次</td>
-<td>state 互不污染</td>
-<td>isolation 或 resource ownership 有问题</td>
-</tr>
-</tbody>
-</table>
-<p>至少加入一个 fault-injection case，并保存预期与实际事件序列。</p>
-<h2 id="s5"><span class="hn">§ 05</span>提交目录</h2>
+<h2 id="s1"><span class="hn">§ 01</span>最后要交什么</h2>
 <pre><code class="language-text">projects/p1-eval-runtime/
-├── README.md
-├── source-map.md
-├── eval_spec.yaml
-├── runtime/
-├── tasks/
-├── controls/
-├── tests/
-├── sample-runs/
-│   ├── trajectory.jsonl
-│   └── trial_result.json
-└── design-decisions.md
+├── source-map.md       # 第一部分：拆解真实 benchmark
+├── mini-eval/          # 第二部分：扩展后的 hello-bench / eval-runtime
+├── sample-runs/        # 第三部分：五个实验的真实输出
+└── README.md           # 怎么运行，以及你观察到了什么
 </code></pre>
-<p><code>README.md</code> 必须给出一条从干净环境开始的运行命令。<code>design-decisions.md</code> 只记录会改变实验语义的决定，不写开发日记。</p>
-<h2 id="s6"><span class="hn">§ 06</span>演示场景</h2>
-<p>现场或录屏演示同一 task 的四次运行:</p>
+<p>验收时只看四件事:</p>
 <ol>
-<li>Oracle 成功；</li>
-<li>Null 失败；</li>
-<li>Cheat 在弱 verifier 下成功、在强 verifier 下失败；</li>
-<li>Agent 在产生副作用后超时，runtime 仍输出可解释的 terminal result。</li>
+<li>你能不能从源码解释一个真实 benchmark 怎么跑；</li>
+<li>你的 mini eval 能不能真的运行；</li>
+<li>Oracle、Null、Cheat、Timeout 是否产生正确且不同的结果；</li>
+<li>别人能不能从保存的记录看懂一次 run 为什么 PASS、FAIL 或 ERROR。</li>
 </ol>
-<p>Reviewer 应能从 <code>TrialResult</code> 反查完整 trajectory、resolved plan 与 verifier evidence。</p>
-<h2 id="s7"><span class="hn">§ 07</span>验收 Rubric</h2>
+<h2 id="s2"><span class="hn">§ 02</span>第一部分：拆一个真实 benchmark</h2>
+<p>从 Terminal-Bench 或 SWE-bench 中选一个。找到下面六项的<strong>具体文件路径、类或函数</strong>:</p>
+<pre><code class="language-text">task 定义在哪里
+environment 怎么启动
+Agent 从哪里接收 instruction
+rollout loop 在哪里
+verifier 检查什么状态
+最终 result 从哪里产生
+</code></pre>
+<p>把结果写入 <code>source-map.md</code>，建议使用这个模板:</p>
+<pre><code class="language-text">Benchmark:
+Repository + commit:
+
+One concrete task:
+  task definition:
+  instruction field:
+  environment setup:
+
+Execution:
+  runner entrypoint:
+  Agent interface:
+  rollout loop:
+
+Evaluation:
+  verifier entrypoint:
+  state inspected:
+  result object / file:
+
+One thing that surprised me:
+</code></pre>
+<p>控制在一到两页。重点是路径和调用关系准确，不讨论“这个 benchmark 好不好”。</p>
+<h2 id="s3"><span class="hn">§ 03</span>第二部分：扩展现有 mini eval</h2>
+<p>直接复用仓库中的:</p>
+<pre><code class="language-text">labs/hello-bench/
+labs/eval-runtime/
+</code></pre>
+<p>不需要另造一套大型框架。最终程序只需要跑通这条线:</p>
+<figure class="diag"><figcaption><span>你要实现的 mini eval</span></figcaption><div class="dflow"><div class="dstep">读取 task.yaml</div><div class="darr">↓</div><div class="dstep">创建干净 workspace</div><div class="darr">↓</div><div class="dstep">让 Agent 执行动作</div><div class="darr">↓</div><div class="dstep">保存 trajectory</div><div class="darr">↓</div><div class="dstep">Verifier 检查最终状态</div><div class="darr">↓</div><div class="dstep">写出 TrialResult</div></div></figure>
+
+<h3>Step 1：让 task 来自配置文件</h3>
+<p>至少有两个小任务，例如:</p>
+<pre><code class="language-text">create-file：创建 result.txt，内容为 42
+sum-numbers：读取 numbers.txt，写程序输出总和
+</code></pre>
+<p><code>task.yaml</code> 至少写:</p>
+<pre><code class="language-yaml">id: create-file
+instruction: Create /workspace/result.txt containing 42
+timeout_sec: 10
+verifier: tests/test_result.py
+</code></pre>
+<h3>Step 2：保留一个统一的 Agent 接口</h3>
+<pre><code class="language-python">class Agent:
+    def perform(self, task, environment) -&gt; list[str]:
+        ...
+</code></pre>
+<p>实现三个 scripted agents:</p>
 <table>
 <thead>
 <tr>
-<th>维度</th>
-<th style="text-align: right;">权重</th>
-<th>满足标准</th>
+<th>Agent</th>
+<th>行为</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Source understanding</td>
-<td style="text-align: right;">15</td>
-<td>源码地图能指到真实 entrypoint 与 observable state，不是概念图</td>
+<td>Oracle</td>
+<td>按正确方法完成任务</td>
 </tr>
 <tr>
-<td>Experimental identity</td>
-<td style="text-align: right;">20</td>
-<td>resolved plan、version 与 attempt identity 可重建</td>
+<td>Null</td>
+<td>什么都不做</td>
 </tr>
 <tr>
-<td>Protocol correctness</td>
-<td style="text-align: right;">20</td>
-<td>adapter 不增删 task information，environment lifecycle 明确</td>
-</tr>
-<tr>
-<td>Trajectory / failure semantics</td>
-<td style="text-align: right;">25</td>
-<td>effect、observation、termination、异常与 cleanup 可追溯</td>
-</tr>
-<tr>
-<td>Controls and reproducibility</td>
-<td style="text-align: right;">20</td>
-<td>六类 controls 有自动化结果，干净环境可复跑</td>
+<td>Cheat</td>
+<td>不真正解决问题，只针对弱 verifier 写死答案</td>
 </tr>
 </tbody>
 </table>
-<p><strong>通过线:80/100，且 Oracle / Null / HintInjecting / isolation 四项不能缺失。</strong></p>
-<h2 id="s8"><span class="hn">§ 08</span>不要求做什么</h2>
+<p>不要求接真实 LLM。</p>
+<h3>Step 3：每次 run 使用干净 workspace</h3>
+<p>Agent A 运行后留下的文件不能被 Agent B 看见。最简单的实现是每次创建新的临时目录，并在结束后 cleanup。</p>
+<p>在 README 里说明:</p>
+<pre><code class="language-text">初始文件从哪里复制
+Agent 可以读写哪里
+verifier 从哪里读取结果
+tests 是否对 Agent 可见
+</code></pre>
+<h3>Step 4：保存 trajectory</h3>
+<p>不用先实现复杂的 ATIF schema。每次 run 保存一个简单 JSONL 即可:</p>
+<pre><code class="language-json">{&quot;type&quot;:&quot;trial_started&quot;,&quot;task_id&quot;:&quot;create-file&quot;,&quot;agent&quot;:&quot;oracle&quot;}
+{&quot;type&quot;:&quot;command&quot;,&quot;value&quot;:&quot;printf 42 &gt; /workspace/result.txt&quot;}
+{&quot;type&quot;:&quot;command_result&quot;,&quot;exit_code&quot;:0}
+{&quot;type&quot;:&quot;verifier_result&quot;,&quot;passed&quot;:true}
+{&quot;type&quot;:&quot;trial_finished&quot;,&quot;status&quot;:&quot;PASS&quot;}
+</code></pre>
+<p>要求只有一个：别人只看这个文件，也能知道 Agent 做了什么、命令是否成功、verifier 为什么通过。</p>
+<h3>Step 5：保存 TrialResult</h3>
+<p>每次 run 生成:</p>
+<pre><code class="language-json">{
+  &quot;task_id&quot;: &quot;create-file&quot;,
+  &quot;agent&quot;: &quot;oracle&quot;,
+  &quot;status&quot;: &quot;PASS&quot;,
+  &quot;tests_total&quot;: 1,
+  &quot;tests_failed&quot;: 0,
+  &quot;duration_sec&quot;: 0.42,
+  &quot;failure_reason&quot;: null,
+  &quot;trajectory&quot;: &quot;trajectory.jsonl&quot;
+}
+</code></pre>
+<p><code>status</code> 至少区分 <code>PASS</code>、<code>FAIL</code> 和 <code>ERROR</code>。Timeout 属于 ERROR，不要伪装成普通任务失败。</p>
+<h2 id="s4"><span class="hn">§ 04</span>第三部分：跑五个实验</h2>
+<p>保存下面五次 run 的 trajectory 和 TrialResult:</p>
+<table>
+<thead>
+<tr>
+<th>实验</th>
+<th>预期结果</th>
+<th>你在验证什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Oracle + strong verifier</td>
+<td>PASS</td>
+<td>task、environment、Agent、verifier 整条链能工作</td>
+</tr>
+<tr>
+<td>Null + strong verifier</td>
+<td>FAIL</td>
+<td>setup 没有替 Agent 把任务做完</td>
+</tr>
+<tr>
+<td>Cheat + weak verifier</td>
+<td>PASS</td>
+<td>弱 verifier 确实存在 shortcut</td>
+</tr>
+<tr>
+<td>Cheat + strong verifier</td>
+<td>FAIL</td>
+<td>强 verifier 能抓住写死答案</td>
+</tr>
+<tr>
+<td>Timeout Agent</td>
+<td>ERROR</td>
+<td>runtime 能区分超时和任务失败，并留下记录</td>
+</tr>
+</tbody>
+</table>
+<p>最终命令可以像这样:</p>
+<pre><code class="language-bash">python run.py --task sum-numbers --agent oracle --verifier strong
+python run.py --task sum-numbers --agent null --verifier strong
+python run.py --task sum-numbers --agent cheat --verifier weak
+python run.py --task sum-numbers --agent cheat --verifier strong
+python run.py --task sum-numbers --agent timeout --verifier strong
+</code></pre>
+<p>最终输出至少包含:</p>
+<pre><code class="language-text">agent      verifier    status   reason
+oracle     strong      PASS     expected state reached
+null       strong      FAIL     no action
+cheat      weak        PASS     hardcoded shortcut
+cheat      strong      FAIL     regenerated-input check
+timeout    strong      ERROR    deadline exceeded
+</code></pre>
+<h2 id="s5"><span class="hn">§ 05</span>README 只回答六个问题</h2>
+<ol>
+<li>怎么从干净环境运行？</li>
+<li>一个 task 从哪里被读取？</li>
+<li>Agent 能看到什么、不能看到什么？</li>
+<li>Verifier 实际检查什么状态？</li>
+<li>PASS、FAIL、ERROR 分别是什么意思？</li>
+<li>五个实验分别证明了什么？</li>
+</ol>
+<p>不要求写成长报告。截图不能代替保存的 JSON / JSONL 结果。</p>
+<h2 id="s6"><span class="hn">§ 06</span>评分</h2>
+<table>
+<thead>
+<tr>
+<th>部分</th>
+<th style="text-align: right;">分数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>source-map.md</code> 路径和执行链准确</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td>mini eval 能从 task config 跑到 TrialResult</td>
+<td style="text-align: right;">30</td>
+</tr>
+<tr>
+<td>每次运行使用干净 workspace，verifier 边界说清楚</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td>五个实验得到合理结果并保存 trajectory</td>
+<td style="text-align: right;">25</td>
+</tr>
+<tr>
+<td>README 能让别人复现</td>
+<td style="text-align: right;">10</td>
+</tr>
+</tbody>
+</table>
+<p><strong>80 分通过。Oracle 不通过、Null 意外通过、没有保存 trajectory，任一情况都不能通过。</strong></p>
+<h2 id="s7"><span class="hn">§ 07</span>选做，不影响通过</h2>
+<p>下面这些是后续 W2 深入练习，不是 P1 最低要求:</p>
 <ul>
-<li>不要求接入真实付费 LLM；Scripted Agent 足够证明 runtime correctness。</li>
-<li>不要求实现分布式 queue、断点恢复或复杂 retry policy；这些属于 W6。</li>
-<li>不要求实现 cgroups、seccomp 或完整云 sandbox。</li>
-<li>不用重复提交每个 lesson lab；所有证据只进入这一份 P1。</li>
+<li>把 resolved defaults 保存成 immutable <code>JobPlan</code>；</li>
+<li>检测偷偷向 instruction 加 hint 的 adapter；</li>
+<li>表达 tool 已执行但 response 丢失的 ambiguous outcome；</li>
+<li>并发运行多个 tasks 并证明互不污染；</li>
+<li>实现 cancellation-safe cleanup；</li>
+<li>接入真实 LLM Agent。</li>
 </ul>
+<blockquote>
+<p><strong>一句话总结：P1 = 一页源码地图 + 一个能跑的 hello-bench 扩展 + 五次对照实验。</strong></p>
+</blockquote>
 <div class="pager"><a href="projects.html">← 项目目录</a><a href="project-p2.html">P2 · Measurement Audit →</a></div>
 </article></div></div>
 <footer><div class="wrap">

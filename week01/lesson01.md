@@ -368,7 +368,7 @@ Score
 
 ---
 
-## 十、今日作业:**Benchmark Source Code Map**
+## 十、P1 checkpoint:**Benchmark Source Code Map**
 
 **不要**写「这个 benchmark 有什么 validity threat」(那是 Week 2 以后的事)。
 只交一份**源码地图**,推荐做 Terminal-Bench:

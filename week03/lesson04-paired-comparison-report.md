@@ -319,7 +319,7 @@ flow | Rank interval 的来源
 
 ---
 
-## 六、综合 Lab:Statistical Eval Report
+## 六、P2 checkpoint:Statistical Eval Report
 
 Day 5 不再单独占一课。本节后半直接把 Week 3 的 artifacts 组装成 report。
 

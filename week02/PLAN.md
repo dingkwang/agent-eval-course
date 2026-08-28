@@ -1,5 +1,7 @@
 # Week 2 — Eval Runtime & Trajectory Engineering
-## 4 节深课 + 1 个综合 Lab
+## 4 节深课 + 1 个综合 checkpoint
+
+> **Assessment policy**:五天的 lab 共同组成 [P1 Eval Runtime Teardown](../ASSESSMENTS.md)。每天更新同一个 artifact，W2 结束时只提交一次，不产生五份作业。
 
 > **本周唯一命题**
 > 不同 benchmark / Agent / backend 必须经过**同一个** runtime;
@@ -24,11 +26,11 @@ BrowserGym ServiceNow/BrowserGym@9e779f087de9a65668b6974d11f9ce9816026e96
 
 ---
 
-## 四节 + Lab
+## 四节 + 累积式 checkpoint
 
 每课解决**一个**系统问题。读材料只答三问:定义了哪些 abstraction / 生命周期是什么 / 拿掉它会出现什么具体错误。
 
-| Day | 讲义 | 核心问题 | 当天 Lab |
+| Day | 讲义 | 核心问题 | 当天 checkpoint |
 |---|---|---|---|
 | **1** | `lesson01-eval-spec-to-trial.md` | Runtime 如何把 evaluation 声明,确定地编译成一组可审计的 Trial? | `compile_eval(spec) -> JobPlan` |
 | **2** | `lesson02-protocol-boundary.md` | 换 Agent 或 backend 后,怎样证明仍在执行同一个任务? | Null / Oracle / Scripted / HintInjecting + Local/Docker conformance |
@@ -68,7 +70,7 @@ structured concurrency;bounded pool;backpressure;resource lease;timeout 与 canc
 
 **不进** retry policy、resume、失败分母 → W6。不进 network policy / verifier isolation → W7。
 
-### 第 5 天 · EvalRT Core
+### 第 5 天 · EvalRT Core(P1 submission)
 
 ```
 EvalSpec → Immutable JobPlan → Concurrent Trial Executor

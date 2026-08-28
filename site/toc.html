@@ -299,12 +299,17 @@ window.MathJax = {
 
 <header class="mast"><div class="wrap">
 <span class="id"><span class="id-name">Agent Evaluation &amp; Benchmark Engineering</span><span class="id-dot"> · </span><b>CONTENTS</b></span>
-<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html" class="on">目录</a><a href="toc.html#w1">W1</a><a href="toc.html#w2">W2</a><a href="toc.html#w3">W3</a><a href="toc.html#w4">W4</a><a href="toc.html#w5">W5</a></nav></div>
+<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html" class="on">目录</a><a href="projects.html">项目</a><a href="toc.html#w1">W1</a><a href="toc.html#w2">W2</a><a href="toc.html#w3">W3</a><a href="toc.html#w4">W4</a><a href="toc.html#w5">W5</a></nav></div>
 </div></header>
 <section class="hero"><div class="wrap">
 <span class="eyebrow">12 周</span>
 <h1>目录</h1>
 <p class="subhead">点已写的课直接进讲义。其余周先占位 —— 名字已经是真问题,不是待填的标签。</p>
+</div></section>
+<section class="sec" style="padding:8px 0 20px"><div class="wrap">
+<h2>正式交付 · 4 + 1</h2>
+<p class="lede">以下五页是唯一正式作业。各周 lab、exercise 与 checklist 只是项目 checkpoint。</p>
+<div class="cards"><a class="card" href="project-p1.html"><span class="num">P1</span><span><span class="t">Eval Runtime Teardown</span><span class="d">W1–W2 · 一个可运行的 mini benchmark + 可审计 runtime</span></span><span class="tag">正式交付</span></a><a class="card" href="project-p2.html"><span class="num">P2</span><span><span class="t">Measurement Audit</span><span class="d">W3–W4 · 统计推断与 scorer validity 合成一份 release audit</span></span><span class="tag">正式交付</span></a><a class="card" href="project-p3.html"><span class="num">P3</span><span><span class="t">Benchmark Release Candidate</span><span class="d">W5–W7 · 从 capability claim 到 versioned、adversarially-tested RC</span></span><span class="tag">正式交付</span></a><a class="card" href="project-p4.html"><span class="num">P4</span><span><span class="t">Evaluation Decision Report</span><span class="d">W8–W11 · 把 leaderboard evidence 转成采用、发布或训练决策</span></span><span class="tag">正式交付</span></a><a class="card" href="project-c1.html"><span class="num">C1</span><span><span class="t">Permission-Aware Multi-User Agent Benchmark</span><span class="d">W12 · 课程 Capstone:权限正确、可运行、可评分的多用户 agent benchmark</span></span><span class="tag">正式交付</span></a></div>
 </div></section>
 <section class="sec" style="padding-top:8px"><div class="wrap">
 <div class="week" id="w1"><div class="wh"><div class="wn">1</div><div><div class="wt">Popular Benchmark Anatomy</div><div class="wq">拿到 repo,源码追通 task → environment → agent → rollout → verifier → result</div></div><div class="st">4/6</div></div><div class="wbody"><p class="lede" style="margin-top:16px">Day 1 总览,Day 2–5 一天一个真 benchmark 读源码,Day 6 自己造一个。

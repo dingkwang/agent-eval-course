@@ -71,7 +71,7 @@ AA 另有一批更直接的 agent evaluations:
 | **1** | **Popular Benchmark Anatomy** | 拿到 repo,源码追通 task → environment → agent → rollout → verifier → result | 🔨 4/6 |
 | **2** | **Eval Runtime & Trajectory Engineering** | 不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录 | 📄 [4 课 + Day 5 lab](week02/PLAN.md) |
 | **3** | **Statistical Inference for Stochastic Agent Evals** | 从 Trial observations 到 estimand、uncertainty、paired decision 与可审计报告 | 📄 4/4 |
-| **4** | **Scorers / Verifiers / LLM-as-Judge** | 成功如何被判定?judge 准不准? | |
+| **4** | **Scorers / Verifiers / LLM-as-Judge** | 从 executable outcome 到开放式作品:成功与质量如何被判定? | 🔨 3/5 |
 | **5** | **Benchmark Design, Task QA & Dataset Lifecycle** | 从 capability claim 到 task set:成功/失败为什么能代表目标能力? | 🔨 2/5 |
 | **6** | **Reproducibility, Failure Semantics & Experiment Operations** | 同一 Agent、同一 benchmark,为什么改一点 infra 分数就变?哪些失败进分母? | |
 | **7** | **Evaluation Integrity & Adversarial Validation** | 怎样防止 Agent、数据和基础设施破坏测量本身?(不讲 cgroups/seccomp) | |
@@ -155,6 +155,29 @@ W6  打开运行过程,研究 infra noise 与 failure semantics
 - [Measuring all the noises of LLM Evals](https://arxiv.org/abs/2512.21326)
 - [On Randomness in Agentic Evals](https://arxiv.org/abs/2602.07150)
 - [Quantifying Ranking Uncertainty in LLM Benchmarks](https://arxiv.org/abs/2607.16259)与[code](https://github.com/BityaNeuhof/quantifying-rank-uncertainty)
+
+## Week 4 · Scorers / Verifiers / LLM-as-Judge
+
+问题:给定固定 task 与 trial evidence,scorer 是否真的测到了它声称测量的 outcome 或作品质量?
+
+| Day | 主题 | 核心产物 | 状态 |
+|---|---|---|---|
+| 1 | Scorer Is a Measurement Instrument | product event + evidence + label + error policy 的 measurement contract | ✅ |
+| 2 | Deterministic Verifiers | shortcut / alternate-valid path / UNKNOWN control suite | ✅ |
+| 3 | LLM-as-a-Judge for Open-Ended Artifacts | creative writing 的 constraint / fidelity / craft / audience 分层 eval | ✅ |
+| 4 | Gold Set 与 Calibration | reference labels、scorer error 与 threshold calibration | 待写 |
+| 5 | Scorer Audit Report | scorer error 是否足以改变发布结论 | 待写 |
+
+W4 前两课从 computer-use、tool-calling 与 coding 的 executable outcome 出发;L3 补上没有 canonical answer 的 artifact tasks。文学写作是主 case,但方法同时适用于 research brief、报告、presentation、产品文案与设计方案。
+
+L3 必须分开四个不同 estimand:AI 来源识别、风格特征、改写 intervention effect、最终作品质量。它对照 WritingBench 的 query-dependent rubric、LitBench 的 human-preference / reward-model pipeline 与 `lieflat-less-ai-tone` 的中文风格 operators,并用 position swap、length mutation、content corruption 与 style laundering 审计 judge。
+
+源码 / 文档:
+- [WritingBench](https://arxiv.org/abs/2503.05244)与[repo](https://github.com/X-PLUG/WritingBench)
+- [LitBench](https://aclanthology.org/2026.eacl-long.362/)与[repo](https://github.com/SAA-Lab/LitBench)
+- [Mind the Style Gap](https://arxiv.org/abs/2502.15022)
+- [EQ-Bench Creative Writing](https://github.com/EQ-bench/creative-writing-bench)与[Longform Writing](https://github.com/EQ-bench/longform-writing-bench)
+- [`lieflat-less-ai-tone`](https://github.com/larashero3-dotcom/lieflat-less-ai-tone)
 
 ## Week 5 · Benchmark Design, Task QA & Dataset Lifecycle
 
@@ -334,5 +357,5 @@ cross-session leakage rate · recovery success · token/cost/latency
 [x] W1  Benchmark Anatomy (4/6)     [ ] W5  Benchmark design / audit     [ ] W9   production eval
 [ ] W2  Eval runtime (4 lectures + lab)  [ ] W6  Repro / failure semantics    [ ] W10  eval ↔ on-policy RL
 [x] W3  Statistical inference (4/4) [ ] W7  Eval integrity / adversarial [ ] W11  Kimi K3 case study
-[ ] W4  Scorers / judges            [ ] W8  Leaderboards (plan exists)   [ ] W12  capstone
+[ ] W4  Scorers / judges (3/5)      [ ] W8  Leaderboards (plan exists)   [ ] W12  capstone
 ```

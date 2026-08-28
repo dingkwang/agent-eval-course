@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>W4 第 3 课 · LLM-as-a-Judge for Open-Ended Artifacts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{
+  --paper:#EDEFF2; --panel:#F8FAFB; --panel-2:#E4E9ED; --rule:#C9D2D8;
+  --ink:#131A20; --soft:#5A6672; --faint:#8A95A0;
+  --deep:#0E1A22; --signal:#C8501C; --probe:#2B5F9E; --pass:#34734A;
+  --shadow:0 1px 0 rgba(19,26,32,.04), 0 16px 40px -24px rgba(19,26,32,.45);
+}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Instrument Sans",system-ui,sans-serif;font-size:16.5px;line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--probe)}
+code,kbd{font-family:"JetBrains Mono",monospace;font-size:.88em;
+  background:var(--panel-2);padding:.08em .38em;border-radius:3px}
+pre{background:var(--deep);color:#DCE3E8;border-radius:8px;padding:16px 18px;overflow-x:auto;
+  font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.72;box-shadow:var(--shadow)}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+/* ---- masthead ---- */
+.mast{border-bottom:1.5px solid var(--ink);background:var(--panel)}
+.mast .wrap{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.mast .id{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--soft);white-space:nowrap;padding-top:6px}
+.mast .id b{color:var(--signal);font-weight:500}
+.mast .id-dot{color:var(--soft)}
+.mast-nav{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.mast nav{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.mast nav a{font-family:"JetBrains Mono",monospace;font-size:12px;text-decoration:none;
+  color:var(--soft);padding:4px 9px;border:1px solid transparent;border-radius:4px}
+.mast nav a:hover{border-color:var(--rule);color:var(--ink)}
+.mast nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mast-lessons a,.mast-lessons .soonnav{font-size:11.5px}
+
+/* ---- hero ---- */
+.hero{padding:62px 0 8px}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--signal);display:inline-flex;align-items:center;gap:11px}
+.eyebrow::before{content:"";width:30px;height:2px;background:var(--signal)}
+h1{font-family:"Archivo",sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,74px);
+  letter-spacing:-.025em;line-height:.97;margin:18px 0 12px}
+.thesis{font-size:18px;color:var(--ink);max-width:38em;margin:0}
+.thesis b{color:var(--signal)}
+.subhead{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(15px,2vw,19px);
+  color:var(--soft);margin:0 0 18px}
+
+/* ---- signature: depth cross-section ---- */
+.strata{margin:34px 0 6px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow)}
+.strata .cap{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.strata .cap span:last-child{color:#93A2AE}
+.layer{display:grid;grid-template-columns:132px 1fr 300px;gap:0;align-items:center;
+  border-top:1px solid var(--rule);background:var(--panel);
+  transition:background .18s}
+.layer:first-of-type{border-top:none}
+.layer:hover{background:#fff}
+.layer .nm{font-family:"Archivo",sans-serif;font-weight:600;font-size:15px;padding:13px 16px;
+  border-right:1px solid var(--rule)}
+.layer .flow{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);padding:13px 16px}
+.layer .note{font-size:13px;color:var(--soft);padding:13px 16px;border-left:1px solid var(--rule)}
+.layer .bar{display:block;height:3px;background:var(--probe);border-radius:2px;margin-top:7px;
+  transform-origin:left;animation:grow .7s cubic-bezier(.2,.7,.3,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.waterline{display:grid;grid-template-columns:132px 1fr;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.1em}
+.waterline span{padding:7px 16px}
+.waterline span:first-child{color:var(--signal);border-right:1px solid #24333D}
+.stratanote{font-size:13.5px;color:var(--soft);margin:11px 2px 0}
+
+/* ---- lesson cards ---- */
+.sec{padding:50px 0 0}
+.sec h2{font-family:"Archivo",sans-serif;font-weight:600;font-size:clamp(21px,3.2vw,29px);
+  letter-spacing:-.015em;margin:0 0 4px}
+.sec .lede{color:var(--soft);font-size:15.5px;margin:0 0 20px}
+.cards{display:grid;gap:12px}
+.card{display:grid;grid-template-columns:64px 1fr auto;gap:18px;align-items:center;
+  text-decoration:none;color:var(--ink);background:var(--panel);
+  border:1.5px solid var(--ink);border-radius:9px;padding:17px 20px;
+  transition:transform .16s,box-shadow .16s,background .16s}
+a.card:hover{transform:translateX(4px);box-shadow:var(--shadow);background:#fff}
+.card .num{font-family:"Archivo",sans-serif;font-weight:700;font-size:30px;color:var(--signal);
+  line-height:1;letter-spacing:-.03em}
+.card .t{display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:19px;margin-bottom:3px}
+.card .d{display:block;font-size:14px;color:var(--soft)}
+.card .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--soft);border:1px solid var(--rule);border-radius:20px;padding:3px 10px}
+.card.off{border-style:dashed;border-color:var(--rule);background:transparent;cursor:default}
+.card.off .num,.card.off .t{color:var(--faint)}
+.card.off .d,.card.off .tag{color:var(--faint);opacity:.8}
+.soonnav{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);
+  padding:4px 9px;border:1px dashed var(--rule);border-radius:4px}
+
+/* ---- lab cards ---- */
+.labs{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.lab{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);padding:16px 18px}
+.lab .lh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lab .lh b{font-family:"Archivo",sans-serif;font-weight:600;font-size:18px}
+.lab .lh span{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  color:var(--pass);white-space:nowrap}
+.lab p{margin:8px 0 11px;font-size:14px;color:var(--soft)}
+.lab code{font-size:11.5px;color:var(--probe)}
+
+/* ---- course intro ---- */
+.formula{margin:28px 0 0;background:var(--deep);color:#DCE3E8;border-radius:10px;
+  padding:18px 22px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.7;
+  box-shadow:var(--shadow)}
+.formula .eq{color:#fff;font-size:14.5px;margin-bottom:8px;overflow-wrap:anywhere}
+.formula b{color:var(--signal);font-weight:500}
+.skills{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:8px 0 0}
+.skill{background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px}
+.skill i{font-family:"Archivo",sans-serif;font-style:normal;font-weight:700;font-size:22px;
+  color:var(--signal);display:block;line-height:1;margin-bottom:6px}
+.skill span{font-size:14.5px}
+.arcs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.arc{border:1.5px solid var(--ink);border-radius:9px;padding:14px 16px;background:var(--panel)}
+.arc .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--signal)}
+.arc b{display:block;font-family:"Archivo",sans-serif;margin:6px 0 4px;font-size:16px}
+.arc span{font-size:13.5px;color:var(--soft)}
+.fails{margin:10px 0 0;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--soft);
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:9px;padding:12px 16px;
+  line-height:1.85}
+.fails b{color:var(--ink);font-weight:500}
+.week{border:1.5px solid var(--ink);border-radius:9px;background:var(--panel);margin:0 0 12px;
+  overflow:hidden}
+.week.soon{border-style:dashed;border-color:var(--rule);background:transparent}
+.week .wh{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:start;
+  padding:16px 18px}
+.week .wn{font-family:"Archivo",sans-serif;font-weight:700;font-size:26px;color:var(--signal);
+  line-height:1}
+.week.soon .wn,.week.soon .wt{color:var(--faint)}
+.week .wt{font-family:"Archivo",sans-serif;font-weight:600;font-size:17px}
+.week .wq{font-size:13.5px;color:var(--soft);margin-top:3px}
+.week .st{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--pass);white-space:nowrap}
+.week.soon .st{color:var(--faint)}
+.week .wbody{border-top:1px solid var(--rule);padding:16px 18px 18px}
+
+/* ---- lesson page ---- */
+.page{display:grid;grid-template-columns:236px 1fr;gap:44px;padding:34px 0 0;align-items:start}
+.rail{position:sticky;top:22px;font-size:13.5px}
+.rail .rt{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.rail a{display:block;text-decoration:none;color:var(--soft);padding:4px 0 4px 11px;
+  border-left:2px solid var(--rule);line-height:1.4}
+.rail a:hover{color:var(--ink);border-left-color:var(--signal)}
+.rail a i{font-family:"JetBrains Mono",monospace;font-style:normal;font-size:10.5px;
+  color:var(--faint);margin-right:7px}
+.rail a:hover i{color:var(--signal)}
+.doc{min-width:0}
+.doc h1{font-size:clamp(30px,4.6vw,46px);margin:0 0 6px}
+.doc h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:31px;letter-spacing:-.02em;
+  line-height:1.22;margin:62px 0 14px;padding-top:22px;border-top:2.5px solid var(--ink)}
+.doc h2 .hn{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11.5px;
+  letter-spacing:.24em;color:var(--signal);margin-bottom:10px}
+.doc h2.sub{font-weight:600;font-size:23px;color:var(--soft);border-top:none;
+  margin:0 0 18px;padding-top:0}
+.doc h3{font-family:"Archivo",sans-serif;font-weight:600;font-size:19.5px;margin:30px 0 8px;
+  padding-left:12px;border-left:3px solid var(--rule)}
+.doc h4{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;margin:20px 0 6px;color:var(--soft)}
+.doc p{margin:12px 0}
+.doc ul,.doc ol{padding-left:22px}
+.doc li{margin:5px 0}
+.doc blockquote{margin:16px 0;padding:13px 18px;background:var(--panel);
+  border-left:4px solid var(--signal);border-radius:0 8px 8px 0;color:var(--ink)}
+.doc blockquote p{margin:6px 0}
+.doc blockquote h3{margin-top:2px}
+.doc blockquote h1{font-family:"Archivo",sans-serif;font-weight:700;
+  font-size:clamp(18px,2.4vw,24px);line-height:1.35;letter-spacing:-.012em;
+  margin:8px 0 6px;color:var(--ink)}
+.doc blockquote h1 + h1{color:var(--signal);font-size:clamp(15px,2vw,18px);font-weight:600}
+.doc table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.doc th,.doc td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+.doc thead th{background:var(--ink);color:var(--paper);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.doc tbody tr:last-child td{border-bottom:none}
+.doc tbody tr:nth-child(even){background:#fff}
+.doc hr{border:none;border-top:1px solid var(--rule);margin:30px 0}
+.doc details{background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+  padding:11px 15px;margin:14px 0}
+.doc summary{cursor:pointer;font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px;color:var(--probe)}
+.doc img{max-width:100%}
+
+/* ---- in-lesson figure: accumulating complexity ladder ---- */
+.ladder{margin:22px 0 8px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  box-shadow:var(--shadow);background:var(--panel)}
+.ladder figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.ladder figcaption span:last-child{color:#93A2AE;text-transform:none;letter-spacing:.02em}
+.rung{display:grid;grid-template-columns:46px 1fr;border-top:1px solid var(--rule)}
+.rung:first-of-type{border-top:none}
+.rn{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;color:var(--faint);
+  padding:14px 0 0;text-align:center;border-right:1px solid var(--rule)}
+.rbody{padding:12px 16px 14px}
+.rhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:9px}
+.rhead b{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px}
+.rhead code{background:none;padding:0;color:var(--soft);font-size:12.5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:"JetBrains Mono",monospace;font-size:11.5px;padding:3px 9px;border-radius:20px;
+  border:1px solid var(--rule);color:var(--faint);background:var(--panel-2)}
+.chip.new{border-color:var(--signal);color:#fff;background:var(--signal);font-weight:500}
+.wline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--deep);color:#9FB3C0;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.08em;padding:8px 16px}
+.wline span:first-child{color:var(--signal);white-space:nowrap;font-weight:500}
+.lfoot{border-top:1px solid var(--rule);padding:11px 16px;font-size:13px;color:var(--soft)}
+.lfoot b{color:var(--signal)}
+@media(max-width:640px){.rhead code{display:none}}
+
+/* ---- in-lesson diagrams (```diag) ---- */
+.diag{margin:22px 0 12px;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;
+  background:var(--panel);box-shadow:var(--shadow)}
+.diag figcaption{background:var(--ink);color:var(--paper);padding:9px 16px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
+.dpipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:16px 18px}
+.dnode{border:1.5px solid var(--ink);border-radius:8px;padding:8px 12px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:14px}
+.darr{color:var(--signal);font-weight:700;font-family:"JetBrains Mono",monospace}
+.dflow{padding:16px 18px;display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.dflow .darr{text-align:center;padding:2px 0}
+.dstep{border:1.5px solid var(--ink);border-radius:8px;padding:10px 14px;background:#fff;
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:15px}
+.dcmp{display:grid;grid-template-columns:1fr 1fr}
+.dcol{padding:14px 16px}
+.dcol + .dcol{border-left:1.5px solid var(--rule)}
+.dh{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;margin-bottom:8px;color:var(--signal)}
+.dcell{font-size:14px;padding:6px 0;border-top:1px solid var(--rule)}
+.dcol .dcell:first-of-type{border-top:none}
+.dnest{padding:16px}
+.dbox{border:1.5px solid var(--ink);border-radius:8px;padding:10px 12px;background:#fff}
+.dbox .dbox{margin-top:8px;background:var(--panel);border-color:var(--rule)}
+.dbox .dbox .dbox{background:var(--panel-2)}
+.dlab{font-family:"Archivo",sans-serif;font-weight:600;font-size:14.5px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+.gcell{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;background:#fff}
+.gcell b{display:block;font-family:"Archivo",sans-serif;font-size:15px;margin-bottom:4px;color:var(--signal)}
+.gcell span{font-size:13.5px;color:var(--soft)}
+@media(max-width:640px){
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+
+.pager{display:flex;justify-content:space-between;gap:14px;margin:52px 0 0;
+  border-top:1.5px solid var(--ink);padding-top:18px;flex-wrap:wrap}
+.pager a{font-family:"JetBrains Mono",monospace;font-size:13px;text-decoration:none;color:var(--probe)}
+.pager a:hover{color:var(--signal)}
+
+footer{margin-top:56px;border-top:1.5px solid var(--ink);background:var(--panel)}
+footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding-top:18px;padding-bottom:44px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+
+@media(max-width:900px){
+  .mast .id{letter-spacing:.08em;font-size:10.5px;overflow:visible;text-overflow:unset;max-width:none}
+  .mast .id-name,.mast .id-dot{display:none}
+  .page{grid-template-columns:1fr;gap:20px}
+  .rail{position:static;border-bottom:1px solid var(--rule);padding-bottom:12px}
+  .rail a{display:inline-block;border-left:none;border-bottom:2px solid var(--rule);margin-right:10px}
+  .layer{grid-template-columns:1fr}
+  .layer .nm,.layer .note{border:none}
+  .layer .note{padding-top:0}
+  .waterline{grid-template-columns:1fr}
+  .card{grid-template-columns:46px 1fr}
+  .card .tag{display:none}
+  .skills,.arcs{grid-template-columns:1fr}
+  .week .wh{grid-template-columns:46px 1fr}
+  .week .st{display:none}
+  .dcmp,.dgrid{grid-template-columns:1fr}
+  .dcol + .dcol{border-left:none;border-top:1.5px solid var(--rule)}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .layer .bar{animation:none}
+  a.card:hover{transform:none}
+}
+.math-display{margin:24px 0;overflow-x:auto;text-align:center}
+.math-display mjx-container[display="true"]{margin:.65em 0!important}
+</style>
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['$', '$']], processEscapes: true},
+  options: {skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']}
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head><body>
+
+<header class="mast"><div class="wrap">
+<span class="id"><span class="id-name">Agent Evaluation &amp; Benchmark Engineering</span><span class="id-dot"> · </span><b>WEEK 04</b></span>
+<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="lesson01.html">W1</a><a href="w2-01.html">W2</a><a href="w3-01.html">W3</a><a href="w4-01.html" class="on">W4</a><a href="w5-01.html">W5</a></nav><nav class="mast-lessons"><a href="w4-01.html">1</a><a href="w4-02.html">2</a><a href="w4-03.html" class="on">3</a><span class="soonnav">4</span><span class="soonnav">5</span></nav></div>
+</div></header>
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">文学写作没有 gold answer 时,judge 究竟代表谁?</a><a href="#s1"><i>00</i>先把四个不同问题拆开</a><a href="#s2"><i>01</i>开放式 artifact 不是「完全主观」,而是多层测量</a><a href="#s3"><i>02</i>Rubric 是局部 measurement contract</a><a href="#s4"><i>03</i>Absolute score 与 pairwise preference 回答不同问题</a><a href="#s5"><i>04</i>LitBench:「人类标签」也要写 measurement contract</a><a href="#s6"><i>05</i>LLM judge 的 control suite</a><a href="#s7"><i>06</i>lieflat case:测到 style shift 以后还缺什么</a><a href="#s8"><i>07</i>Model writing eval 与 Writing Agent eval</a><a href="#s9"><i>08</i>不要太早压成一个总分</a><a href="#s10"><i>09</i>Lab:审计一个「去 AI 味后写得更好」的 claim</a><a href="#s11"><i>10</i>验收</a><a href="#s12">本课结论</a><a href="#s13">References</a></aside>
+<article class="doc"><h1>第 3 课:LLM-as-a-Judge for Open-Ended Artifacts</h1>
+<h2 id="s0" class="sub">文学写作没有 gold answer 时,judge 究竟代表谁?</h2>
+<p><strong>Week 4 Day 3</strong> · creative writing · preference evaluation · 建议 85 分钟 + 35 分钟 audit lab</p>
+<blockquote>
+<h3>本课唯一命题</h3>
+<h1>开放式作品没有唯一正确答案,但这不等于只能凭感觉打分。</h1>
+<h1>先分开约束、内容保持、作品技艺与受众偏好,再验证 judge 对哪一种人类判断有效。</h1>
+<p>📄 Wu et al., <a href="https://arxiv.org/abs/2503.05244"><em>WritingBench: A Comprehensive Benchmark for Generative Writing</em></a>, NeurIPS 2025 Datasets &amp; Benchmarks
+📄 Fein et al., <a href="https://aclanthology.org/2026.eacl-long.362/"><em>LitBench: A Benchmark and Dataset for Reliable Evaluation of Creative Writing</em></a>, EACL 2026
+📄 Pauli et al., <a href="https://arxiv.org/abs/2502.15022"><em>Mind the Style Gap: Meta-Evaluation of Style and Attribute Transfer Metrics</em></a>, Findings of EMNLP 2025
+💻 <a href="https://github.com/X-PLUG/WritingBench">WritingBench</a> · <a href="https://github.com/SAA-Lab/LitBench">LitBench</a> · <a href="https://github.com/EQ-bench/creative-writing-bench">EQ-Bench Creative Writing</a>
+🔬 审计对象:<a href="https://github.com/larashero3-dotcom/lieflat-less-ai-tone"><code>lieflat-less-ai-tone</code></a></p>
+</blockquote>
+<figure class="diag"><figcaption><span>两类 eval 的证据形状</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Math / coding</div><div class="dcell">唯一答案或 executable tests</div><div class="dcell">Verifier 接近事实判断</div><div class="dcell">Alternate path 是边界问题</div><div class="dcell">主要担心漏测与 shortcut</div></div><div class="dcol"><div class="dh">文学 / 报告 / presentation</div><div class="dcell">多个完全不同的好答案</div><div class="dcell">Judge 逼近带人群条件的质量判断</div><div class="dcell">整个有效输出空间都是 alternate paths</div><div class="dcell">还要面对审美分歧与偏好代表性</div></div></div></figure>
+
+<p>前两课问的是:给定 task 与 evidence,deterministic verifier 有没有把 outcome 判对。本课删除一个最方便的假设:<strong>任务可能根本没有 canonical answer、gold state 或足够表达质量的 unit tests。</strong></p>
+<p>Agent 越来越常交付的不是一个 bool outcome,而是一份 artifact:研究报告、文学作品、产品文案、slide deck、设计方案。格式是否符合要求可以测试;作品是否清楚、有洞见、有声音、适合目标读者,不能靠一个 exact match 回答。</p>
+<hr />
+<h2 id="s1"><span class="hn">§ 00</span>先把四个不同问题拆开</h2>
+<p>以「去 AI 味」为例,下面四个问题经常被压成一句「这篇写得像不像人」:</p>
+<figure class="diag"><figcaption><span>同一篇文本的四种 estimand</span></figcaption><div class="dgrid"><div class="gcell"><b>Source detection</b><span>能否预测作者是人还是模型</span></div><div class="gcell"><b>Style characterization</b><span>哪些形式特征在两组语料中频率不同</span></div><div class="gcell"><b>Intervention effect</b><span>改写是否减少目标特征且保存内容</span></div><div class="gcell"><b>Artifact quality</b><span>目标读者是否认为作品更好</span></div></div></figure>
+
+<p>它们需要不同数据、reference labels 与 scorer:</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>evaluation unit</th>
+<th>reference</th>
+<th>典型 metric</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>来源识别</td>
+<td>一篇未知来源文本</td>
+<td>真实 provenance</td>
+<td>precision / recall / AUROC</td>
+</tr>
+<tr>
+<td>风格特征</td>
+<td>文档或段落</td>
+<td>对照语料</td>
+<td>feature density / effect size</td>
+</tr>
+<tr>
+<td>改写效果</td>
+<td>原文—改写 paired artifact</td>
+<td>约束与人工审定</td>
+<td>preservation + target-style shift</td>
+</tr>
+<tr>
+<td>作品质量</td>
+<td>一篇作品或作品 pair</td>
+<td>目标读者偏好</td>
+<td>rubric vector / pairwise preference</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/larashero3-dotcom/lieflat-less-ai-tone"><code>lieflat-less-ai-tone</code></a>主要做第二项:以 300 篇模型文本和 329 篇人类文本检验 26 个候选特征,保留 11 项。它把这些特征编译成改写规则,因此开始触及第三项;但<strong>特征命中率下降不自动证明第四项改善</strong>。</p>
+<figure class="diag"><figcaption><span>不能静默跨过的推断</span></figcaption><div class="dflow"><div class="dstep">某特征在 AI 语料中更常见</div><div class="darr">↓</div><div class="dstep">该特征可用于描述当前语料差异</div><div class="darr">↓</div><div class="dstep">删除该特征让文本更少命中规则</div><div class="darr">↓</div><div class="dstep">目标读者更喜欢改写结果</div></div></figure>
+
+<p>前三个箭头都可能成立,最后一个仍可能失败。一篇文章可以没有破折号、翻案腔和提示性冒号,同时人物扁平、节奏无聊;优秀散文也可能有意大量使用这些结构。</p>
+<blockquote>
+<p><strong>Style proxy 不是 quality oracle。优化 proxy 之后必须重新测最终产品事件。</strong></p>
+</blockquote>
+<hr />
+<h2 id="s2"><span class="hn">§ 01</span>开放式 artifact 不是「完全主观」,而是多层测量</h2>
+<p>不要问一个 judge「整体打几分」后就结束。先把证据拆成四层:</p>
+<figure class="diag"><figcaption><span>open-ended artifact 的评价层级</span></figcaption><div class="dnest"><div class="dbox"><div class="dlab">Audience value · 目标读者是否愿意读、信、采用</div><div class="dbox"><div class="dlab">Craft quality · 结构、论证、人物、节奏、语言控制</div><div class="dbox"><div class="dlab">Fidelity · 事实、设定、因果、语气强度是否保留</div><div class="dbox"><div class="dlab">Hard constraints · 格式、长度、必含元素、引用规范</div></div></div></div></div></div></figure>
+
+<h3>1.1 Hard constraints:能执行就不要交给 taste</h3>
+<p>字数范围、JSON schema、必须出现的角色、slide 数量、引用是否存在,可以用 deterministic checks。它们是必要条件,通常不是作品质量本身。</p>
+<figure class="diag"><figcaption><span>同一份作品的 constraint 与 quality</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Constraint</div><div class="dcell">必须为第一人称</div><div class="dcell">包含三个给定事实</div><div class="dcell">不超过 1500 字</div><div class="dcell">引用两个来源</div></div><div class="dcol"><div class="dh">Quality</div><div class="dcell">第一人称声音是否可信</div><div class="dcell">事实是否自然进入叙事</div><div class="dcell">节奏是否紧凑</div><div class="dcell">论证是否真正使用来源</div></div></div></figure>
+
+<p>把 hard constraints 混入一个「写作质量 8.4」会丢失失败原因。更糟的是,judge 可能因文笔漂亮而原谅漏掉硬要求。</p>
+<h3>1.2 Fidelity:改写任务有 source,但 source 不是 reference answer</h3>
+<p>Style transfer / editing 的核心约束是:</p>
+<div class="math-display">\[
+\text{change intended style}\quad\land\quad\text{preserve non-style content}
+\]</div>
+
+<p>词面相似度会把必要的风格变化也当成损失;普通 semantic similarity 又可能漏掉数字、否定、人物关系与判断强度的改变。<code>Mind the Style Gap</code> 的 meta-evaluation 说明,content-preservation metric 必须对目标 style shift 有条件地解释差异,不能把所有变化混成一个距离。</p>
+<p>最小 fidelity contract 至少拆出:</p>
+<figure class="diag"><figcaption><span>改写的 preservation checks</span></figcaption><div class="dgrid"><div class="gcell"><b>Facts</b><span>姓名、数字、日期、来源</span></div><div class="gcell"><b>Relations</b><span>谁做了什么、人物与实体关系</span></div><div class="gcell"><b>Logic</b><span>因果、否定、条件、先后</span></div><div class="gcell"><b>Force</b><span>可能 / 通常 / 必须等判断强度</span></div><div class="gcell"><b>Structure</b><span>用户要求保留的标题、段落、列表</span></div></div></figure>
+
+<h3>1.3 Craft quality:criteria 必须针对作品与任务</h3>
+<p>小说的角色发展、研究 brief 的证据综合、广告的受众说服力不是同一 construct。「正确、相关、流畅」三个通用词不足以覆盖它们。</p>
+<p>WritingBench 收集 1,000 个写作任务,覆盖 6 个一级领域和 100 个子领域,并为每个 query 生成五条 instance-specific criteria。论文报告其 query-dependent framework 与人类判断达到 84% agreement,高于两种 static-criteria baseline;这不是证明 84% 可以外推到任何写作任务,而是说明<strong>criteria 与当前任务的要求对齐会改变 judge validity</strong>。</p>
+<h3>1.4 Audience preference:reference label 属于某个 population</h3>
+<p>文学评价中的分歧不总是 annotation error。同一作品可以适合类型小说读者、不适合文学期刊编辑;适合 Reddit WritingPrompts、不适合中文散文读者。</p>
+<div class="math-display">\[
+Z_{i,g}=\text{preference of audience group }g\text{ on artifact }i
+\]</div>
+
+<p>没有 $g$ 的「人类偏好」是不完整的 estimand。需要写清:</p>
+<ul>
+<li>谁是目标读者;</li>
+<li>他们在什么阅读情境下判断;</li>
+<li>看见哪些背景、prompt 与 source material;</li>
+<li>评价个人喜好、专业技艺、购买意愿还是任务用途;</li>
+<li>disagreement 如何保存,而不是怎样尽快平均掉。</li>
+</ul>
+<hr />
+<h2 id="s3"><span class="hn">§ 02</span>Rubric 是局部 measurement contract</h2>
+<p>Rubric 不是形容词列表。每一项都要说明对象、证据和锚点。</p>
+<pre><code class="language-yaml">criterion_id: narrative_consistency
+claim: &quot;人物行动与已建立的动机和世界状态一致&quot;
+evidence_unit: &quot;完整故事&quot;
+anchors:
+  1: &quot;关键行动与已建立信息直接矛盾&quot;
+  3: &quot;主要行动可解释,但有局部断裂或未铺垫转折&quot;
+  5: &quot;关键行动均有前文依据,变化得到充分铺垫&quot;
+abstain_when:
+  - &quot;截断导致结尾不可见&quot;
+  - &quot;prompt 未提供必要设定&quot;
+</code></pre>
+<h3>2.1 Criteria 要分解,但不能重复计票</h3>
+<figure class="diag"><figcaption><span>可诊断 criteria 与同义重复</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">分开测</div><div class="dcell">Instruction adherence</div><div class="dcell">Content fidelity</div><div class="dcell">Narrative coherence</div><div class="dcell">Voice / style control</div><div class="dcell">Audience fit</div></div><div class="dcol"><div class="dh">重复加权</div><div class="dcell">Overall quality</div><div class="dcell">Writing quality</div><div class="dcell">Coherence and logic</div><div class="dcell">Professional polish</div><div class="dcell">Overall effectiveness</div></div></div></figure>
+
+<p>右栏的 criteria 边界模糊且高度重叠。Judge 可能因为同一个优点连续加三次分,最后的平均值看起来精细,实际只是隐含权重。</p>
+<h3>2.2 Static rubric 与 query-dependent rubric</h3>
+<figure class="diag"><figcaption><span>两种 rubric 的 trade-off</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Static</div><div class="dcell">跨任务口径稳定</div><div class="dcell">容易审计与比较</div><div class="dcell">可能漏掉领域技艺</div><div class="dcell">适合少量统一核心维度</div></div><div class="dcol"><div class="dh">Query-dependent</div><div class="dcell">能捕捉题目特有要求</div><div class="dcell">criteria generator 本身也要验证</div><div class="dcell">可能随被测输出或 judge 漂移</div><div class="dcell">适合多样 artifact tasks</div></div></div></figure>
+
+<p>实用结构是<strong>少量固定核心维度 + task-specific criteria</strong>。动态 criteria 必须只根据 task、intended audience 与 source material 生成,不能先看到候选模型的作品再决定评分标准。</p>
+<figure class="diag"><figcaption><span>防止 post-hoc rubric</span></figcaption><div class="dflow"><div class="dstep">冻结 task 与 intended use</div><div class="darr">↓</div><div class="dstep">生成 / 人工审定 criteria</div><div class="darr">↓</div><div class="dstep">冻结 anchors 与 aggregation</div><div class="darr">↓</div><div class="dstep">隐藏 model identity</div><div class="darr">↓</div><div class="dstep">生成并评分 artifacts</div></div></figure>
+
+<hr />
+<h2 id="s4"><span class="hn">§ 03</span>Absolute score 与 pairwise preference 回答不同问题</h2>
+<h3>3.1 Absolute rubric score</h3>
+<p>Judge 单独看一篇作品,按每项 1–5 分评分。</p>
+<p>优点:能给 criterion breakdown,方便诊断。缺点:不同 judge 的「4 分」尺度不同,同一 judge 也会随样本上下文漂移;总分常出现拥挤和虚假精度。</p>
+<h3>3.2 Pairwise comparison</h3>
+<p>Judge 同时看 A/B,回答哪篇更符合预先定义的 preference target。</p>
+<div class="math-display">\[
+P(A\succ B)=\sigma(r_A-r_B)
+\]</div>
+
+<p>Pairwise 通常比绝对打分容易,也能用 Bradley–Terry / Elo 聚合;但它引入 position、长度、对比集合和 intransitivity。A 胜 B、B 胜 C 不保证 A 胜 C。</p>
+<figure class="diag"><figcaption><span>什么时候用什么</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Rubric score</div><div class="dcell">需要知道哪里失败</div><div class="dcell">跨版本保留诊断维度</div><div class="dcell">需要校准 scale anchors</div><div class="dcell">容易重复计权</div></div><div class="dcol"><div class="dh">Pairwise preference</div><div class="dcell">需要稳定选出两个候选中较好者</div><div class="dcell">排序与 best-of-N selection</div><div class="dcell">需要控制顺序与 matchup graph</div><div class="dcell">难解释为什么赢</div></div></div></figure>
+
+<p>好的 writing eval 往往同时保留 rubric vector 与 pairwise choice,而不是把其中一个伪装成全部事实。</p>
+<hr />
+<h2 id="s5"><span class="hn">§ 04</span>LitBench:「人类标签」也要写 measurement contract</h2>
+<p>LitBench 把同一 Reddit prompt 下的两篇故事组成 pair,用 upvote 信号确定 preferred story。最终 test set 有 2,480 pairs,training corpus 有 43,827 pairs。</p>
+<p>这不是把 upvote 直接当真理。作者做了三项关键控制:</p>
+<figure class="diag"><figcaption><span>LitBench preference-data controls</span></figcaption><div class="dgrid"><div class="gcell"><b>Engagement floor</b><span>故事至少 10 个 upvotes</span></div><div class="gcell"><b>Temporal control</b><span>winner 必须发布得更晚,减轻曝光时间优势</span></div><div class="gcell"><b>Length balancing</b><span>对 length difference 分桶裁剪,让长 / 短 winner 对称</span></div></div></figure>
+
+<p>未经这些处理的 preference data 会训练出 shortcut:更多曝光、更长文本 → 更高 reward。LitBench 的 ablation 显示,未处理长度的 reward model 会强烈偏好更长故事。</p>
+<h3>4.1 Judge performance 是 agreement,不是 literary truth</h3>
+<p>在这个特定 reference process 上:</p>
+<ul>
+<li>最强 zero-shot judge Claude 3.7 Sonnet 与 labels 一致约 <strong>73%</strong>;</li>
+<li>训练过的 Bradley–Terry / generative reward model 约 <strong>78%</strong>;</li>
+<li>新生成故事的人类实验中,46 位美国 / 英国 crowd-workers 对 reward-model winner 的选择率为 57%,对 loser 为 41%,仍有约四成 disagreement。</li>
+</ul>
+<p>这些数字不能外推成「judge 有 78% 概率认出好文学」。它们估计的是:</p>
+<pre><code class="language-text">在 LitBench 的 Reddit prompt、过滤规则、读者信号与 pair construction 下,
+scorer 预测该 reference preference label 的能力。
+</code></pre>
+<p>论文也明确承认 Reddit 用户人口结构与社交 upvote 动机的限制。Reference standard 不是脱离文化和场景的 gold truth。</p>
+<hr />
+<h2 id="s6"><span class="hn">§ 05</span>LLM judge 的 control suite</h2>
+<p>在自然样本中,高质量作品往往<strong>偶然共线</strong>了更多字数、工整排版或知名品牌标签。LLM judge 即使完全不理解文学技艺与严密逻辑,仅靠「字数更多、排在前面、用词华丽」等<strong>表面捷径（shortcut）</strong>,也能在正常测试集上刷出与人类看似相近的打分相关性（Clever Hans 效应）。</p>
+<p>一旦把依赖 shortcut 的 judge 用作 leaderboard 排序或 RL 训练信号,模型就会迅速学会灌水扩写与格式作弊（reward hacking）。</p>
+<p>为了验证 judge 测到的是<strong>真实技艺（craft &amp; fidelity）</strong>还是<strong>作弊捷径（shortcut）</strong>,必须构造控制变量的<strong>反事实变异集（counterfactual controls）</strong>进行压力测试:</p>
+<figure class="diag"><figcaption><span>open-ended judge 的六类 controls</span></figcaption><div class="dgrid"><div class="gcell"><b>Position swap</b><span>A/B 交换后 preference 应翻转身份但不翻转作品 (防 order bias)</span></div><div class="gcell"><b>Identity blind</b><span>隐藏 / 伪造 model name,verdict 不应跟品牌走 (防 brand halo)</span></div><div class="gcell"><b>Length perturbation</b><span>加无信息 filler 不应稳定获胜 (防 verbosity shortcut)</span></div><div class="gcell"><b>Style laundering</b><span>只去掉表面 AI markers 不应自动提升 craft (防 proxy gaming)</span></div><div class="gcell"><b>Content corruption</b><span>文风不变但改错事实 / 人物关系,分数应下降 (防 fluency over substance)</span></div><div class="gcell"><b>Repeat</b><span>固定输入重复评分,估计 verdict consistency (防 decision instability)</span></div></div></figure>
+
+<h3>5.1 Position bias 不是只跑两次然后取平均</h3>
+<p>自回归模型天然对 Prompt 中的先后位置敏感。对每个 pair 必须运行 <code>(A,B)</code> 与 <code>(B,A)</code> 两次判断:</p>
+<table>
+<thead>
+<tr>
+<th>第一次</th>
+<th>交换后</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>A 对应作品仍胜</td>
+<td>order-consistent (判决由作品质量决定)</td>
+</tr>
+<tr>
+<td>A</td>
+<td>新位置 A 胜</td>
+<td>position-sensitive (判决由展示位置决定)</td>
+</tr>
+<tr>
+<td>tie</td>
+<td>A / B</td>
+<td>决策边界不稳定</td>
+</tr>
+<tr>
+<td>parse error</td>
+<td>任意</td>
+<td>scorer failure,不是作品 FAIL</td>
+</tr>
+</tbody>
+</table>
+<p>既要报告经 permutation 汇总后的真实 preference,也要单独报告 <strong>swap inconsistency rate</strong>。后者是 scorer 自身的 reliability 与 coverage 缺陷指标。</p>
+<h3>5.2 Length bias 要用 meaning-preserving 与 meaning-damaging mutation 分开测</h3>
+<p>单纯统计「长文本胜率」无法区分偏差与真实质量差异（好作品确实可能需要充分展开）。必须从同一篇原始 artifact 出发,人为构造两类受控变异:</p>
+<figure class="diag"><figcaption><span>两种 length mutation</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">无信息扩写 (filler)</div><div class="dcell">重复已知结论、华丽同义句、空洞修辞</div><div class="dcell">Quality 不应仅因更长上升</div><div class="dcell">用于检测 verbosity shortcut</div></div><div class="dcol"><div class="dh">有意义扩写 (informative)</div><div class="dcell">补足必要铺垫、因果论据或人物动机</div><div class="dcell">Quality 可能合理上升</div><div class="dcell">用于测试 rubric 是否识别真实增益</div></div></div></figure>
+
+<p>如果加了 30% 废话的文本在 judge 眼中胜率大幅上升,说明该 judge 的判决逻辑已被 verbosity shortcut 绑架。</p>
+<h3>5.3 Judge explanation 不是 correctness evidence</h3>
+<p>一段流畅、有说服力的 rationale 往往只是后置合理解释（post-hoc rationalization）,完全可以用来合理化一个错误的 verdict。</p>
+<p>LitBench 发现,在其训练好的 generative reward models 上加入 chain-of-thought 后,判断准确率反而从约 78% 降至约 72%。Judge 的 explanation 仅适合作为定性错误归因线索,<strong>绝不能当作判定正确的量化证据</strong>。</p>
+<hr />
+<h2 id="s7"><span class="hn">§ 06</span><code>lieflat</code> case:测到 style shift 以后还缺什么</h2>
+<p>该仓库公开了六次 operator failure,其中最适合本课的是:</p>
+<figure class="diag"><figcaption><span>同一个「AI 味」主张的 measurement failures</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">旧测量</div><div class="dcell">Markdown 表格 / 列表被当成长句 → 句长均匀 51×</div><div class="dcell">问句小标题按每千字 → 32×</div><div class="dcell">冒号正则包含标题 / 列表 / 对话 → 无差异</div></div><div class="dcol"><div class="dh">修正后</div><div class="dcell">清理正文后 CV ratio 0.87</div><div class="dcell">按全部小标题占比 → 无差异</div><div class="dcell">按目标语义缩窄后 ratio 3.8</div></div></div></figure>
+
+<p>这些例子证明 feature scorer 也需要 validation。但即使 11 个 feature operators 全部有效,一个 rewriting agent 的 eval 仍需两条独立证据链:</p>
+<figure class="diag"><figcaption><span>intervention evaluation</span></figcaption><div class="dflow"><div class="dpipe"><span class="dnode">原文</span><span class="darr">→</span><span class="dnode">Style editor</span><span class="darr">→</span><span class="dnode">改写文</span></div><div class="darr">↓</div><div class="dstep">Feature scorer 测目标特征是否减少</div><div class="darr">↓</div><div class="dstep">Fidelity scorer 测信息与语气是否保存</div><div class="darr">↓</div><div class="dstep">Human / validated judge 测目标读者偏好与 craft</div></div></figure>
+
+<h3>6.1 不要用同一 proxy 同时训练与宣布成功</h3>
+<p>如果 Skill 明知规则是「少用破折号、翻案腔、提示性冒号」,再用同一批 regex 为改写结果打分,它当然容易变好。这只证明执行器适应了 visible reward。</p>
+<figure class="diag"><figcaption><span>Dev signal 与 held-out outcome</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Visible dev scorer</div><div class="dcell">11 条 feature hits</div><div class="dcell">定位具体改写位置</div><div class="dcell">快速 regression</div><div class="dcell">允许 Agent 针对性优化</div></div><div class="dcol"><div class="dh">Independent test outcome</div><div class="dcell">盲测 reader preference</div><div class="dcell">内容保持与语气强度</div><div class="dcell">held-out model / topic / genre</div><div class="dcell">规则与 labels 对 Agent 隐藏</div></div></div></figure>
+
+<p>正确设计要有 held-out models、topics、genres,还要保留<strong>人类原稿 false-positive edit rate</strong>:一个去 AI 味 Agent 若不断修改本来很好的真人文字,产品仍然失败。</p>
+<hr />
+<h2 id="s8"><span class="hn">§ 07</span>Model writing eval 与 Writing Agent eval</h2>
+<p>让模型一次性响应「写一篇小说」,测的是 model + decoding + prompt。Writing Agent 则可能执行:</p>
+<figure class="diag"><figcaption><span>writing agent trajectory</span></figcaption><div class="dflow"><div class="dstep">解释 brief</div><div class="darr">↓</div><div class="dstep">构思与大纲</div><div class="darr">↓</div><div class="dstep">收集 / 核对材料</div><div class="darr">↓</div><div class="dstep">起草 artifact</div><div class="darr">↓</div><div class="dstep">批评与 revision</div><div class="darr">↓</div><div class="dstep">交付最终版本</div></div></figure>
+
+<p>Agent eval 需要同时保存 final artifact 与 revision trace:</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>可观察问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Brief recovery</td>
+<td>是否识别受众、目的、硬约束与 source facts</td>
+</tr>
+<tr>
+<td>Planning</td>
+<td>是否形成可用结构,不是计划写得越长越好</td>
+</tr>
+<tr>
+<td>Evidence use</td>
+<td>是否引用 / 使用正确材料,有没有编造</td>
+</tr>
+<tr>
+<td>Revision</td>
+<td>是否响应反馈并修复目标问题</td>
+</tr>
+<tr>
+<td>Regression</td>
+<td>revision 是否破坏已经正确的内容</td>
+</tr>
+<tr>
+<td>Final value</td>
+<td>目标读者是否愿意采用最终 artifact</td>
+</tr>
+</tbody>
+</table>
+<p>但不要把 reference workflow 当唯一合法过程。优秀作者可以先写场景再发现结构,也可以先做严密大纲。Process criteria 只约束必须发生或绝不能发生的事件,不要求复刻某一位作者的创作习惯。</p>
+<hr />
+<h2 id="s9"><span class="hn">§ 08</span>不要太早压成一个总分</h2>
+<p>一个最小 writing eval row 应保留:</p>
+<pre><code class="language-json">{
+  &quot;artifact_id&quot;: &quot;story-017-candidate-b&quot;,
+  &quot;hard_constraints&quot;: {&quot;label&quot;: &quot;PASS&quot;, &quot;violations&quot;: []},
+  &quot;fidelity&quot;: {&quot;facts&quot;: 1.0, &quot;relations&quot;: 0.8, &quot;force&quot;: 1.0},
+  &quot;craft&quot;: {&quot;coherence&quot;: 4, &quot;voice&quot;: 3, &quot;pacing&quot;: 2, &quot;originality&quot;: 4},
+  &quot;audience_preference&quot;: {&quot;wins&quot;: 7, &quot;losses&quot;: 4, &quot;ties&quot;: 1},
+  &quot;judge_reliability&quot;: {&quot;swap_consistent&quot;: false, &quot;repeat_agreement&quot;: 0.67},
+  &quot;scorer_version&quot;: &quot;writing-audit-v1&quot;
+}
+</code></pre>
+<figure class="diag"><figcaption><span>总分相同,产品含义不同</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Artifact A</div><div class="dcell">约束全满足、事实正确</div><div class="dcell">声音普通、节奏稳定</div><div class="dcell">目标读者多数愿意采用</div></div><div class="dcol"><div class="dh">Artifact B</div><div class="dcell">漏一项硬约束</div><div class="dcell">文笔惊艳</div><div class="dcell">读者喜欢但无法直接采用</div></div></div></figure>
+
+<p>是否允许 B 胜出取决于 intended use。发布 gate、创意探索和 best-of-N selection 会有不同 reduction policy。先报告 vector、disagreement 与 Pareto frontier;只有决策必须单排序时才冻结 aggregation。</p>
+<hr />
+<h2 id="s10"><span class="hn">§ 09</span>Lab:审计一个「去 AI 味后写得更好」的 claim</h2>
+<p>目标不是训练一个文学 judge,而是证明现成 judge 到底测到什么。</p>
+<h3>Step 1:冻结三个 claim</h3>
+<pre><code class="language-yaml">claims:
+  style: &quot;edited text has fewer pre-registered AI-tone features&quot;
+  fidelity: &quot;editing preserves facts, relations, logic and epistemic force&quot;
+  preference: &quot;target readers prefer the edited artifact for the stated use&quot;
+</code></pre>
+<p>不能用 style scorer 支持 preference claim。</p>
+<h3>Step 2:构造 12 个 paired controls</h3>
+<p>从 4 篇短文各造三个 mutation:</p>
+<table>
+<thead>
+<tr>
+<th>mutation</th>
+<th>预期保持</th>
+<th>预期变化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>marker-only</code></td>
+<td>内容、结构</td>
+<td>删除一个已注册 style marker</td>
+</tr>
+<tr>
+<td><code>fact-corrupt</code></td>
+<td>表面文风</td>
+<td>数字、否定或人物关系被改错</td>
+</tr>
+<tr>
+<td><code>filler-long</code></td>
+<td>核心命题</td>
+<td>增加 30% 无信息文字</td>
+</tr>
+</tbody>
+</table>
+<p>至少一半原文来自人类写作,用来估计 false-positive editing harm。</p>
+<h3>Step 3:比较三种 judge protocol</h3>
+<pre><code class="language-text">A. static rubric absolute 1–5
+B. task-specific rubric absolute 1–5
+C. blinded pairwise preference + tie
+</code></pre>
+<p>每种 protocol 都执行 A/B swap;随机隐藏原文 / 改写文身份;至少重复两次。</p>
+<h3>Step 4:收集一个小 reference set</h3>
+<p>三名读者独立判断,先保留每个人的 label 与理由。只有当 intended audience 相同且 aggregation 预先写定时,才计算 majority preference。</p>
+<h3>Step 5:输出 scorer audit table</h3>
+<table>
+<thead>
+<tr>
+<th>必报项</th>
+<th>问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Human agreement</td>
+<td>人类自己是否共享同一 preference target</td>
+</tr>
+<tr>
+<td>Judge–human agreement</td>
+<td>judge 预测哪类人类判断</td>
+</tr>
+<tr>
+<td>Swap inconsistency</td>
+<td>位置变化导致多少 verdict 改变</td>
+</tr>
+<tr>
+<td>Length shortcut</td>
+<td>filler-long 获胜多少次</td>
+</tr>
+<tr>
+<td>Fidelity sensitivity</td>
+<td>fact-corrupt 是否被稳定拒绝</td>
+</tr>
+<tr>
+<td>Proxy gaming</td>
+<td>marker-only 是否无条件获胜</td>
+</tr>
+<tr>
+<td>Coverage</td>
+<td>parse error / UNKNOWN / tie 有多少</td>
+</tr>
+</tbody>
+</table>
+<h3>Step 6:写结论边界</h3>
+<p>合格结论示例:</p>
+<pre><code class="language-text">在 4 篇短中文非虚构文本、三名目标读者与 writing-audit-v1 judge 下,
+marker-only edits 降低了预注册 feature hits;
+现有样本不足以证明总体读者偏好提升。
+Judge 对 fact corruption 的 sensitivity 为 ...,
+但 swap inconsistency 与 filler preference 表明它不能直接用于 release gate。
+</code></pre>
+<p>不合格结论:</p>
+<pre><code class="language-text">去 AI 味 Skill 已被证明能让任何文章更像人写、质量更高。
+</code></pre>
+<hr />
+<h2 id="s11"><span class="hn">§ 10</span>验收</h2>
+<pre><code class="language-text">[ ] 不把 source detection、style characterization、intervention effect 与 artifact quality 混为一个 estimand
+[ ] Hard constraints、fidelity、craft 与 audience preference 分层评分
+[ ] 每条 rubric criterion 有 evidence unit 与 scale anchors
+[ ] 动态 criteria 在看到候选输出前冻结
+[ ] Reference preference 写明 audience population 与 collection process
+[ ] Pairwise evaluation 同时报告 position-swap inconsistency
+[ ] 用 controlled mutation 区分 length bias 与真实内容增益
+[ ] Judge explanation 不代替 judge–human validation
+[ ] Style proxy 改善后仍独立检查 fidelity 与 reader preference
+[ ] Writing Agent 同时保存 final artifact 与 revision trace
+[ ] 不把 reference writing process 锁成唯一合法路径
+[ ] 汇总前保留 criterion vector、disagreement、tie 与 UNKNOWN
+</code></pre>
+<blockquote>
+<h2 id="s12">本课结论</h2>
+<p><strong>开放式作品不是没有 ground truth 就无法评测,而是 reference 从「唯一答案」变成了「有明确人群、任务和程序的人类判断」。</strong></p>
+<p>LLM judge 不是审美事实的廉价替身。它是一台 preference-prediction instrument;必须用目标人群的 labels、反事实 controls 与独立 outcome 来验证。</p>
+</blockquote>
+<hr />
+<h2 id="s13">References</h2>
+<ol>
+<li>Yuning Wu et al. <a href="https://arxiv.org/abs/2503.05244">WritingBench: A Comprehensive Benchmark for Generative Writing</a>, NeurIPS 2025 Datasets &amp; Benchmarks. 1,000 queries、6 domains、100 subdomains 与 query-dependent criteria;<a href="https://github.com/X-PLUG/WritingBench">repo</a>。</li>
+<li>Daniel Fein et al. <a href="https://aclanthology.org/2026.eacl-long.362/">LitBench: A Benchmark and Dataset for Reliable Evaluation of Creative Writing</a>, EACL 2026. 2,480 held-out pairs、43,827 training pairs、length / temporal controls、judge 与 reward-model meta-evaluation;<a href="https://github.com/SAA-Lab/LitBench">repo</a>。</li>
+<li>Amalie Brogaard Pauli et al. <a href="https://arxiv.org/abs/2502.15022">Mind the Style Gap: Meta-Evaluation of Style and Attribute Transfer Metrics</a>, Findings of EMNLP 2025. Style-aware content preservation 与 metric test-set validity。</li>
+<li>Carlos Gómez-Rodríguez and Paul Williams. <a href="https://aclanthology.org/2023.findings-emnlp.966/">A Confederacy of Models: a Comprehensive Evaluation of LLMs on Creative Writing</a>, Findings of EMNLP 2023. 基于 creative-writing pedagogy rubric 的早期系统人类评测。</li>
+<li>EQ-Bench. <a href="https://github.com/EQ-bench/creative-writing-bench">Creative Writing Benchmark v3</a> 与 <a href="https://github.com/EQ-bench/longform-writing-bench">Longform Creative Writing Benchmark</a>. Rubric + pairwise + Glicko 与 planning / revision / long-form workflow 的工程实现。</li>
+<li>Lara. <a href="https://github.com/larashero3-dotcom/lieflat-less-ai-tone"><code>lieflat-less-ai-tone</code></a>. 283 万字中文对照语料、26 个候选特征、11 条规则与六次 operator failure;本课把它用作 style proxy → intervention → outcome 的审计案例。</li>
+</ol>
+<div class="pager"><a href="w4-02.html">← W4 第 2 课 · Deterministic Verifiers</a><a href="toc.html#w4">Week 4 →</a></div>
+</article></div></div>
+<footer><div class="wrap">
+<span>Week 04 · Scorer Validation for Agent Evals</span>
+<span>CUAVerifierBench · tool-calling audits · Inspect scorers</span>
+<span>由 week04/*.md 生成 · build_site.py</span>
+</div></footer></body></html>

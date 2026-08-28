@@ -19,6 +19,7 @@ SRC_W2 = ROOT / "week02"
 SRC_W3 = ROOT / "week03"
 SRC_W4 = ROOT / "week04"
 SRC_W5 = ROOT / "week05"
+SRC_PROJECTS = ROOT / "projects"
 OUT = ROOT / "site"
 
 # (slug, day, title, desc, tag, source .md — None = 尚未写)
@@ -134,6 +135,21 @@ W5_LESSONS = [
      "修题后还是不是同一个 benchmark", "生命周期", None),
     ("w5-05", "5", "Benchmark Release Candidate",
      "从 candidates 到 versioned release", "lab", None),
+]
+
+# Formal submissions. Lesson labs and exercises are checkpoints inside these
+# projects; they are not separate assignments.
+PROJECTS = [
+    ("project-p1", "P1", "Eval Runtime Teardown", "W1–W2",
+     "一个可运行的 mini benchmark + 可审计 runtime", "project01-eval-runtime-teardown.md"),
+    ("project-p2", "P2", "Measurement Audit", "W3–W4",
+     "统计推断与 scorer validity 合成一份 release audit", "project02-measurement-audit.md"),
+    ("project-p3", "P3", "Benchmark Release Candidate", "W5–W7",
+     "从 capability claim 到 versioned、adversarially-tested RC", "project03-benchmark-release-candidate.md"),
+    ("project-p4", "P4", "Evaluation Decision Report", "W8–W11",
+     "把 leaderboard evidence 转成采用、发布或训练决策", "project04-evaluation-decision-report.md"),
+    ("project-c1", "C1", "Permission-Aware Multi-User Agent Benchmark", "W12",
+     "课程 Capstone:权限正确、可运行、可评分的多用户 agent benchmark", "capstone-permission-aware-benchmark.md"),
 ]
 
 # depth cross-section: the signature figure. depth = how much real environment.
@@ -692,6 +708,9 @@ def masthead(active: str) -> str:
     top = [
         '<a href="index.html"%s>介绍</a>' % (' class="on"' if active == "index" else ""),
         '<a href="toc.html"%s>目录</a>' % (' class="on"' if active == "toc" else ""),
+        '<a href="projects.html"%s>项目</a>' % (
+            ' class="on"' if active == "projects" or active.startswith("project-") else ""
+        ),
     ]
     current = _active_week(active)
     current_lessons = None
@@ -718,6 +737,8 @@ def masthead(active: str) -> str:
         badge = "12 WEEKS"
     elif active == "toc":
         badge = "CONTENTS"
+    elif active == "projects" or active.startswith("project-"):
+        badge = "PROJECTS"
     elif current == "2":
         badge = "WEEK 02"
     elif current == "3":
@@ -894,8 +915,41 @@ W2 产生 observation · W5 是否测到目标能力 · W6 是否被运行噪声
 <a class="card" href="toc.html"><span class="num">12</span>
 <span><span class="t">周目录</span><span class="d">点已写的课直接进讲义。其余周先占位 —— 名字已经是真问题。</span></span>
 <span class="tag">目录</span></a>
+<a class="card" href="projects.html"><span class="num">4+1</span>
+<span><span class="t">正式项目</span><span class="d">4 个阶段项目 + 1 个 Capstone；lesson labs 只作为 checkpoints。</span></span>
+<span class="tag">交付</span></a>
 </div></section>
 {FOOT_INDEX}"""
+
+
+def project_cards() -> str:
+    cards = []
+    for slug, pid, title, weeks, desc, _src in PROJECTS:
+        cards.append(
+            f'<a class="card" href="{slug}.html"><span class="num">{pid}</span>'
+            f'<span><span class="t">{title}</span><span class="d">{weeks} · {desc}</span></span>'
+            '<span class="tag">正式交付</span></a>'
+        )
+    return ''.join(cards)
+
+
+def build_projects_index() -> str:
+    foot = footer(
+        "Assessment Contract · 4 staged projects + 1 capstone",
+        "lesson labs / exercises = checkpoints",
+        "ASSESSMENTS.md",
+    )
+    return f"""{HEAD.format(title="正式项目 · Agent Evaluation & Benchmark Engineering", css=CSS)}
+{masthead("projects")}
+<section class="hero"><div class="wrap">
+<span class="eyebrow">ASSESSMENT CONTRACT · 4 + 1</span>
+<h1>正式项目</h1>
+<p class="subhead">课程只收五次。每个 lesson lab 都进入相邻项目，不再产生新的 submission。</p>
+</div></section>
+<section class="sec" style="padding-top:8px"><div class="wrap">
+<div class="cards">{project_cards()}</div>
+</div></section>
+{foot}"""
 
 
 def build_toc() -> str:
@@ -929,10 +983,41 @@ def build_toc() -> str:
 <h1>目录</h1>
 <p class="subhead">点已写的课直接进讲义。其余周先占位 —— 名字已经是真问题,不是待填的标签。</p>
 </div></section>
+<section class="sec" style="padding:8px 0 20px"><div class="wrap">
+<h2>正式交付 · 4 + 1</h2>
+<p class="lede">以下五页是唯一正式作业。各周 lab、exercise 与 checklist 只是项目 checkpoint。</p>
+<div class="cards">{project_cards()}</div>
+</div></section>
 <section class="sec" style="padding-top:8px"><div class="wrap">
 {''.join(week_html)}
 </div></section>
 {FOOT_INDEX}"""
+
+
+def build_project(idx: int) -> str:
+    slug, pid, title, weeks, _desc, src = PROJECTS[idx]
+    md_text = expand_diagrams(expand_math((SRC_PROJECTS / src).read_text()))
+    md = markdown.Markdown(extensions=["tables", "fenced_code", "attr_list", "sane_lists"])
+    html, rail_html = _anchor_h2(render_math_blocks(md.convert(md_text)))
+    p = PROJECTS[idx - 1] if idx > 0 else None
+    nx = PROJECTS[idx + 1] if idx + 1 < len(PROJECTS) else None
+    prev_l = (f'<a href="{p[0]}.html">← {p[1]} · {p[2]}</a>' if p
+              else '<a href="projects.html">← 项目目录</a>')
+    next_l = (f'<a href="{nx[0]}.html">{nx[1]} · {nx[2]} →</a>' if nx
+              else '<a href="projects.html">项目目录 →</a>')
+    foot = footer(
+        f"{pid} · {title}",
+        f"{weeks} · formal submission",
+        f"由 projects/{src} 生成 · build_site.py",
+    )
+    return f"""{HEAD.format(title=f"{pid} · {title}", css=CSS)}
+{masthead(slug)}
+<div class="wrap"><div class="page">
+<aside class="rail"><div class="rt">项目要求</div>{rail_html}</aside>
+<article class="doc">{html}
+<div class="pager">{prev_l}{next_l}</div>
+</article></div></div>
+{foot}"""
 
 
 def build_lesson(idx: int) -> str:
@@ -1165,7 +1250,15 @@ def main() -> None:
     toc = build_toc()
     (OUT / "toc.html").write_text(toc)
     print(f"  toc.html        {len(toc):>8,} B   ← 目录")
-    live = {"index.html", "toc.html"}
+    projects = build_projects_index()
+    (OUT / "projects.html").write_text(projects)
+    print(f"  projects.html   {len(projects):>8,} B   ← 正式项目")
+    live = {"index.html", "toc.html", "projects.html"}
+    for i, (slug, *_rest, src) in enumerate(PROJECTS):
+        page = build_project(i)
+        (OUT / f"{slug}.html").write_text(page)
+        live.add(f"{slug}.html")
+        print(f"  {slug}.html   {len(page):>8,} B   ← projects/{src}")
     for i, (slug, *_rest, src) in enumerate(LESSONS):
         if src is None:
             print(f"  {slug}.html    {'—':>8}   (未写)")

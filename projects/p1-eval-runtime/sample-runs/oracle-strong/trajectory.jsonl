@@ -1,0 +1,8 @@
+{"type": "trial_started", "task_id": "sum-numbers", "agent": "oracle", "verifier": "strong"}
+{"type": "command", "value": "printf '17\\n11\\n14\\n' > numbers.txt\n"}
+{"type": "command_result", "exit_code": 0}
+{"type": "command", "value": "cat > sum.py << 'PY'\nfrom pathlib import Path\nprint(sum(int(x) for x in Path('numbers.txt').read_text().split()))\nPY"}
+{"type": "command_result", "exit_code": 0}
+{"type": "note", "value": "wrote sum.py that reads numbers.txt"}
+{"type": "verifier_result", "passed": true, "output": ""}
+{"type": "trial_finished", "status": "PASS"}

@@ -1,0 +1,8 @@
+id: sum-numbers
+instruction: |-
+  numbers.txt contains one integer per line.
+  Write sum.py so that `python3 sum.py` prints their sum and nothing else.
+timeout_sec: 3
+verifier: tests/test_weak.py
+setup: |
+  printf '17\n11\n14\n' > numbers.txt

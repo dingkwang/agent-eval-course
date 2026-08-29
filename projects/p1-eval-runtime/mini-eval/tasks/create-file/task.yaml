@@ -1,0 +1,5 @@
+id: create-file
+instruction: |-
+  Create result.txt in the workspace containing 42.
+timeout_sec: 10
+verifier: tests/test_result.py

@@ -1,0 +1,7 @@
+{"type": "trial_started", "task_id": "sum-numbers", "agent": "timeout", "verifier": "strong"}
+{"type": "command", "value": "printf '17\\n11\\n14\\n' > numbers.txt\n"}
+{"type": "command_result", "exit_code": 0}
+{"type": "command", "value": "sleep 999"}
+{"type": "command_result", "exit_code": 124}
+{"type": "error", "value": "sleep 999"}
+{"type": "trial_finished", "status": "ERROR"}

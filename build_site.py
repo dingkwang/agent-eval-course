@@ -879,45 +879,48 @@ def build_intro() -> str:
 <span class="eyebrow">12 周 · 每周 5 天 · 每天约 1 小时</span>
 <h1>Agent Evaluation<br>&amp; Benchmark Engineering</h1>
 <p class="subhead">从排行榜、统计推断到 RL Environment</p>
-<p class="thesis">不是教「怎么跑一个 benchmark」。<b>leaderboard 分数 ≠ 模型能力。</b>
-七个因子里只有一个是 model。</p>
+<p class="thesis"><b>构建高置信度的 Agent 测量系统，而非盲信排行榜。</b>
+在复合 Agent 架构中，观测到的分数是模型、环境隔离、执行预算与评分标尺共同作用的产物。评测工程的核心，是用严密的统计推断与防作弊机制，将真正的模型能力从系统噪声中解耦出来。</p>
 <div class="formula">
 <div class="eq">performance = <b>Model</b> × Harness × Environment × Task × Budget × Scorer × Randomness</div>
-测得的性能是这七项的乘积。换 harness、换资源上限、换 user simulator,数字会动 —— 模型可以没变。
+测得的性能是这七项的乘积。换 harness、换资源上限、换 user simulator，数字都会剧烈波动 —— 即使底层模型完全未变。
 </div>
 </div></section>
 
 <section class="sec"><div class="wrap">
-<h2>这门课训练的四件事</h2>
-<p class="lede">现有课程能覆盖工具使用,但没有一门同时覆盖统计学 + benchmark 设计 + environment + evaluation integrity + on-policy RL。</p>
-<div class="skills">
-<div class="skill"><i>1</i><span>能<strong>读懂并质疑</strong>排行榜</span></div>
-<div class="skill"><i>2</i><span>能设计<strong>有统计可信度</strong>的 agent benchmark</span></div>
-<div class="skill"><i>3</i><span>能搭建<strong>可复现、隔离、可验证</strong>的 agent environment</span></div>
-<div class="skill"><i>4</i><span>能让同一套 infra <strong>同时服务 evaluation 与 on-policy RL</strong></span></div>
+<h2>为什么评测会欺骗我们？</h2>
+<p class="lede">工业级 Agent 系统中，评测缺陷会导致千万级算力训练方向偏差与错误上线决策：</p>
+<div class="cards" style="margin-top:16px">
+<div class="card"><span class="num">01</span><span><span class="t">Harness 与环境泄漏</span><span class="d">容器未做严格状态隔离，导致 Agent A 污染 Agent B，或意外暴露 root 与测试文件。</span></span><span class="tag">W1–W2 · P1</span></div>
+<div class="card"><span class="num">02</span><span><span class="t">题目构造与隐式噪声</span><span class="d">题干与隐藏测试自相矛盾（如 SWE-bench 早期 ~30% 缺陷），混入大量构造不相关难度。</span></span><span class="tag">W5 · P3</span></div>
+<div class="card"><span class="num">03</span><span><span class="t">评分漏洞与裁判偏见</span><span class="d">弱 Verifier 允许 Hardcoded 快捷方式作弊；LLM Judge 存在严重的位置与长度偏见。</span></span><span class="tag">W4 · P2</span></div>
+<div class="card"><span class="num">04</span><span><span class="t">样本波动与小样本误判</span><span class="d">将单次随机波动误判为模型能力提升，缺乏成对检验、置信区间与 MDE 分析。</span></span><span class="tag">W3 · P4</span></div>
 </div>
 </div></section>
 
 <section class="sec"><div class="wrap">
-<h2>三段</h2>
-<p class="lede">v1 一上来讲统计,是在给一个你还没见过的东西算误差棒。先看见系统,再测量它。</p>
+<h2>五大工业级实战项目 (Assessments)</h2>
+<p class="lede">全课只设 4 个阶段性工程项目 + 1 个 Capstone，所有 Lab 作为中间 Checkpoint 最终汇入项目交付：</p>
+<div class="cards" style="margin-top:16px">{project_cards()}</div>
+</div></section>
+
+<section class="sec"><div class="wrap">
+<h2>三段技术进阶体系</h2>
+<p class="lede">从看见系统、科学测量到工程闭环，全链路构建端到端评测能力。</p>
 <div class="arcs">
-<div class="arc"><div class="k">W1–W2 · 工程</div><b>怎么工作</b><span>benchmark 与 runtime 是怎么跑出一条 observation 的</span></div>
-<div class="arc"><div class="k">W3–W7 · 方法论</div><b>怎么测量</b><span>分数能不能信:统计、题目、噪声、对抗</span></div>
-<div class="arc"><div class="k">W8–W12 · 系统</div><b>怎么变成结论</b><span>排行榜、线上 eval、喂给训练、自己造一个</span></div>
+<div class="arc"><div class="k">W1–W2 · 工程底座</div><b>怎么工作</b><span>解构 Terminal-Bench / SWE-bench / Harbor / Inspect，跑通真正隔离的 Runtime</span></div>
+<div class="arc"><div class="k">W3–W7 · 科学测量</div><b>怎么测量</b><span>统计推断、题目有效性审计、LLM 裁判鲁棒性攻击与抗刷榜防御</span></div>
+<div class="arc"><div class="k">W8–W12 · 系统闭环</div><b>怎么落地</b><span>线上 Shadow Eval、生产决策报告、冷启动基准与 On-policy RL 训练环境</span></div>
 </div>
-<div class="fails"><b>W2 / W5 / W6 / W7 是四种失败,不是四个近义词。</b>
-W2 产生 observation · W5 是否测到目标能力 · W6 是否被运行噪声污染 · W7 测量本身是否被泄漏、攻击或 game。
-素材约 30% 论文,70% RFC / 官方文档 / 源码。</div>
+<div class="fails"><b>W2 / W5 / W6 / W7 是四种系统性失败，不是四个近义词。</b>
+W2 运行与观测失败 · W5 目标能力错位 · W6 随机与执行噪声 · W7 测量被泄漏、作弊或对抗污染。
+素材约 30% 前沿论文，70% 工业级 RFC / 官方规范 / 源码实现。</div>
 </div></section>
 
 <section class="sec"><div class="wrap">
 <a class="card" href="toc.html"><span class="num">12</span>
-<span><span class="t">周目录</span><span class="d">点已写的课直接进讲义。其余周先占位 —— 名字已经是真问题。</span></span>
+<span><span class="t">查看 12 周完整大纲与讲义</span><span class="d">深入每一节课的真实源码剖析与理论推导。</span></span>
 <span class="tag">目录</span></a>
-<a class="card" href="projects.html"><span class="num">4+1</span>
-<span><span class="t">正式项目</span><span class="d">4 个阶段项目 + 1 个 Capstone；lesson labs 只作为 checkpoints。</span></span>
-<span class="tag">交付</span></a>
 </div></section>
 {FOOT_INDEX}"""
 

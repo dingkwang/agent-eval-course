@@ -304,23 +304,23 @@ window.MathJax = {
 <section class="hero"><div class="wrap">
 <span class="eyebrow">12 周 · 每周 5 天 · 每天约 1 小时</span>
 <h1>Agent Evaluation<br>&amp; Benchmark Engineering</h1>
-<p class="subhead">从排行榜、统计推断到 RL Environment</p>
-<p class="thesis"><b>构建高置信度的 Agent 测量系统，而非盲信排行榜。</b>
-在复合 Agent 架构中，观测到的分数是模型、环境隔离、执行预算与评分标尺共同作用的产物。评测工程的核心，是用严密的统计推断与防作弊机制，将真正的模型能力从系统噪声中解耦出来。</p>
+<p class="subhead">从排行榜解构、统计推断到 RL Environment</p>
+<p class="thesis">行业普遍信任的 <b>Artificial Analysis 等综合排行榜</b>，本质上大多是若干个<b>已显陈旧、甚至易被过拟合的 Benchmark 的加权平均</b>。
+把充满环境泄漏、弱裁判漏洞与数据污染的单项分揉在一起，算不出真实的智能跃迁。
+评测工程的终极目标，不是去刷一个过时的加权榜单，而是构建严谨、抗对抗、可复现的<b>精密测量仪器与 RL 训练环境</b>。</p>
 <div class="formula">
 <div class="eq">performance = <b>Model</b> × Harness × Environment × Task × Budget × Scorer × Randomness</div>
-测得的性能是这七项的乘积。换 harness、换资源上限、换 user simulator，数字都会剧烈波动 —— 即使底层模型完全未变。
+测得的性能是这七项的乘积。当加权平均把陈旧题库与弱 Verifier 混在一起时，榜单总分往往掩盖了真实的系统方差与模型缺陷。
 </div>
 </div></section>
 
 <section class="sec"><div class="wrap">
-<h2>为什么评测会欺骗我们？</h2>
-<p class="lede">工业级 Agent 系统中，评测缺陷会导致千万级算力训练方向偏差与错误上线决策：</p>
+<h2>加权排行榜背后的三大盲区</h2>
+<p class="lede">把多个单项 benchmark 简单加权平均，往往会在工业落地中引发灾难性的误判：</p>
 <div class="cards" style="margin-top:16px">
-<div class="card"><span class="num">01</span><span><span class="t">Harness 与环境泄漏</span><span class="d">容器未做严格状态隔离，导致 Agent A 污染 Agent B，或意外暴露 root 与测试文件。</span></span><span class="tag">W1–W2 · P1</span></div>
-<div class="card"><span class="num">02</span><span><span class="t">题目构造与隐式噪声</span><span class="d">题干与隐藏测试自相矛盾（如 SWE-bench 早期 ~30% 缺陷），混入大量构造不相关难度。</span></span><span class="tag">W5 · P3</span></div>
-<div class="card"><span class="num">03</span><span><span class="t">评分漏洞与裁判偏见</span><span class="d">弱 Verifier 允许 Hardcoded 快捷方式作弊；LLM Judge 存在严重的位置与长度偏见。</span></span><span class="tag">W4 · P2</span></div>
-<div class="card"><span class="num">04</span><span><span class="t">样本波动与小样本误判</span><span class="d">将单次随机波动误判为模型能力提升，缺乏成对检验、置信区间与 MDE 分析。</span></span><span class="tag">W3 · P4</span></div>
+<div class="card"><span class="num">01</span><span><span class="t">基准老化与数据污染</span><span class="d">依赖早期固定测试集（如过拟合严重的题库），模型刷到 90%+ 却在线上复杂业务中一触即溃。</span></span><span class="tag">W5 · W7</span></div>
+<div class="card"><span class="num">02</span><span><span class="t">弱 Verifier 导致的作弊加权</span><span class="d">单项评测中存在的 Hardcoded 捷径与脆弱的 LLM 裁判偏见，被直接加权计入综合总分。</span></span><span class="tag">W4 · P2</span></div>
+<div class="card"><span class="num">03</span><span><span class="t">平均分掩盖系统崩溃与安全红线</span><span class="d">9 个任务成功 + 1 个越权删库，平均分依然是 90%；加权平均抹平了成对检验与长尾可靠性。</span></span><span class="tag">W1–W3 · P1/P4</span></div>
 </div>
 </div></section>
 
@@ -332,7 +332,7 @@ window.MathJax = {
 
 <section class="sec"><div class="wrap">
 <h2>三段技术进阶体系</h2>
-<p class="lede">从看见系统、科学测量到工程闭环，全链路构建端到端评测能力。</p>
+<p class="lede">从解构现有基准、科学测量到工程闭环，全链路构建端到端评测能力。</p>
 <div class="arcs">
 <div class="arc"><div class="k">W1–W2 · 工程底座</div><b>怎么工作</b><span>解构 Terminal-Bench / SWE-bench / Harbor / Inspect，跑通真正隔离的 Runtime</span></div>
 <div class="arc"><div class="k">W3–W7 · 科学测量</div><b>怎么测量</b><span>统计推断、题目有效性审计、LLM 裁判鲁棒性攻击与抗刷榜防御</span></div>

@@ -986,13 +986,13 @@ def build_toc() -> str:
 <h1>目录</h1>
 <p class="subhead">点已写的课直接进讲义。其余周先占位 —— 名字已经是真问题,不是待填的标签。</p>
 </div></section>
-<section class="sec" style="padding:8px 0 20px"><div class="wrap">
+<section class="sec" style="padding-top:8px"><div class="wrap">
+{''.join(week_html)}
+</div></section>
+<section class="sec" style="padding:20px 0 20px"><div class="wrap">
 <h2>正式交付 · 4 + 1</h2>
 <p class="lede">以下五页是唯一正式作业。各周 lab、exercise 与 checklist 只是项目 checkpoint。</p>
 <div class="cards">{project_cards()}</div>
-</div></section>
-<section class="sec" style="padding-top:8px"><div class="wrap">
-{''.join(week_html)}
 </div></section>
 {FOOT_INDEX}"""
 

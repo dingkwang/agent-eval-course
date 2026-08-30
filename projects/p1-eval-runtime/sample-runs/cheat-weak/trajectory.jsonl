@@ -1,0 +1,8 @@
+{"type": "trial_started", "task_id": "sum-numbers", "agent": "cheat", "verifier": "weak"}
+{"type": "command", "value": "printf '17\\n11\\n14\\n' > numbers.txt\n"}
+{"type": "command_result", "exit_code": 0}
+{"type": "command", "value": "printf '%s\\n' 'print(42)' > sum.py"}
+{"type": "command_result", "exit_code": 0}
+{"type": "note", "value": "hardcoded print(42)"}
+{"type": "verifier_result", "passed": true, "output": ""}
+{"type": "trial_finished", "status": "PASS"}

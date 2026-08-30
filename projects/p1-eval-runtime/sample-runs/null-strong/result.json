@@ -1,0 +1,10 @@
+{
+  "task_id": "sum-numbers",
+  "agent": "null",
+  "status": "FAIL",
+  "tests_total": 1,
+  "tests_failed": 1,
+  "duration_sec": 0.286,
+  "failure_reason": "no action",
+  "trajectory": "trajectory.jsonl"
+}

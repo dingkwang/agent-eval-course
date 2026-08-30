@@ -1,0 +1,10 @@
+{
+  "task_id": "sum-numbers",
+  "agent": "cheat",
+  "status": "PASS",
+  "tests_total": 1,
+  "tests_failed": 0,
+  "duration_sec": 0.508,
+  "failure_reason": null,
+  "trajectory": "trajectory.jsonl"
+}

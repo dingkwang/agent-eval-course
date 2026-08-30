@@ -1,0 +1,10 @@
+{
+  "task_id": "sum-numbers",
+  "agent": "timeout",
+  "status": "ERROR",
+  "tests_total": 0,
+  "tests_failed": 0,
+  "duration_sec": 3.229,
+  "failure_reason": "deadline exceeded",
+  "trajectory": "trajectory.jsonl"
+}

@@ -1,0 +1,10 @@
+{
+  "task_id": "sum-numbers",
+  "agent": "oracle",
+  "status": "PASS",
+  "tests_total": 1,
+  "tests_failed": 0,
+  "duration_sec": 0.567,
+  "failure_reason": null,
+  "trajectory": "trajectory.jsonl"
+}

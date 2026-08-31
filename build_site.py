@@ -28,7 +28,7 @@ LESSONS = [
     ("lesson02", "2", "Terminal-Bench 深读", "从 task 定义一路追到 score", "源码", "lesson02.md"),
     ("lesson03", "3", "SWE-bench", "Dataset / Runtime / Harness 为什么必须分开", "源码 + 实验", "lesson03-swe-bench.md"),
     ("lesson04", "4", "τ³-bench", "reward_basis 选出 verifier 再相乘;User LLM 在尺子里", "源码", "lesson04-tau3-bench.md"),
-    ("lesson05", "5", "OSWorld · WebArena", "把整台机器当 environment", "源码", None),
+    ("lesson05", "5", "OSWorld · WebArena", "把整台机器当 environment", "源码", "lesson05-osworld-webarena.md"),
     ("lesson06", "6", "造一个自己的 benchmark", "五个抽象亲手写一遍", "编码", None),
 ]
 
@@ -50,7 +50,7 @@ LABS = [
 WEEKS = [
     ("1", "Popular Benchmark Anatomy",
      "拿到 repo,源码追通 task → environment → agent → rollout → verifier → result",
-     "4/6", True),
+     "5/6", True),
     ("2", "Eval Runtime & Trajectory Engineering",
      "不同 benchmark / Agent / backend 怎么经同一个 runtime 正确跑?Trajectory 是可重放事件日志,不是聊天记录",
      "2/5", False),

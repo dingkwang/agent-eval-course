@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>第 3 课 · SWE-bench</title>
+<title>第 5 课 · OSWorld · WebArena</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -299,347 +299,259 @@ window.MathJax = {
 
 <header class="mast"><div class="wrap">
 <span class="id"><span class="id-name">Agent Evaluation &amp; Benchmark Engineering</span><span class="id-dot"> · </span><b>WEEK 01</b></span>
-<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="projects.html">项目</a><a href="lesson01.html" class="on">W1</a><a href="w2-01.html">W2</a><a href="w3-01.html">W3</a><a href="w4-01.html">W4</a><a href="w5-01.html">W5</a></nav><nav class="mast-lessons"><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html" class="on">3</a><a href="lesson04.html">4</a><a href="lesson05.html">5</a><span class="soonnav">6</span></nav></div>
+<div class="mast-nav"><nav><a href="index.html">介绍</a><a href="toc.html">目录</a><a href="projects.html">项目</a><a href="lesson01.html" class="on">W1</a><a href="w2-01.html">W2</a><a href="w3-01.html">W3</a><a href="w4-01.html">W4</a><a href="w5-01.html">W5</a></nav><nav class="mast-lessons"><a href="lesson01.html">1</a><a href="lesson02.html">2</a><a href="lesson03.html">3</a><a href="lesson04.html">4</a><a href="lesson05.html" class="on">5</a><span class="soonnav">6</span></nav></div>
 </div></header>
 <div class="wrap"><div class="page">
-<aside class="rail"><div class="rt">本课目录</div><a href="#s0">Dataset、Agent Runtime 与 Evaluation Harness 为什么必须分开</a><a href="#s1"><i>01</i>SWE-bench 给你 dataset 和 evaluation harness,但不给 agent runtime</a><a href="#s2"><i>02</i>一条真实实例里,哪些字段 agent 看得到、哪些只有判分器看得到</a><a href="#s3"><i>03</i>⭐ 四种 patch 喂进同一个 harness,得到四种不同的结局</a><a href="#s4"><i>04</i>为什么 agent 绝不能跑在 eval 容器里 —— 反作弊是写死在代码里的</a><a href="#s5"><i>05</i>跑 lab 时,每一步该翻哪个源码文件</a><a href="#s6"><i>06</i>两个真踩过的坑:装错版本,和「以为造了个负例,其实没有」</a><a href="#s7"><i>07</i>Hands-on:四条命令,复现上面那四种结局</a><a href="#s8"><i>08</i>本课自检:这七件事你能不能说清</a><a href="#s9">本课一句话总结</a></aside>
-<article class="doc"><h1>第 3 课:SWE-bench</h1>
-<h2 id="s0" class="sub">Dataset、Agent Runtime 与 Evaluation Harness 为什么必须分开</h2>
-<p><strong>Week 1 Day 3</strong> · 源码 + 实验课 · 建议 90 分钟</p>
+<aside class="rail"><div class="rt">本课目录</div><a href="#s0">整机 VM + 键鼠/截图 + getter(状态)+metric(期望)</a><a href="#s1"><i>00</i>阶梯上多了什么:容器文件系统 → 整机 GUI 状态</a><a href="#s2"><i>01</i>一个 task json 是什么:Chrome Do Not Track</a><a href="#s3"><i>02</i>DesktopEnv:provider + snapshot reset</a><a href="#s4"><i>03</i>观察–动作环:screenshot → 键鼠 → 新 screenshot</a><a href="#s5"><i>04</i>尺子:getter 抽状态,metric 比期望</a><a href="#s6"><i>05</i>对照:state 在哪、看见什么、怎么复位、怎么判</a><a href="#s7">进阶 30 · WebArena,以及 2.0 仍是同一台机器</a><a href="#s8">本课自检</a><a href="#s9">本课一句话总结</a></aside>
+<article class="doc"><h1>第 5 课:OSWorld · WebArena</h1>
+<h2 id="s0" class="sub">整机 VM + 键鼠/截图 + getter(状态)+metric(期望)</h2>
+<p><strong>Week 1 Day 5</strong> · 源码课 · 90 分钟 = 核心 60 + 进阶 30</p>
 <blockquote>
 <h3>本课唯一命题</h3>
-<h1>SWE-bench evaluator ≠ SWE-bench agent environment</h1>
-<p>这不是措辞讲究,是<strong>信任边界</strong>。搞混它,你会写出一个可以被作弊的 benchmark。</p>
+<h1>OSWorld 的 environment 是一整台可复位的电脑;observation 是屏幕(+ a11y tree),action 是键鼠;分数来自对<strong>最终应用/OS 状态</strong>的 getter+metric</h1>
+<p>Day 2 的 Terminal-Bench:容器文件系统 → <code>reward.txt</code>。
+Day 4 的 τ³:业务数据库 + 对话 → <code>reward_basis</code> 相乘。
+OSWorld:整台桌面 → 屏幕观察、键鼠动作 → <strong>getter 抽出状态,metric 对照期望</strong>。</p>
 </blockquote>
-<figure class="diag"><figcaption><span>管判,不管做</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">SWE-bench 给</div><div class="dcell">dataset + evaluation harness</div><div class="dcell">全新容器 · apply patch · 跑官方测试</div><div class="dcell">唯一契约:一个 patch 文件</div></div><div class="dcol"><div class="dh">SWE-bench 不给</div><div class="dcell">agent runtime</div><div class="dcell">探索 repo、改代码、跑局部测试</div><div class="dcell"></div></div></div></figure>
+<figure class="diag"><figcaption><span>观察 vs 尺子</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">Agent 看见</div><div class="dcell">screenshot + 可选 a11y tree</div><div class="dcell">键鼠 / pyautogui</div></div><div class="dcol"><div class="dh">分数来自</div><div class="dcell">getter 抽出的应用/OS 状态</div><div class="dcell">metric 对 expected</div></div></div></figure>
 
-<figure class="diag"><figcaption><span>同一 harness,四种结局</span></figcaption><div class="dgrid"><div class="gcell"><b>resolved</b><span>gold patch,测试过</span></div><div class="gcell"><b>unresolved</b><span>修了,测试不过</span></div><div class="gcell"><b>empty</b><span>没产出 patch</span></div><div class="gcell"><b>error</b><span>runtime 崩了</span></div></div></figure>
+<figure class="diag"><figcaption><span>本课追的线</span></figcaption><div class="dpipe"><span class="dnode">task json</span><span class="darr">→</span><span class="dnode">snapshot reset</span><span class="darr">→</span><span class="dnode">screenshot/键鼠 loop</span><span class="darr">→</span><span class="dnode">getter+metric</span><span class="darr">→</span><span class="dnode">float</span></div></figure>
 
+<pre><code>核心 60  阶梯 · Chrome DNT json · snapshot reset · 观察–动作环 · getter+metric · 对照表
+进阶 30  WebArena 网站即环境;2.0 同一台机器、更细的尺子粒度
+W5 再处理  长程任务 · checkpoint 部分分 · reward-hacking 审计 · leaderboard 数字
+</code></pre>
 <blockquote>
-<p>📎 <strong>本课所有输出都是真跑出来的</strong>(2026-08,<code>SWE-bench_Verified</code> / <code>astropy__astropy-13398</code>)。
-💻 <strong>先做 lab,再读讲义</strong>:<code>../labs/swe-bench-teardown/</code></p>
+<p>📎 源码:<code>../code/OSWorld-V2/</code>(<code>8b6b596</code>,<code>main</code>)。<code>paper.pdf</code> 与 <code>OSWorld2.0.pdf</code> 是<strong>同一份</strong> OSWorld 2.0(XLANG, 2026-06-26, arXiv 2606.29537),不是 2024 的 1.0。
+💻 本课<strong>不启动 VM</strong>。证据全是源码路径。Day 1 已经扫过 OSWorld 的名字;本课从 <code>reset → obs/action → evaluate</code> 追进去。</p>
 </blockquote>
 <hr />
-<h2 id="s1"><span class="hn">§ 01</span>SWE-bench 给你 <strong>dataset</strong> 和 <strong>evaluation harness</strong>,但<strong>不给 agent runtime</strong></h2>
-<pre><code>                 SWE-bench dataset
-                        │
-        ┌───────────────┼───────────────┐
-        │                               │
- problem_statement                 hidden eval info
- repo / base_commit                test_patch
-        │                           FAIL_TO_PASS
-        ▼                           PASS_TO_PASS
-┌──────────────────┐                      │
-│ Agent Runtime    │  ← ❌ SWE-bench 不提供 │
-│ repo checkout    │                      │
-│ shell/editor     │                      │
-│ network policy   │                      │
-└────────┬─────────┘                      │
-         │                                │
-    model_patch                           │
-         └───────────────┬────────────────┘
-                         ▼
-              ┌─────────────────────┐
-              │ SWE-bench Harness   │  ← ✅ SWE-bench 提供
-              │ Docker              │
-              │ apply patch         │
-              │ apply tests         │
-              │ execute tests       │
-              │ parse results       │
-              └──────────┬──────────┘
-                         ▼
-                    resolved?
+<h2 id="s1"><span class="hn">§ 00</span>阶梯上多了什么:容器文件系统 → 整机 GUI 状态</h2>
+<pre><code>Terminal-Bench   一个容器里的文件/进程                    shell 命令改它;pytest 判它
+SWE-bench        一个仓库的测试是否过                     契约是 patch 文件
+τ³-bench         一个业务库 + 一段对话                    reward_basis 选出 verifier 再相乘
+OSWorld          一整台可复位的桌面                       键鼠改它;getter 读最终应用/OS 状态
 </code></pre>
+<p>多出来的不是「有 GUI」三个字,是 <strong>state 住在整台机器里</strong>:Chrome 设置、LibreOffice 文档、文件系统、剪贴板、自托管网站。观察是像素,尺子不是。</p>
+<p>看:<code>desktop_env/desktop_env.py</code> · <code>evaluation_examples/examples/chrome/</code> · <code>lib_run_single.py</code>。Agent 实现(<code>mm_agents/</code>)只作为 <code>env.step(action)</code> 的调用方出现。</p>
+<hr />
+<h2 id="s2"><span class="hn">§ 01</span>一个 task json 是什么:Chrome Do Not Track</h2>
+<p>课堂探针:<code>evaluation_examples/examples/chrome/030eeff7-b492-4218-b312-701ec99ee0cc.json</code></p>
 <table>
 <thead>
 <tr>
-<th>组件</th>
-<th>SWE-bench 提供?</th>
-<th>证据</th>
+<th>字段</th>
+<th>这道题里是什么</th>
+<th>在链路上的角色</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Dataset</strong></td>
-<td>✅</td>
-<td>HuggingFace,每条含 9 个字段(见 §二)</td>
+<td><code>instruction</code></td>
+<td><code>Can you enable the 'Do Not Track' feature in Chrome to enhance my online privacy?</code></td>
+<td>agent 看见的题面,也进 <code>_get_obs()["instruction"]</code></td>
 </tr>
 <tr>
-<td><strong>Agent Runtime</strong>(怎么产出 patch)</td>
-<td>❌ <strong>不提供</strong></td>
-<td>README 指向外部:<em>"[Apr. 2, 2024]: We have released </em><em>SWE-agent</em><em>"</em>;<code>swebench/inference/</code> 只有 <code>run_api.py</code>/<code>run_llama.py</code>/<code>bm25_retrieval.py</code> = <strong>单轮基线脚本</strong>,不是 agent loop;grep 整个 <code>swebench/harness/*.py</code> <strong>零处调用模型</strong>,唯一命中是 <code>utils.py:59</code> 的注释 <code># compatible with SWE-agent predictions</code></td>
+<td><code>config</code></td>
+<td><code>launch</code> google-chrome + socat 转发 9222</td>
+<td><strong>reset 之后</strong>写入机器的任务工作区,不是空白桌面</td>
 </tr>
 <tr>
-<td><strong>Evaluation Harness</strong></td>
-<td>✅ 且容器化</td>
-<td><code>run_evaluation.py</code> 官方入口;<code>dockerfiles/</code> 有 <strong>9 种语言</strong>的镜像生成器;README:<em>"fully containerized evaluation harness using Docker for more reproducible evaluations"</em></td>
+<td><code>evaluator.func</code></td>
+<td><code>exact_match</code></td>
+<td>metric 名字,<code>_set_evaluator_info</code> 里 <code>getattr(metrics, func)</code></td>
+</tr>
+<tr>
+<td><code>evaluator.result.type</code></td>
+<td><code>enable_do_not_track</code></td>
+<td>getter 名字,拼成 <code>get_enable_do_not_track</code></td>
+</tr>
+<tr>
+<td><code>evaluator.expected</code></td>
+<td><code>{type: rule, rules: {expected: "true"}}</code></td>
+<td><code>get_rule</code> 原样返回 <code>rules</code>,再交给 metric</td>
+</tr>
+<tr>
+<td><code>evaluator.postconfig</code></td>
+<td><code>pkill chrome</code> → 再 launch → sleep 3</td>
+<td><strong>evaluate 前</strong>把 Preferences 刷到磁盘</td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<h3>一句话</h3>
-<p><strong>SWE-bench 管「判」,不管「做」。</strong> 两者之间的<strong>唯一契约是一个 patch 文件</strong>。</p>
-</blockquote>
+<figure class="diag"><figcaption><span>Chrome DNT 一次 trial</span></figcaption><div class="dnest"><div class="dbox"><div class="dlab">DesktopEnv</div><div class="dbox"><div class="dlab">snapshot 回到可复位桌面</div></div><div class="dbox"><div class="dlab">config 启动 Chrome</div></div><div class="dbox"><div class="dlab">agent 用 GUI 改设置</div></div><div class="dbox"><div class="dlab">postconfig 重启 Chrome</div></div><div class="dbox"><div class="dlab">getter 读 Preferences.enable_do_not_track</div></div><div class="dbox"><div class="dlab">metric exact_match 对 "true"</div></div></div></div></figure>
+
+<p>别的 json 还可以带 <code>user_simulator</code>。那是<strong>可选的任务 setup</strong>(<code>desktop_env.py:476-482</code>),不是每道题的尺子。τ³ 的 User LLM 住在尺子里;这里模拟用户出现时,只是机器里多了一个会回话的人。</p>
 <hr />
-<h2 id="s2"><span class="hn">§ 02</span>一条真实实例里,<strong>哪些字段 agent 看得到、哪些只有判分器看得到</strong></h2>
-<p><code>astropy__astropy-13398</code>,跑 <code>python3 ../labs/swe-bench-teardown/teardown.py</code> 可复现。</p>
-<h3>agent 看得到的</h3>
-<pre><code>instance_id   astropy__astropy-13398
-repo          astropy/astropy
-base_commit   6500928dc0e57be8f06d1162eacc3ba5e2eff692
-version       5.0
-problem_statement   5,323 chars
+<h2 id="s3"><span class="hn">§ 02</span>DesktopEnv:provider + snapshot reset</h2>
+<p><code>DesktopEnv</code> 是 gym 环境(<code>desktop_env.py:30</code>)。构造时选虚拟化后端和复位点:</p>
+<ul>
+<li><code>snapshot_name="init_state"</code>(<code>:39</code>,<code>:121</code>)</li>
+<li><code>action_space</code>:<code>computer_13</code> / <code>pyautogui</code> / …(<code>:40</code>,<code>:135-136</code>)</li>
+<li><code>require_a11y_tree=True</code>(<code>:44</code>,<code>:125</code>)——默认观察里带无障碍树</li>
+</ul>
+<p><strong>看 <code>reset()</code> <code>:300</code>。</strong> 真正贵的操作是 <code>_revert_to_snapshot()</code>(<code>:202-205</code> → <code>provider.revert_to_snapshot</code>)。它<strong>不是每次 reset 都跑</strong>:</p>
+<pre><code>is_environment_used == True   → revert 到 snapshot_name,再 _start_emulator,然后清 flag(`:329-336`)
+is_environment_used == False  → 跳过 revert(`:337-338`)
 </code></pre>
-<h3>只有 grader 看得到的(<strong>agent 绝不能看到</strong>)</h3>
-<pre><code>patch (gold)              13,884 B, 4 files
-test_patch                 7,533 B, 1 file
-FAIL_TO_PASS               4    改完必须由失败转通过
-PASS_TO_PASS              68    本来就过,不许弄坏
-environment_setup_commit  cdf311e0714e…
+<p>flag 的初值按 provider 分(<code>:100-108</code>):</p>
+<table>
+<thead>
+<tr>
+<th>provider</th>
+<th>启动时 <code>is_environment_used</code></th>
+<th>第一次 reset</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>docker / aws / gcp / azure / …</td>
+<td><code>False</code></td>
+<td>机器被认为是干净的,跳过 revert</td>
+</tr>
+<tr>
+<td>vmware / virtualbox</td>
+<td><code>True</code></td>
+<td>机器被认为是脏的,先 revert</td>
+</tr>
+</tbody>
+</table>
+<p><code>step()</code> 和带 <code>config</code> 的 setup 会把 flag 打成 <code>True</code>(<code>:343</code>,<code>:549</code>)。下一道题才能保证回到 snapshot。</p>
+<p><code>config</code> 在 revert <strong>之后</strong>由 <code>_setup_task</code>(<code>:267-280</code>)交给 <code>SetupController.setup</code>(<code>controllers/setup.py:72-100</code>):<code>type: launch</code> → <code>_launch_setup</code>。OSWorld 2.0 §2.1.2 把这件事写成 <strong>task-specific workspace</strong>(文件、标签页、自托管站点、用户 profile),不是空白桌面。</p>
+<p>然后 <code>reset</code> 返回 <code>_get_obs()</code>(<code>:411-412</code>)。</p>
+<hr />
+<h2 id="s4"><span class="hn">§ 03</span>观察–动作环:screenshot → 键鼠 → 新 screenshot</h2>
+<p><code>_get_obs()</code>(<code>:449-457</code>)一次给出四样:</p>
+<pre><code>screenshot            controller.get_screenshot()
+accessibility_tree    可选,require_a11y_tree
+terminal              可选,require_terminal
+instruction           题面
 </code></pre>
-<p><strong>两个字段值得单独说</strong>:</p>
-<p><strong><code>environment_setup_commit</code></strong> —— 它和 <code>base_commit</code> <strong>不是同一个 commit</strong>。装依赖用前者,checkout 代码用后者。</p>
-<blockquote>
-<p>为什么要分开?因为「这个 bug 存在于哪个 commit」和「用哪个版本的依赖能装起来」是两件事。这是可复现性的关键设计,也是很多自制 benchmark 会漏掉的。</p>
-</blockquote>
-<p><strong><code>PASS_TO_PASS</code> 有 68 个</strong> —— 它防的是「把测试删了就通过」。</p>
-<pre><code>resolved = 4 个 FAIL_TO_PASS 全过  AND  68 个 PASS_TO_PASS 仍过
-         = 72 个断言全绿
+<p>2.0 §3.1:进模型的主观察是 <strong>screenshot</strong>。像素是 <strong>agent 的输入</strong>,不是分数。</p>
+<p><code>step(action)</code>(<code>:544-582</code>):</p>
+<ol>
+<li>记下 action,把 <code>is_environment_used = True</code></li>
+<li><code>WAIT</code> / <code>FAIL</code> / <code>DONE</code> 是控制面:<code>FAIL</code>/<code>DONE</code> 把 <code>done=True</code></li>
+<li><code>computer_13</code> → <code>controller.execute_action</code>(原语在 <code>actions.py</code> <code>ACTION_SPACE</code>:<code>MOVE_TO</code> / <code>CLICK</code> / …)</li>
+<li><code>pyautogui</code> → <code>controller.execute_python_command</code></li>
+<li>sleep,再 <code>_get_obs()</code></li>
+</ol>
+<p><strong>循环里的 <code>reward</code> 现在写死为 0</strong>(<code>:551</code>,旁边还有 todo)。计入分数的不是逐步 reward,是循环结束后的 <code>evaluate()</code>。</p>
+<p>整段 rollout 在 <code>lib_run_single.py</code> <code>run_single_example</code>(<code>:853</code>):</p>
+<pre><code>env.reset(task_config=example)          :880
+obs = env._get_obs()                    :884
+while not done and step_idx &lt; max_steps :891
+    agent.predict(instruction, obs)
+    env.step(action)                    :928
+env.evaluate()                          :982
+_persist_evaluation_result(...)         :983
 </code></pre>
-<h3>⭐ 但「agent 看不到测试」这句话要说准</h3>
-<p>上面那张表说的是<strong>数据集字段</strong>。仓库本身是另一回事 —— agent 拿到的是 <code>base_commit</code> 时刻的
-完整 checkout,<strong>里面的测试它全都读得到、也跑得动</strong>。</p>
-<p>全 500 条 SWE-bench Verified 里,<code>test_patch</code> 到底动了什么:</p>
-<pre><code>只新建测试文件 :   3
-新建 + 改已有   :  12
-只改已有文件    : 485      ← 97%
+<p>看这一段就够:agent 是 <code>step</code> 的调用方;环境与尺子都在 <code>DesktopEnv</code>。</p>
+<hr />
+<h2 id="s5"><span class="hn">§ 04</span>尺子:getter 抽状态,metric 比期望</h2>
+<p><code>evaluate()</code>(<code>:584-587</code>)默认走进 <code>_evaluate_with_evaluator()</code>(<code>:589</code>)。</p>
+<p>Chrome DNT 这条路径:</p>
+<pre><code>postconfig          pkill + 再 launch Chrome,让 Preferences 落盘(`:598-602`)
+result_getter       get_enable_do_not_track(env, {type: enable_do_not_track})
+expected_getter     get_rule → {&quot;expected&quot;: &quot;true&quot;}
+metric              exact_match(result_state, expected_state) → 1.0 或 0.0
 </code></pre>
-<p>我们这条 <code>astropy__astropy-13398</code> 就属于那 485 条 —— <code>test_patch</code> 只改一个文件
-<code>astropy/coordinates/tests/test_intermediate_transformations.py</code>,而这个文件在 <code>base_commit</code>
-里<strong>本来就存在</strong>。逐个核对那 4 个 FAIL_TO_PASS 函数在 diff 里是新增行还是上下文行:</p>
-<pre><code>test_itrs_topo_to_altaz_with_refraction     新增=True  原有=False
-test_itrs_topo_to_hadec_with_refraction     新增=True  原有=False
-test_cirs_itrs_topo                         新增=True  原有=False
-test_itrs_straight_overhead                 新增=True  原有=False
-</code></pre>
-<p>所以精确的边界是:</p>
+<p>名字怎么接上:json 里 <code>result.type = "enable_do_not_track"</code>, <code>_set_evaluator_info</code>(<code>:513-516</code>)做 <code>getattr(getters, "get_{type}")</code>。<code>func: exact_match</code> 同样从 <code>metrics</code> 取函数(<code>:506-510</code>)。</p>
+<p><code>get_enable_do_not_track</code>(<code>evaluators/getters/chrome.py:1243-1270</code>)不看截图。它在 VM 里定位 Chrome <code>Preferences</code>,<code>json.loads</code> 之后读 <code>enable_do_not_track</code>,返回 <code>"true"</code> / <code>"false"</code>。</p>
+<p><code>exact_match</code>(<code>evaluators/metrics/general.py:41-48</code>)是字符串相等,命中 1.0,否则 0.0。</p>
+<p><code>expected.type = "rule"</code> 走 <code>get_rule</code>(<code>evaluators/getters/misc.py:87-91</code>):把 json 里的 <code>rules</code> 原样交给 metric。期望值写在题目里,不写在截图里。</p>
+<p><code>_persist_evaluation_result</code>(<code>lib_run_single.py:23-58</code>)把这个 float 写成 <code>result.txt</code>,dict 结果再写一份 <code>result.json</code>。</p>
+<p>所以这道题的分数是:<strong>Chrome 配置文件里 DNT 开了没有</strong>,不是「最后一帧像不像标准截图」。2.0 §2.1.3 把同一设计说成对 concrete state / artifact 做 functional check。</p>
+<p>多 metric 时 json 可以带 <code>conj</code>(<code>desktop_env.py:511</code>,<code>:616-672</code>):<code>and</code> / <code>or</code> / <code>avg</code> / <code>sum</code>。进阶点到为止。</p>
+<hr />
+<h2 id="s6"><span class="hn">§ 05</span>对照:state 在哪、看见什么、怎么复位、怎么判</h2>
 <table>
 <thead>
 <tr>
 <th></th>
-<th>agent 能看到?</th>
-<th></th>
+<th>Terminal-Bench</th>
+<th>SWE-bench</th>
+<th>OSWorld</th>
+<th>WebArena</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>测试<strong>文件</strong>本身</td>
-<td>✅</td>
-<td>仓库里本来就有</td>
+<td><strong>state</strong></td>
+<td>容器文件系统 / 进程</td>
+<td>仓库 + 隐藏测试</td>
+<td>整台桌面(应用 + OS + 文件)</td>
+<td>自托管网站栈</td>
 </tr>
 <tr>
-<td>68 个 <strong>PASS_TO_PASS</strong></td>
-<td>✅ 能读能跑</td>
-<td>就在同一个文件里,是已有测试</td>
+<td><strong>reset</strong></td>
+<td>新容器</td>
+<td>新容器 + 指定 commit</td>
+<td>VM snapshot,用过才 revert,再跑 <code>config</code></td>
+<td>网站数据复位</td>
 </tr>
 <tr>
-<td>4 个 <strong>FAIL_TO_PASS</strong> 的代码</td>
-<td>❌</td>
-<td><code>test_patch</code> 才加进去</td>
+<td><strong>obs</strong></td>
+<td>shell 输出</td>
+<td>代码 / 测试日志</td>
+<td>screenshot(+ a11y)</td>
+<td>页面(DOM / a11y / 截图)</td>
 </tr>
 <tr>
-<td>F2P / P2P 的<strong>名字列表</strong></td>
-<td>❌</td>
-<td>dataset 里的 grader-only 字段</td>
+<td><strong>action</strong></td>
+<td>shell</td>
+<td>产出 patch</td>
+<td>键鼠 / pyautogui</td>
+<td>浏览器动作</td>
+</tr>
+<tr>
+<td><strong>尺子</strong></td>
+<td><code>tests/</code> + parser</td>
+<td>官方测试是否过</td>
+<td>getter(状态)+metric(期望)</td>
+<td>功能检查(表单/DB/URL),不是像素</td>
+</tr>
+<tr>
+<td><strong>契约</strong></td>
+<td>世界被测到</td>
+<td>一个 patch 文件</td>
+<td>最终应用/OS 状态</td>
+<td>最终网站状态</td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p><strong>一句话</strong>:agent 看得到「不许弄坏什么」,看不到「必须修好什么」。
-这个不对称是故意的 —— P2P 可见无所谓,它们本来就该过;F2P 不可见才是防作弊的核心。</p>
-</blockquote>
-<p><strong>连带的推论</strong>:agent 没法「跑测试跑到绿」,因为判分的那 4 个测试还不存在。
-官方参考 scaffold(<code>mini-swe-agent</code>,<code>config/benchmarks/swebench.yaml:30-36</code>)的措辞也印证了这点:</p>
-<pre><code>2. Create a script to reproduce the issue        ← 自己写复现脚本
-4. Verify your fix works by running your script again   ← 跑自己写的
-</code></pre>
-<pre><code>agent 的「绿」  = 它自己写的复现脚本过了
-harness 的「绿」= 官方那 4 + 68 个测试过了
-</code></pre>
-<p><strong>两套不同的测试。</strong> SWE-bench 考的不是「跑到测试通过」,是「猜中出题人会怎么测」。</p>
+<p>同一观察–动作环,state 粒度不同。WebArena 的环境是<strong>浏览器里的世界</strong>;OSWorld 的环境是<strong>整台 OS</strong>,Chrome 只是上面的一个应用。</p>
 <hr />
-<h2 id="s3"><span class="hn">§ 03</span>⭐ 四种 patch 喂进<strong>同一个</strong> harness,得到<strong>四种不同的结局</strong></h2>
-<blockquote>
-<p>这是本课的核心。四种 prediction 喂进<strong>同一个</strong> harness,得到<strong>四种不同类别</strong>的结果。</p>
-</blockquote>
-<table>
-<thead>
-<tr>
-<th>实验</th>
-<th>prediction</th>
-<th>harness 输出</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>gold</strong></td>
-<td>官方参考解法</td>
-<td><code>Instances resolved: 1</code></td>
-</tr>
-<tr>
-<td><strong>empty</strong></td>
-<td><code>""</code></td>
-<td><strong><code>Instances with empty patches: 1</code></strong></td>
-</tr>
-<tr>
-<td><strong>partial</strong></td>
-<td>只保留 gold 的第一个文件(加了 import,但被 import 的模块不存在)</td>
-<td><code>Instances unresolved: 1</code></td>
-</tr>
-<tr>
-<td><strong>malformed</strong></td>
-<td>指向不存在文件的假 diff</td>
-<td><strong><code>Instances with errors: 1</code></strong></td>
-</tr>
-</tbody>
-</table>
-<h3>gold 的判分明细(真实 <code>report.json</code>)</h3>
-<pre><code>resolved: True | patch applied: True
-  FAIL_TO_PASS   success=  4  failure=0
-  PASS_TO_PASS   success= 68  failure=0
-  FAIL_TO_FAIL   success=  0  failure=0
-  PASS_TO_FAIL   success=  0  failure=0
-</code></pre>
-<p>72 个断言全绿,与 §二 的契约<strong>完全一致</strong>。这同时证明了:<strong>evaluator 本身是好的</strong>。</p>
-<h3>🔑 四种结局 = 四个类别</h3>
-<pre><code>resolved        →  真的修好了
-unresolved      →  patch 应用了,但测试没过        ← 模型能力问题
-empty patch     →  agent 什么都没产出              ← 通常是 agent runtime 挂了
-error           →  patch 无法 apply                ← infra / 格式问题
-</code></pre>
-<blockquote>
-<p><strong>只报 "resolved %" 的 leaderboard,把后三类混成了一个数字。</strong>
-一个 agent 得 0 分,可能是它不会修 bug(unresolved),也可能是它的 runtime 崩了(empty)——
-<strong>这两件事的改进方向完全相反。</strong>
-⟹ 这就是 <strong>W6 Failure Taxonomy</strong> 的起点,也是为什么 SWE-bench 官方后来把 infra failure 与正常 unresolved 区分开。</p>
-</blockquote>
-<p><strong>对照 Day 2 的 oracle 原则</strong>:gold patch 之于 SWE-bench,就是 <code>solution.sh</code> 之于 Terminal-Bench ——
-<strong>先证明尺子是准的,再用它量东西。</strong></p>
+<h2 id="s7">进阶 30 · WebArena,以及 2.0 仍是同一台机器</h2>
+<h3>看 <code>papers/webarena.pdf</code></h3>
+<p>WebArena 把 environment 收成一组<strong>可复现的自托管网站</strong>(电商、论坛、GitLab 一类)。Agent 仍然 screenshot / 页面 → 浏览器动作 → 新页面;分数来自站点上的功能结果(买没买到、issue 建没建),不是截图像不像。</p>
+<p>和 OSWorld 并排看:</p>
+<figure class="diag"><figcaption><span>世界有多大</span></figcaption><div class="dcmp"><div class="dcol"><div class="dh">WebArena</div><div class="dcell">网站栈 = 全部环境</div><div class="dcell">浏览器动作</div><div class="dcell">复位站点数据</div></div><div class="dcol"><div class="dh">OSWorld</div><div class="dcell">整台 OS 是环境</div><div class="dcell">键鼠,Chrome 只是其中一个应用</div><div class="dcell">复位 VM snapshot + 任务 config</div></div></div></figure>
+
+<p>OSWorld 2.0 把 31 个自托管站点<strong>放进这台 VM</strong>。那不是「改用 WebArena 当环境」,是整机里面多了一层 WebArena 式的网站。2.0 §2.2.3 把 WebArena 和 OSWorld 1.0 归在一起:真实可交互,但任务相对短、相对窄。长短程、难度、GDP-proxy —— <strong>W5</strong>。</p>
+<h3>2.0 改的是任务和尺子粒度,不是换机器</h3>
+<p>1.0 和 2.0 <strong>共用同一套桌面 VM</strong>。Agent 仍然看 screenshot(§3.1)。核心 60 追的 <code>reset / step / evaluate / getter+metric</code> 在这份 checkout 里仍然是主路径。</p>
+<p>2.0 在同一台机器上把尺子磨细:1.0 终态二元;2.0 可以按 checkpoint 在<strong>终态</strong>上平均(<code>conj: avg</code>,<code>lib_run_single.py</code> 里可选的 checkpoint eval)。部分分、长程、leaderboard 数字留在 W5。本课只要记住:<strong>机器没换,题和尺子的粒度换了。</strong></p>
+<p>2.0 §2.1.3 还允许一小部分 model-based 分数作补充(全文约 11.53% 的分,且单题不超过一半)。主体仍是 getter+metric。本课用 Chrome DNT 就是那条主体路径。</p>
 <hr />
-<h2 id="s4"><span class="hn">§ 04</span>为什么 agent <strong>绝不能</strong>跑在 eval 容器里 —— 反作弊是写死在代码里的</h2>
-<p>为什么 agent <strong>绝不能</strong>跑在 eval 容器里?看 eval 脚本的生成顺序(<code>test_spec/python.py:419-425</code>):</p>
-<pre><code class="language-bash">git checkout {base_commit} {test_patch 改过的文件}   # ← 抹掉 agent 对测试的任何改动
-rm -f {test_patch 新增的文件}                        # ← 删掉 agent 可能造的假测试
-git apply -v - &lt;&lt;'EOF' {官方 test_patch} EOF         # ← 再贴上权威测试
-# 然后才跑测试
-</code></pre>
-<p><strong>先强制还原测试文件,再贴官方测试。</strong> 这是「<strong>不信任 agent 碰过的任何东西</strong>」写进代码里。</p>
-<p>三条理由:
-1. <strong>反作弊</strong> —— agent 改不了判分标准
-2. <strong>确定性</strong> —— 每个 instance 起<strong>全新</strong>容器,agent 装过的包、改过的 env 不会污染判分
-3. <strong>verifier independence</strong> —— verifier 必须在 agent 够不到的地方</p>
-<blockquote>
-<p>⚠️ 但注意:<strong>agent 自己也需要一个 sandbox</strong>,只是不是这一个。
-<code>Agent sandbox   ← SWE-bench 不管,SWE-agent 等自带  (探索 repo、改代码、跑局部测试)
-Eval sandbox    ← SWE-bench 提供                    (全新容器 → apply → 跑官方测试 → 判分)</code></p>
-</blockquote>
-<hr />
-<h2 id="s5"><span class="hn">§ 05</span>跑 lab 时,<strong>每一步该翻哪个源码文件</strong></h2>
-<p><code>../agent-sandbox-course/code/SWE-bench/swebench/harness/</code>:</p>
-<table>
-<thead>
-<tr>
-<th>你在跑什么</th>
-<th>源码入口</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>整个评测</td>
-<td><code>run_evaluation.py</code> —— 参数是 <code>--predictions_path</code>,<strong>吃已产出的 patch</strong></td>
-</tr>
-<tr>
-<td>建镜像</td>
-<td><code>docker_build.py</code> · <code>dockerfiles/</code>(python/java/js/go/rust/c/php/ruby)· <code>prepare_images.py</code></td>
-</tr>
-<tr>
-<td>容器里执行什么</td>
-<td><code>test_spec/python.py</code> —— 生成 eval 脚本</td>
-</tr>
-<tr>
-<td>判分</td>
-<td><code>grading.py</code></td>
-</tr>
-<tr>
-<td>解析测试输出</td>
-<td><code>log_parsers/</code> —— <strong>每个测试框架一个 parser</strong></td>
-</tr>
-<tr>
-<td>汇总</td>
-<td><code>reporting.py</code></td>
-</tr>
-<tr>
-<td>云端执行</td>
-<td><code>modal_eval/</code></td>
-</tr>
-</tbody>
-</table>
-<blockquote>
-<p><strong>镜像分层</strong>(W2 会展开):<code>base → env → instance</code>。<code>--cache_level</code> 控制保留哪一层。</p>
-</blockquote>
-<hr />
-<h2 id="s6"><span class="hn">§ 06</span>两个真踩过的坑:<strong>装错版本</strong>,和<strong>「以为造了个负例,其实没有」</strong></h2>
-<h3>坑 ① pip 版 harness ≠ repo 版</h3>
-<pre><code>pip install swebench   → 5.0.2,不支持 --cache_level / --namespace / --force_rebuild
-clone 的 repo          → 支持
-</code></pre>
-<p>症状:<code>run_evaluation.py: error: unrecognized arguments: --cache_level</code></p>
-<blockquote>
-<p><strong>教训</strong>:讲义引用的是 repo 源码,lab 就必须跑同一份代码,<strong>否则你验证的不是你讲的东西</strong>。</p>
-</blockquote>
-<h3>坑 ② 「把 patch 改坏」比想象中难 ⭐</h3>
-<p>第一次造 broken patch 用的是:</p>
-<pre><code class="language-python">x[&quot;patch&quot;].replace(&quot;+&quot;, &quot;-&quot;, 1)
-</code></pre>
-<p>结果 <strong>仍然 <code>resolved: True</code></strong>。</p>
-<p>原因:整个 diff 里第一个 <code>+</code> 出现在 <strong><code>+++ b/...</code> 文件头</strong>,不是代码行。<code>git apply</code> 容忍了这个畸形头。</p>
-<blockquote>
-<p><strong>教训</strong>:<strong>要让一个 patch 失败,必须改它「做什么」,而不是改它「怎么拼写」。</strong>
-更普适的版本 —— <strong>你以为你造了个负例,其实没有。</strong> 这条会在 <strong>W5 任务质量</strong> 再遇到:
-一个没有真正区分能力的任务,和一个坏掉的负例,在数据里长得一模一样。</p>
-</blockquote>
-<hr />
-<h2 id="s7"><span class="hn">§ 07</span>Hands-on:<strong>四条命令,复现上面那四种结局</strong></h2>
-<pre><code class="language-bash">python3 ../labs/swe-bench-teardown/teardown.py          # 拆实例 + 生成四份 prediction
-bash    ../labs/swe-bench-teardown/run.sh gold          # 应 resolved
-bash    ../labs/swe-bench-teardown/run.sh empty         # empty patch(不是 unresolved!)
-bash    ../labs/swe-bench-teardown/run.sh partial       # unresolved
-bash    ../labs/swe-bench-teardown/run.sh malformed     # error
-</code></pre>
-<p><strong>留给你的两个实验</strong>:</p>
-<pre><code>[ ] 实验 3:同一个 run_id 换不同 prediction 再跑一次 → 观察 result caching 这个坑
-[ ] 实验 4:docker exec 进容器,对比 agent-visible repo 与 grader-visible test_patch
-</code></pre>
-<hr />
-<h2 id="s8"><span class="hn">§ 08</span>本课自检:<strong>这七件事你能不能说清</strong></h2>
-<pre><code>[ ] 1. 能说清 dataset / agent runtime / evaluation harness 为什么是三件事
-[ ] 2. 能说出 SWE-bench 提供哪两件、不提供哪一件,并给出源码证据
-[ ] 3. 能解释 base_commit 与 environment_setup_commit 为什么分开
-[ ] 4. 能解释 PASS_TO_PASS 防的是什么
-[ ] 5. 能说出四种 harness 结局及各自意味着什么
-[ ] 6. 能指出 eval 脚本里的反作弊那三行,并说明为什么 agent 不能在 eval 容器里
-[ ] 7. 能说出「你以为你造了个负例,其实没有」是怎么发生的
+<h2 id="s8">本课自检</h2>
+<pre><code>[ ] 1. 能用一句话说出 OSWorld 的 unique prop:整机 + 键鼠/截图 + getter+metric
+[ ] 2. 能打开 Chrome DNT json,指出 instruction / config / postconfig / func / result.type / expected 各进哪一环
+[ ] 3. 能说出 reset 何时 revert snapshot,以及 docker 与 vmware 的 is_environment_used 初值为什么不同
+[ ] 4. 能指出 _get_obs 里哪些字段给 agent,以及 step() 里 reward=0 意味着什么
+[ ] 5. 能从 result.type 拼出 getter 函数名,并说出 get_enable_do_not_track 读的是 Preferences 不是截图
+[ ] 6. 能对比 TB / SWE / OSWorld / WebArena 的 state、reset、obs、尺子
+[ ] 7. 能说出 WebArena 的环境是网站栈,OSWorld 2.0 把同类站点放进整机,而不是换成网站栈
 </code></pre>
 <hr />
 <h2 id="s9">本课一句话总结</h2>
 <blockquote>
-<p><strong>SWE-bench 的精髓不在数据集,在那条 patch 契约:agent 在外面做,harness 在里面判,中间只传一个 diff。</strong>
-这条边界让它可复现、可防作弊 —— 也让「agent 环境」成了你自己的责任。</p>
+<p><strong>OSWorld 让 agent 看屏幕、动手用键鼠,但分数问的是机器最后长什么样。</strong>
+截图是观察;getter+metric 才是尺子。</p>
 </blockquote>
 <hr />
-<p><strong>上一课(Day 2)</strong>:<a href="lesson02.md">Terminal-Bench 深读</a>。
-<strong>下一课(Day 4)</strong>:<a href="lesson04-tau3-bench.md">τ³-bench</a> —— 从 repo state 走向 <strong>application state + user state + conversational trajectory</strong>,以及 verifier 为什么会裂成四个。</p>
-<div class="pager"><a href="lesson02.html">← 第 2 课 · Terminal-Bench 深读</a><a href="lesson04.html">第 4 课 · τ³-bench →</a></div>
+<p><strong>上一课(Day 4)</strong>:<a href="lesson04-tau3-bench.md">τ³-bench</a>。
+<strong>下一课(Day 6)</strong>:hello-bench —— 五个抽象亲手写一遍(<code>Task · Environment · Agent · Verifier · Result</code>)。讲义还在写;lab 已在 <a href="../labs/hello-bench/"><code>../labs/hello-bench/</code></a>。</p>
+<div class="pager"><a href="lesson04.html">← 第 4 课 · τ³-bench</a><a href="toc.html#w1">目录 →</a></div>
 </article></div></div>
 <footer><div class="wrap">
 <span>Week 01 · Benchmark Archaeology</span>

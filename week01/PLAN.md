@@ -35,7 +35,7 @@
 | **2** | ⭐ Terminal-Bench + Harbor | task / environment / agent / verifier 到底**怎么接起来**? | [`lesson02.md`](lesson02.md) ✅ |
 | **3** | ⭐ SWE-bench | dataset、agent runner、evaluation harness **为什么是三件事**? | `lesson03-swe-bench.md` ⏳ |
 | **4** | ⭐ τ³-bench | user simulator、mutable state、tools、grader **如何工作**? | `lesson04-tau3-bench.md` ⏳ |
-| **5** | OSWorld / WebArena | GUI/browser environment 如何 **reset 和验证**? | `lesson05-osworld-webarena.md` ⏳ |
+| **5** | OSWorld / WebArena | GUI/browser environment 如何 **reset 和验证**? | [`lesson05-osworld-webarena.md`](lesson05-osworld-webarena.md) ✅ |
 | **6** | **Build a tiny benchmark** | 自己做一个**能真正运行**的 benchmark | `lesson06-build-your-own.md` ⏳ |
 
 ---

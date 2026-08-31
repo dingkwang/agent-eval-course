@@ -406,5 +406,4 @@ pass^k    随机抽 k 次,全部成功       —— 悲观,问「能不能交给
 ---
 
 **上一课(Day 3)**:[SWE-bench](lesson03-swe-bench.md)。
-**下一课(Day 5)**:OSWorld · WebArena —— 把**整台电脑**当 environment,以及 verifier
-从「查数据库」变成「查屏幕和文件系统」之后会发生什么。
+**下一课(Day 5)**:[OSWorld · WebArena](lesson05-osworld-webarena.md) —— 把**整台电脑**当 environment;尺子读最终应用/OS 状态,不是截图。

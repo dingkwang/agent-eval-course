@@ -9,7 +9,7 @@
 | **2** | [`lesson02.md`](lesson02.md) | **源码** | **Terminal-Bench 深读**:从 task 定义一路追到 score |
 | **3** | [`lesson03.md`](lesson03.md) | 概念 | 组件级 evaluation 与 trace:任务失败时,**哪一环**失败了? |
 | **4** | [`lesson04.md`](lesson04.md) | 写作 | 为什么 agent 分数不是 model 分数 |
-| **5** | [`lesson05.md`](lesson05.md) | 编码 | 这个分数能不能信?Bernoulli · 标准误 · Wilson CI |
+| **5** | [`lesson05-osworld-webarena.md`](lesson05-osworld-webarena.md) | 源码 | 整机 VM + 键鼠/截图 + getter(状态)+metric(期望) |
 | **6** | [`lesson06.md`](lesson06.md) | 分析 | 三个 agent benchmark 横向解剖 + 怎么 game 它 |
 
 ## 贯穿本周的两个公式
